@@ -1,6 +1,6 @@
 // src/app/topics/[topicId]/[lessonId]/exercise/page.tsx
 import { getExercise } from '@/utils/exercise';
-import { getTopics, getLesson } from '@/utils/mdx';
+import {  getLesson } from '@/utils/mdx';
 import ExerciseForm from '@/components/exercise/ExerciseForm';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
