@@ -2,14 +2,40 @@
 import { getTopics, getLessons } from '@/utils/mdx';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Video, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { BookOpen, Video, ArrowLeft } from 'lucide-react';
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+
+// Generate static paths
+export async function generateStaticParams() {
+  const topics = await getTopics();
+  return topics.map((topic) => ({
+    topicId: topic.id,
+  }));
+}
+
+// Dynamic metadata
+export async function generateMetadata({ params }: { params: { topicId: string } }): Promise<Metadata> {
+  const topics = await getTopics();
+  const topic = topics.find(t => t.id === params.topicId);
+  
+  if (!topic) return notFound();
+
+  return {
+    title: topic.title,
+    description: topic.description
+  };
+}
+
+// Mark page as static
+export const dynamic = 'force-static';
 
 export default async function TopicPage({ params }: { params: { topicId: string } }) {
   const topics = await getTopics();
   const topic = topics.find(t => t.id === params.topicId);
   const lessons = getLessons(params.topicId);
   
-  if (!topic) return null;
+  if (!topic) return notFound();
   
   return (
     <div className="container px-4 py-8">

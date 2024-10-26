@@ -1,19 +1,57 @@
 // src/app/topics/[topicId]/[lessonId]/exercise/page.tsx
 import { getExercise } from '@/utils/exercise';
-import {  getLesson } from '@/utils/mdx';
+import { getTopics, getLessons, getLesson } from '@/utils/mdx';
 import ExerciseForm from '@/components/exercise/ExerciseForm';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+
+// Generate static paths
+export async function generateStaticParams() {
+  const topics = await getTopics();
+  
+  return topics.flatMap((topic) => {
+    const lessons = getLessons(topic.id);
+    return lessons.map((lesson) => ({
+      topicId: topic.id,
+      lessonId: lesson.id
+    }));
+  });
+}
+
+// Dynamic metadata
+export async function generateMetadata({ 
+  params 
+}: { 
+  params: { topicId: string; lessonId: string } 
+}): Promise<Metadata> {
+  const lesson = await getLesson(params.topicId, params.lessonId);
+  
+  if (!lesson) return notFound();
+
+  return {
+    title: `تمارين: ${lesson.title}`,
+    description: `تمارين تفاعلية للدرس: ${lesson.title}`
+  };
+}
+
+// Mark as static
+export const dynamic = 'force-static';
 
 interface ExercisePageProps {
-  params: { topicId: string; lessonId: string }
+  params: { 
+    topicId: string; 
+    lessonId: string;
+  }
 }
 
 export default async function ExercisePage({ params }: ExercisePageProps) {
   const exercise = await getExercise(params.topicId, params.lessonId);
   const lesson = await getLesson(params.topicId, params.lessonId);
   
-  if (!exercise || !lesson) return null;
+  // Show 404 if either lesson or exercise is missing
+  if (!exercise || !lesson) return notFound();
   
   return (
     <div className="min-h-screen pb-16">
@@ -39,3 +77,6 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
     </div>
   );
 }
+
+// Add ISR revalidation if needed
+// export const revalidate = 3600; // Revalidate every hour

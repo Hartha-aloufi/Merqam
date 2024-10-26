@@ -5,10 +5,16 @@ import { Button } from '@/components/ui/button';
 import { BookOpen, GraduationCap, Users, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+// Mark as static
+export const dynamic = 'force-static';
+// Optional: Add revalidation period
+// export const revalidate = 3600; // Revalidate every hour
+
+
 export default async function HomePage() {
   const topics = await getTopics();
   const totalLessons = topics.reduce((acc, topic) => acc + topic.lessons.length, 0);
-
+  
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}

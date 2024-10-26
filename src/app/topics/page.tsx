@@ -2,6 +2,16 @@
 import { getTopics } from '@/utils/mdx';
 import { BookOpen, GraduationCap } from 'lucide-react';
 import Link from 'next/link';
+import { Metadata } from 'next';
+
+// Static metadata
+export const metadata: Metadata = {
+  title: 'المواضيع التعليمية',
+  description: 'استكشف مجموعة متنوعة من المواضيع التعليمية'
+};
+
+// Mark page as static
+export const dynamic = 'force-static';
 
 export default async function TopicsPage() {
   const topics = await getTopics();
@@ -19,7 +29,6 @@ export default async function TopicsPage() {
         {topics.map((topic) => (
           <Link key={topic.id} href={`/topics/${topic.id}`}>
             <div className="group relative overflow-hidden rounded-lg border bg-background p-6 hover:shadow-md transition-all duration-200">
-              {/* Decorative Elements */}
               <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full -z-10 transition-transform duration-200 group-hover:scale-150" />
               <div className="absolute bottom-0 left-0 w-16 h-16 bg-primary/5 rounded-tr-full -z-10 transition-transform duration-200 group-hover:scale-150" />
               

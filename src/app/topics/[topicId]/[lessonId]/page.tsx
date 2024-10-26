@@ -1,25 +1,70 @@
-// src/app/topics/[topicId]/[lessonId]/page.tsx
-import { getLesson } from '@/utils/mdx';
+import { getTopics, getLesson, getLessons } from '@/utils/mdx';
 import LessonContent from '@/components/lessons/LessonContent';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { BookOpen, Video, Clock } from 'lucide-react';
 import { calculateReadingTime } from '@/lib/utils';
 import { YouTubeMusicPlayer } from '@/components/lessons/YouTubeMusicPlayer';
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+
+// Mark as static
+export const dynamic = 'force-static';
+
+// Generate static paths at build time
+export async function generateStaticParams() {
+  try {
+    const topics = await getTopics();
+    const paths: { topicId: string; lessonId: string }[] = [];
+
+    for (const topic of topics) {
+      const lessons = getLessons(topic.id);
+      lessons.forEach((lesson) => {
+        paths.push({
+          topicId: topic.id,
+          lessonId: lesson.id,
+        });
+      });
+    }
+
+    return paths;
+  } catch (error) {
+    console.error('Error generating static paths:', error);
+    return [];
+  }
+}
+
+// Generate metadata
+export async function generateMetadata({ 
+  params 
+}: { 
+  params: { topicId: string; lessonId: string } 
+}): Promise<Metadata> {
+  const lesson = await getLesson(params.topicId, params.lessonId);
+  
+  if (!lesson) return {
+    title: 'Lesson Not Found',
+    description: 'The requested lesson could not be found'
+  };
+
+  return {
+    title: lesson.title,
+    description: `درس تفاعلي: ${lesson.title}`
+  };
+}
 
 export default async function LessonPage({
   params
 }: {
   params: { topicId: string; lessonId: string }
 }) {
-  const lesson = await getLesson(params.topicId, params.lessonId);
-  if (!lesson) return null;
+    const lesson = await getLesson(params.topicId, params.lessonId);
+  if (!lesson) return notFound();
 
   const readingTime = calculateReadingTime(lesson.content);
 
   return (
     <>
-
       <div className="max-w-3xl mx-auto px-4 py-8 pb-24">
         {/* Lesson Header */}
         <div className="mb-8">
