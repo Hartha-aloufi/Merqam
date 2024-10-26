@@ -1,82 +1,77 @@
 // src/app/topics/[topicId]/[lessonId]/page.tsx
-import { getTopics, getLesson } from '@/utils/mdx';
+import { getLesson } from '@/utils/mdx';
 import LessonContent from '@/components/lessons/LessonContent';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ExternalLink, ChevronRight, BookOpen } from 'lucide-react';
+import { BookOpen, Video, Clock } from 'lucide-react';
+import { calculateReadingTime } from '@/lib/utils';
+import { YouTubeMusicPlayer } from '@/components/lessons/YouTubeMusicPlayer';
 
-interface LessonPageProps {
-    params: { topicId: string; lessonId: string }
-}
+export default async function LessonPage({
+  params
+}: {
+  params: { topicId: string; lessonId: string }
+}) {
+  const lesson = await getLesson(params.topicId, params.lessonId);
+  if (!lesson) return null;
 
-export const generateStaticParams = async () => {
-    const topics = await getTopics();
-    const paths = topics.flatMap(topic =>
-        topic.lessons.map(lesson => ({
-            topicId: topic.id,
-            lessonId: lesson.id,
-        }))
-    );
-    return paths;
-};
+  const readingTime = calculateReadingTime(lesson.content);
 
-export default async function LessonPage({ params }: LessonPageProps) {
-    const lesson = getLesson(params.topicId, params.lessonId);
-    const topics = await getTopics();
-    const currentTopic = topics.find(t => t.id === params.topicId);
+  return (
+    <>
 
-    if (!lesson || !currentTopic) return null;
+      <div className="max-w-3xl mx-auto px-4 py-8 pb-24">
+        {/* Lesson Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-4">{lesson.title}</h1>
 
-    return (
-        <div className="min-h-screen pb-16">
-            <div className="max-w-[800px] mx-auto px-4 sm:px-6">
-                {/* Breadcrumb */}
-                <div className="mb-8 flex items-center text-sm text-muted-foreground">
-                    <Link href="/topics" className="hover:text-foreground">
-                        المواضيع
-                    </Link>
-                    <ChevronRight className="mx-2 h-4 w-4" />
-                    <Link href={`/topics/${params.topicId}`} className="hover:text-foreground">
-                        {currentTopic.title}
-                    </Link>
-                </div>
-
-                {/* Title Section */}
-                <div className="mb-8 text-center">
-                    <h1 className="text-3xl font-bold tracking-tight mb-4">
-                        {lesson.title}
-                    </h1>
-                    {lesson.youtubeUrl && (
-                        <Link
-                            href={lesson.youtubeUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex"
-                        >
-                            <Button variant="outline" className="gap-2">
-                                شاهد الفيديو التعليمي
-                                <ExternalLink className="h-4 w-4" />
-                            </Button>
-
-                        </Link>
-                    )}
-
-                    <Link
-                        href={`/topics/${params.topicId}/${params.lessonId}/exercise`}
-                        className="inline-flex mr-4"
-                    >
-                        <Button variant="secondary" className="gap-2">
-                            حل التمارين
-                            <BookOpen className="h-4 w-4" />
-                        </Button>
-                    </Link>
-                </div>
-
-                {/* Content Section */}
-                <div className="mx-auto prose-lg">
-                    <LessonContent content={lesson.content} />
-                </div>
+          {/* Lesson Meta Info */}
+          <div className="flex flex-wrap items-center gap-4 text-muted-foreground mb-6">
+            <div className="flex items-center gap-1">
+              <Clock className="h-4 w-4" />
+              <span>{readingTime} دقائق للقراءة</span>
             </div>
+
+            {lesson.youtubeUrl && (
+              <div className="flex items-center gap-1">
+                <Video className="h-4 w-4" />
+                <span>تفريغ مقطع مرئي</span>
+              </div>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-3">
+            {lesson.youtubeUrl && (
+              <Link
+                href={lesson.youtubeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button variant="outline" className="gap-2">
+                  <Video className="h-4 w-4" />
+                  شاهد المقطع المرئي
+                </Button>
+              </Link>
+            )}
+            <Link href={`/topics/${params.topicId}/${params.lessonId}/exercise`}>
+              <Button variant="secondary" className="gap-2">
+                <BookOpen className="h-4 w-4" />
+                حل التمارين
+              </Button>
+            </Link>
+          </div>
         </div>
-    );
+
+        {/* Lesson Content */}
+        <div className="prose prose-lg dark:prose-invert max-w-none">
+          <LessonContent content={lesson.content} />
+        </div>
+      </div>
+
+      {lesson.youtubeUrl && (
+        <YouTubeMusicPlayer youtubeUrl={lesson.youtubeUrl} />
+      )}
+    </>
+  );
 }

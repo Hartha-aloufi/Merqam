@@ -120,7 +120,7 @@ const components = {
       {...props}
     />
   ),
-  th: ({ className, ...props }) => (
+  th: ({ className, ...props } : React.HTMLAttributes<HTMLTableHeaderCellElement>) => (
     <th
       className={cn(
         "border px-4 py-2 text-right font-bold [&[align=center]]:text-center [&[align=right]]:text-right",
@@ -129,7 +129,7 @@ const components = {
       {...props}
     />
   ),
-  td: ({ className, ...props }) => (
+  td: ({ className, ...props } : React.HTMLAttributes<HTMLTableHeaderCellElement>) => (
     <td
       className={cn(
         "border px-4 py-2 text-right [&[align=center]]:text-center [&[align=right]]:text-right",
@@ -138,7 +138,7 @@ const components = {
       {...props}
     />
   ),
-  pre: ({ className, ...props }) => (
+  pre: ({ className, ...props } : React.HTMLAttributes<HTMLPreElement>) => (
     <pre
       className={cn(
         "mb-4 mt-6 overflow-x-auto rounded-lg border bg-black py-4",
@@ -147,7 +147,7 @@ const components = {
       {...props}
     />
   ),
-  code: ({ className, ...props }) => (
+  code: ({ className, ...props } : React.HTMLAttributes<HTMLElement>) => (
     <code
       className={cn(
         "relative rounded border px-[0.3rem] py-[0.2rem] font-mono text-sm",
@@ -156,7 +156,7 @@ const components = {
       {...props}
     />
   ),
-  Alert: ({ title, children, ...props }) => (
+  Alert: ({ title, children, ...props }: {title: string, children: React.ReactNode}) => (
     <Alert {...props}>
       {title && <AlertTitle>{title}</AlertTitle>}
       {children && <AlertDescription>{children}</AlertDescription>}
@@ -169,7 +169,7 @@ const options = {
     remarkPlugins: [remarkGfm],
     rehypePlugins: [
       rehypeSlug,
-      [rehypeHighlight, { ignoreMissing: true }],
+      [rehypeHighlight, [{ ignoreMissing: true }]],
     ],
   },
 };

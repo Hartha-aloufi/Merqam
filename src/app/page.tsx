@@ -2,38 +2,31 @@
 import Link from 'next/link';
 import { getTopics } from '@/utils/mdx';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { BookOpen, Bookmark, GraduationCap } from 'lucide-react';
+import { BookOpen, GraduationCap, Users, ArrowLeft } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default async function HomePage() {
   const topics = await getTopics();
   const totalLessons = topics.reduce((acc, topic) => acc + topic.lessons.length, 0);
 
   return (
-    <div className="min-h-screen">
+    <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
-      <section className="py-12 md:py-24 lg:py-32 space-y-8">
-        <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center space-y-4 text-center">
-            <div className="space-y-2">
-              <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl">
-                Welcome to EduPlatform
-              </h1>
-              <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400">
-                Explore our interactive lessons and enhance your learning journey with video tutorials and comprehensive content.
-              </p>
-            </div>
-            <div className="space-x-4">
+      <section className="relative py-20 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent" />
+        <div className="container px-4 mx-auto relative">
+          <div className="max-w-3xl mx-auto text-center">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              منصة التعليم التفاعلية
+            </h1>
+            <p className="text-lg md:text-xl text-muted-foreground mb-8">
+              تعلم بطريقة مميزة مع دروس تفاعلية وتمارين عملية
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/topics">
-                <Button size="lg" className="gap-2">
-                  <BookOpen className="h-4 w-4" />
-                  Start Learning
+                <Button size="lg" className="w-full sm:w-auto">
+                  <BookOpen className="ml-2 h-5 w-5" />
+                  ابدأ التعلم
                 </Button>
               </Link>
             </div>
@@ -42,58 +35,65 @@ export default async function HomePage() {
       </section>
 
       {/* Stats Section */}
-      <section className="container px-4 md:px-6 py-12">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <Card>
-            <CardHeader className="flex flex-row items-center gap-4">
-              <BookOpen className="h-8 w-8" />
-              <div className="grid gap-1">
-                <CardTitle>{topics.length}</CardTitle>
-                <CardDescription>Total Topics</CardDescription>
+      <section className="py-16 bg-muted/50">
+        <div className="container px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              { icon: BookOpen, label: 'المواضيع المتوفرة', value: topics.length },
+              { icon: GraduationCap, label: 'الدروس التعليمية', value: totalLessons },
+              { icon: Users, label: 'الطلاب النشطين', value: '500+' },
+            ].map((stat, index) => (
+              <div key={index} className="relative group">
+                <div className="bg-background rounded-lg p-6 shadow-sm transition-all duration-200 hover:shadow-md">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 rounded-full bg-primary/10 text-primary">
+                      <stat.icon className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <div className="text-3xl font-bold">{stat.value}</div>
+                      <div className="text-muted-foreground">{stat.label}</div>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </CardHeader>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center gap-4">
-              <Bookmark className="h-8 w-8" />
-              <div className="grid gap-1">
-                <CardTitle>{totalLessons}</CardTitle>
-                <CardDescription>Available Lessons</CardDescription>
-              </div>
-            </CardHeader>
-          </Card>
-          <Card className="md:col-span-2 lg:col-span-1">
-            <CardHeader className="flex flex-row items-center gap-4">
-              <GraduationCap className="h-8 w-8" />
-              <div className="grid gap-1">
-                <CardTitle>Featured Topics</CardTitle>
-                <CardDescription>Start with our best content</CardDescription>
-              </div>
-            </CardHeader>
-          </Card>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Featured Topics Section */}
-      <section className="container px-4 md:px-6 py-12">
-        <h2 className="text-2xl font-bold tracking-tight mb-8">Featured Topics</h2>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {topics.slice(0, 3).map((topic) => (
-            <Card key={topic.id} className="flex flex-col">
-              <CardHeader>
-                <CardTitle>{topic.title}</CardTitle>
-                <CardDescription>{topic.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="mt-auto">
-                <Link href={`/topics/${topic.id}`}>
-                  <Button className="w-full gap-2">
-                    <BookOpen className="h-4 w-4" />
-                    View Lessons ({topic.lessons.length})
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-          ))}
+      {/* Featured Topics */}
+      <section className="py-16">
+        <div className="container px-4">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-3xl font-bold">المواضيع المميزة</h2>
+            <Link href="/topics">
+              <Button variant="ghost" className="group">
+                جميع المواضيع
+                <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
+              </Button>
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {topics.slice(0, 3).map((topic, index) => (
+              <Link key={topic.id} href={`/topics/${topic.id}`}>
+                <div className="group relative overflow-hidden rounded-lg border bg-background p-6 hover:shadow-md transition-all duration-200">
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-primary/10 rounded-bl-full -z-10 transition-all duration-200 group-hover:scale-150" />
+                  <div className="flex flex-col h-full">
+                    <h3 className="text-xl font-semibold mb-2">{topic.title}</h3>
+                    <p className="text-muted-foreground mb-4 flex-grow">{topic.description}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">
+                        {topic.lessons.length} دروس
+                      </span>
+                      <Button variant="ghost" size="sm" className="group-hover:translate-x-1 transition-transform">
+                        ابدأ الآن
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
     </div>
