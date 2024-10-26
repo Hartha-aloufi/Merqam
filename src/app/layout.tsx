@@ -4,6 +4,7 @@ import { ThemeProvider } from '@/components/providers/theme-provider';
 import Layout from '@/components/layout/Layout';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Metadata } from 'next';
+import { Analytics } from '@vercel/analytics/react';
 
 const tajawal = Tajawal({
   subsets: ['arabic'],
@@ -38,6 +39,8 @@ export default function RootLayout({
             <Layout>{children}</Layout>
           </TooltipProvider>
         </ThemeProvider>
+
+        <Analytics />
       </body>
     </html>
   );
