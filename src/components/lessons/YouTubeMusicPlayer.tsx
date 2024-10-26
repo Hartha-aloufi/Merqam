@@ -21,10 +21,14 @@ import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
+import { debounce } from 'lodash';
 
 interface YouTubeMusicPlayerProps {
   youtubeUrl: string;
 }
+
+const isVideoPlaying = video => !!(video.currentTime > 0 && !video.paused && !video.ended && video.readyState > 2);
+
 
 export function YouTubeMusicPlayer({ youtubeUrl }: YouTubeMusicPlayerProps) {
 const [player, setPlayer] = useState<any>(null);
@@ -36,6 +40,7 @@ const [player, setPlayer] = useState<any>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const progressInterval = useRef<NodeJS.Timeout>();
+  const [isSkipping, setIsSkipping] = useState(false);
 
   // Extract video ID from URL
   const videoId = youtubeUrl.split('v=')[1]?.split('&')[0];
@@ -93,17 +98,33 @@ const [player, setPlayer] = useState<any>(null);
     }
   }, [player, duration]);
 
-  const skipForward = useCallback(() => {
-    if (player) {
-      player.seekTo(currentTime + 10, true);
+  const debouncedSeek = useCallback(
+    debounce((time: number) => {
+      if (player) {
+        player.seekTo(time, true);
+        setIsSkipping(false);
+      }
+    }, 300),
+    [player]
+  );
+
+  const handleSkip = useCallback((skipTime: number) => {
+    if (player && !isSkipping) {
+      setIsSkipping(true);
+      const currentTime = player.getCurrentTime();
+      const newTime = Math.max(0, Math.min(currentTime + skipTime, duration));
+      setCurrentTime(newTime);
+      debouncedSeek(newTime);
     }
-  }, [player, currentTime]);
+  }, [duration, isSkipping, debouncedSeek, player]);
+
+  const skipForward = useCallback(() => {
+    handleSkip(10);
+  }, [handleSkip]);
 
   const skipBackward = useCallback(() => {
-    if (player) {
-      player.seekTo(currentTime - 10, true);
-    }
-  }, [player, currentTime]);
+    handleSkip(-10);
+  }, [handleSkip]);
 
 
   // Player event handlers
@@ -134,7 +155,7 @@ const [player, setPlayer] = useState<any>(null);
   // Cleanup
   useEffect(() => {
     return () => {
-      if (player) {
+      if (player && isVideoPlaying(player)) {
         player.stopVideo();
       }
       if (progressInterval.current) {
@@ -197,12 +218,12 @@ return (
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={skipBackward}
+                        onClick={skipForward}
                       >
                         <SkipForward className="h-4 w-4" /> {/* Using SkipForward for RTL */}
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>رجوع 10 ثوان</TooltipContent>
+                    <TooltipContent>تقديم 10 ثوان</TooltipContent>
                   </Tooltip>
 
                   <Button
@@ -223,12 +244,12 @@ return (
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={skipForward}
+                        onClick={skipBackward}
                       >
                         <SkipBack className="h-4 w-4" /> {/* Using SkipBack for RTL */}
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent>تقدم 10 ثوان</TooltipContent>
+                    <TooltipContent>رجوع 10 ثوان</TooltipContent>
                   </Tooltip>
                 </div>
 
