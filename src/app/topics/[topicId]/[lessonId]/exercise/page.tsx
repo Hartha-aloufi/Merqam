@@ -28,10 +28,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const lesson = await getLesson(params.topicId, params.lessonId);
   
-  if (!lesson) return notFound();
+if (!lesson) return {
+    title: 'التمارين غير موجودة | مِرْقَم',
+  };
 
   return {
-    title: `تمارين: ${lesson.title}`,
+    title: `تمارين ${lesson.title} | مِرْقَم`,
     description: `تمارين تفاعلية للدرس: ${lesson.title}`
   };
 }

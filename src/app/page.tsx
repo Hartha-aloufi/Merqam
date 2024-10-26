@@ -14,7 +14,7 @@ export const dynamic = 'force-static';
 export default async function HomePage() {
   const topics = await getTopics();
   const totalLessons = topics.reduce((acc, topic) => acc + topic.lessons.length, 0);
-  
+
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
@@ -23,7 +23,7 @@ export default async function HomePage() {
         <div className="container px-4 mx-auto relative">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-              منصة التعليم التفاعلية
+              مِرْقَم
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground mb-8">
               تعلم بطريقة مميزة مع دروس تفاعلية وتمارين عملية
