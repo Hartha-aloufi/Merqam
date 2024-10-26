@@ -2,6 +2,7 @@ import { Tajawal } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import Layout from '@/components/layout/Layout';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 const tajawal = Tajawal({
   subsets: ['arabic'],
@@ -17,7 +18,9 @@ export default function RootLayout({
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <body className={tajawal.className}>
         <ThemeProvider>
-          <Layout>{children}</Layout>
+          <TooltipProvider delayDuration={300}>
+            <Layout>{children}</Layout>
+          </TooltipProvider>
         </ThemeProvider>
       </body>
     </html>
