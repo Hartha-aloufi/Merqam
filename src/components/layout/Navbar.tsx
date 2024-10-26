@@ -14,7 +14,7 @@ const Navbar = () => {
           <div className="relative h-8 w-8">
             <Image
               src="/logo.webp"
-              alt="منصة التعليم"
+              alt="مِرْقَم"
               fill
               sizes="32px"
               className="object-contain"
@@ -22,7 +22,7 @@ const Navbar = () => {
             />
           </div>
           <span className="text-xl font-bold hidden sm:inline-block">
-            منصة التعليم
+            مِرْقَم 
           </span>
         </Link>
 

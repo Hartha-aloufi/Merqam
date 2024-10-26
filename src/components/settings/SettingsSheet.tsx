@@ -89,7 +89,7 @@ export function SettingsSheet() {
       </SheetTrigger>
       <SheetContent side="left" className="w-80">
         <SheetHeader className="pb-6">
-          <SheetTitle>تخصيص المظهر</SheetTitle>
+        <SheetTitle>إعدادات المِرْقَم</SheetTitle>
         </SheetHeader>
         
         <div className="space-y-8">

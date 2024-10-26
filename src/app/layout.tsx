@@ -15,8 +15,8 @@ const tajawal = Tajawal({
 
 // Static metadata
 export const metadata: Metadata = {
-  title: 'منصة التعليم التفاعلية',
-  description: 'تعلم بطريقة مميزة مع دروس تفاعلية وتمارين عملية',
+  title: 'مِرْقَم - تفريغ لمرئيات علمية نافعة',
+  description: 'مِرْقَم - منصة لتسهيل العلم لمن يفضل القراءة على المشاهدة',
   icons: {
     icon: [
       {
@@ -48,15 +48,41 @@ export const metadata: Metadata = {
       },
     ],
   },
-  manifest: '/site.webmanifest',
+  manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'منصة التعليم',
+    title: 'تفريغ لمرئيات علمية نافعة',
+  },
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
   },
   formatDetection: {
     telephone: false,
   },
+  openGraph: {
+    type: 'website',
+    locale: 'ar_SA',
+    url: 'https://your-domain.com',
+    title: 'مِرْقَم - تفريغ لمرئيات علمية نافعة',
+    description: 'منصة تعليمية تفاعلية للرياضيات والعلوم',
+    siteName: 'مِرْقَم',
+    images: [{
+      url: '/logo.webp',
+      width: 512,
+      height: 512,
+      alt: 'مِرْقَم'
+    }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'مِرْقَم - منصة تعليمية تفاعلية',
+    description: 'مِرْقَم - منصة لتسهيل العلم لمن يفضل القراءة على المشاهدة',
+    images: ['/logo.webp'],
+  }
 };
 
 
@@ -70,6 +96,14 @@ export default function RootLayout({
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#ffffff" />
+        <meta name="application-name" content="مِرْقَم" />
+        <meta name="apple-mobile-web-app-title" content="مِرْقَم" />
+
+      <meta name="apple-mobile-web-app-capable" content="yes" />
+      <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+      <meta name="mobile-web-app-capable" content="yes" />
+      <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+      <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#5bbad5" />
       </head>
       <body className={tajawal.className}>
         <ThemeProvider defaultTheme="light" attribute="data-theme">

@@ -19,10 +19,12 @@ export async function generateMetadata({ params }: { params: { topicId: string }
   const topics = await getTopics();
   const topic = topics.find(t => t.id === params.topicId);
   
-  if (!topic) return notFound();
+   if (!topic) return {
+    title: 'الموضوع غير موجود | مِرْقَم',
+  };
 
   return {
-    title: topic.title,
+    title: `${topic.title} | مِرْقَم`,
     description: topic.description
   };
 }

@@ -6,8 +6,8 @@ import { Metadata } from 'next';
 
 // Static metadata
 export const metadata: Metadata = {
-  title: 'المواضيع التعليمية',
-  description: 'استكشف مجموعة متنوعة من المواضيع التعليمية'
+  title: 'المواضيع التعليمية | مِرْقَم',
+  description: 'اختر الموضوع الذي تريد تعلمه وابدأ رحلة التعلم مع مِرْقَم'
 };
 
 // Mark page as static

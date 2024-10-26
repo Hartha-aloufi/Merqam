@@ -43,12 +43,11 @@ export async function generateMetadata({
   const lesson = await getLesson(params.topicId, params.lessonId);
   
   if (!lesson) return {
-    title: 'Lesson Not Found',
-    description: 'The requested lesson could not be found'
+    title: 'الدرس غير موجود | مِرْقَم',
   };
 
   return {
-    title: lesson.title,
+    title: `${lesson.title} | مِرْقَم`,
     description: `درس تفاعلي: ${lesson.title}`
   };
 }

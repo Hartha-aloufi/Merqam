@@ -1,6 +1,10 @@
 {
-  "name": "MyWebSite",
-  "short_name": "مرقم",
+  "name": "مِرْقَم",
+  "short_name": "مِرْقَم",
+  "description": "تفريغ لمرئيات علمية نافعة",
+  "orientation": "portrait",
+  "scope": "/",
+  "start_url": "/",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
