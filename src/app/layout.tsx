@@ -11,16 +11,54 @@ const tajawal = Tajawal({
   weight: ['200', '300', '400', '500', '700', '800', '900'],
 });
 
+
+
 // Static metadata
 export const metadata: Metadata = {
   title: 'منصة التعليم التفاعلية',
   description: 'تعلم بطريقة مميزة مع دروس تفاعلية وتمارين عملية',
-  keywords: ['تعليم', 'دروس', 'تفاعلي', 'رياضيات'],
-  manifest: '/manifest.json',
   icons: {
-    icon: '/favicon.ico',
-  }
+    icon: [
+      {
+        url: '/favicon.ico',
+        sizes: 'any',
+      },
+      {
+        url: '/favicon-16x16.png',
+        sizes: '16x16',
+        type: 'image/png',
+      },
+      {
+        url: '/favicon-32x32.png',
+        sizes: '32x32',
+        type: 'image/png',
+      },
+    ],
+    apple: [
+      {
+        url: '/apple-touch-icon.png',
+        sizes: '180x180',
+        type: 'image/png',
+      },
+    ],
+    other: [
+      {
+        rel: 'mask-icon',
+        url: '/safari-pinned-tab.svg',
+      },
+    ],
+  },
+  manifest: '/site.webmanifest',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'منصة التعليم',
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
+
 
 export default function RootLayout({
   children,
