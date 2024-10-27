@@ -144,3 +144,10 @@
     @apply shadow-[0_2px_4px_rgba(139,69,19,0.1)];
   }
 }
+
+@layer components {
+  .video-progress-button::before {
+    clip-path: inset(0 calc(100% - var(--progress)) 0 0);
+    transition: clip-path 0.2s linear;
+  }
+}

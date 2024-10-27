@@ -10,6 +10,7 @@ import LessonContent from '@/components/lessons/LessonContent';
 import { useKeyboardNavigation } from '@/hooks/use-keyboard-navigation';
 import { ShortcutsToast } from '@/components/reading/ShortcutsToast';
 import { type Lesson } from '@/types';
+import { VideoProvider } from '@/contexts/video-context';
 
 interface LessonContainerProps {
   lesson: Lesson;
@@ -21,13 +22,13 @@ interface LessonContainerProps {
 /**
  * Client-side container component for lesson content and interactive features
  */
-export function LessonContainer({ 
-  lesson, 
-  topicId, 
-  lessonId, 
-  readingTime 
+export function LessonContainer({
+  lesson,
+  topicId,
+  lessonId,
+  readingTime
 }: LessonContainerProps) {
-   // Enable keyboard navigation
+  // Enable keyboard navigation
   useKeyboardNavigation({
     scrollTargets: '.prose h1, .prose h2, .prose h3, .prose p',
     scrollStep: 100,
@@ -35,7 +36,7 @@ export function LessonContainer({
   });
 
   return (
-    <>
+    <VideoProvider>
       <ReadingProgressBar />
       <div className="max-w-3xl mx-auto px-4 py-8 pb-24">
         {/* Lesson Header */}
@@ -91,6 +92,7 @@ export function LessonContainer({
       )}
 
       <ShortcutsToast />
-    </>
+    </VideoProvider>
+
   );
 }
