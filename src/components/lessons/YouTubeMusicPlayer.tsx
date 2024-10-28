@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
 import { debounce } from 'lodash';
+import { useVideoContext } from '@/contexts/video-context';
 
 interface YouTubeMusicPlayerProps {
   youtubeUrl: string;
@@ -41,6 +42,9 @@ const [player, setPlayer] = useState<any>(null);
   const [duration, setDuration] = useState(0);
   const progressInterval = useRef<NodeJS.Timeout>();
   const [isSkipping, setIsSkipping] = useState(false);
+
+  const videoContext = useVideoContext();
+
 
   // Extract video ID from URL
   const videoId = youtubeUrl.split('v=')[1]?.split('&')[0];
@@ -129,6 +133,8 @@ const [player, setPlayer] = useState<any>(null);
 
   // Player event handlers
   const onReady = (event: any) => {
+    videoContext.setPlayer(event.target);
+
     setPlayer(event.target);
     setDuration(event.target.getDuration());
   };
