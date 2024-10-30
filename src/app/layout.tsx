@@ -5,6 +5,7 @@ import Layout from '@/components/layout/Layout';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Metadata } from 'next';
 import { Analytics } from '@vercel/analytics/react';
+import { AuthProvider } from '@/components/providers/auth-provider';
 
 const tajawal = Tajawal({
   subsets: ['arabic'],
@@ -99,19 +100,20 @@ export default function RootLayout({
         <meta name="application-name" content="مِرْقَم" />
         <meta name="apple-mobile-web-app-title" content="مِرْقَم" />
 
-      <meta name="apple-mobile-web-app-capable" content="yes" />
-      <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-      <meta name="mobile-web-app-capable" content="yes" />
-      <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-      <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#5bbad5" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+        <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#5bbad5" />
       </head>
       <body className={tajawal.className}>
-        <ThemeProvider defaultTheme="light" attribute="data-theme">
-          <TooltipProvider delayDuration={300}>
-            <Layout>{children}</Layout>
-          </TooltipProvider>
-        </ThemeProvider>
-
+        <AuthProvider>
+          <ThemeProvider defaultTheme="light" attribute="data-theme">
+            <TooltipProvider delayDuration={300}>
+              <Layout>{children}</Layout>
+            </TooltipProvider>
+          </ThemeProvider>
+        </AuthProvider>
         <Analytics />
       </body>
     </html>
