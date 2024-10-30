@@ -5,7 +5,7 @@ import Layout from '@/components/layout/Layout';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Metadata } from 'next';
 import { Analytics } from '@vercel/analytics/react';
-import { AuthProvider } from '@/components/providers/auth-provider';
+import { AuthProvider } from '@/contexts/auth-context';
 
 const tajawal = Tajawal({
   subsets: ['arabic'],

@@ -1,9 +1,10 @@
-import { Metadata } from "next"
-import { AuthForm } from "@/components/auth/auth-form"
+// src/app/auth/signin/page.tsx
+import { Metadata } from 'next'
+import { LoginForm } from '@/components/auth/login-form'
 
 export const metadata: Metadata = {
-  title: "تسجيل الدخول | مِرْقَم",
-  description: "سجل دخولك إلى منصة مِرْقَم"
+  title: 'تسجيل الدخول | مِرْقَم',
+  description: 'سجل دخولك إلى منصة مِرْقَم'
 }
 
 export default function SignInPage() {
@@ -15,7 +16,7 @@ export default function SignInPage() {
           سجل دخولك للوصول إلى محتوى المنصة
         </p>
       </div>
-      <AuthForm />
+      <LoginForm />
     </div>
   )
 }
