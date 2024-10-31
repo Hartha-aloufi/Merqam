@@ -4,6 +4,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
 
 interface AuthState {
   user: User | null
@@ -22,6 +23,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user: null,
     isLoading: true,
   })
+  const router = useRouter()
 
   useEffect(() => {
     // Get initial session
@@ -36,15 +38,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       setState(prev => ({
         ...prev,
         user: session?.user ?? null,
       }))
+
+      if (event === 'SIGNED_OUT') {
+        // Clear any local storage items you might have set
+        localStorage.removeItem('supabase.auth.token')
+        // Refresh router to update client state
+        router.refresh()
+      }
     })
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [router])
 
   const signInWithGoogle = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
@@ -61,10 +70,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut()
-    if (error) throw error
-    // Optionally redirect after signout
-    window.location.href = '/'
+    try {
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+      
+      // Clear auth state
+      setState(prev => ({
+        ...prev,
+        user: null,
+      }))
+
+      // Just refresh the router to update client state
+      router.refresh()
+    } catch (error) {
+      console.error('Error signing out:', error)
+      throw error
+    }
   }
 
   return (

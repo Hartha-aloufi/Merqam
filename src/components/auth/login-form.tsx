@@ -1,8 +1,7 @@
-
 // src/components/auth/login-form.tsx
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -12,20 +11,28 @@ import {
 } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useAuth } from '@/contexts/auth-context'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const { signInWithGoogle } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const returnUrl = searchParams.get('returnUrl')
+
+  useEffect(() => {
+    // Store returnUrl in localStorage before redirect
+    if (returnUrl) {
+      localStorage.setItem('authReturnUrl', returnUrl)
+    }
+  }, [returnUrl])
 
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true)
       setError(null)
       await signInWithGoogle()
-      router.push('/')
     } catch (e) {
       setError('حدث خطأ أثناء تسجيل الدخول')
     } finally {

@@ -1,4 +1,3 @@
-// src/app/auth/callback/page.tsx
 'use client'
 
 import { useEffect } from 'react'
@@ -9,21 +8,28 @@ export default function AuthCallbackPage() {
   const router = useRouter()
 
   useEffect(() => {
-    // Get the hash from the URL
-    const hashParams = new URLSearchParams(window.location.hash.substring(1))
-    const accessToken = hashParams.get('access_token')
-    const refreshToken = hashParams.get('refresh_token')
-
     const handleCallback = async () => {
-      if (accessToken && refreshToken) {
-        const { error } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken
-        })
+      try {
+        // Handle the OAuth callback
+        const hashParams = new URLSearchParams(window.location.hash.substring(1))
+        const accessToken = hashParams.get('access_token')
+        const refreshToken = hashParams.get('refresh_token')
 
-        if (!error) {
-          router.push('/')
+        if (accessToken && refreshToken) {
+          await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          })
+
+          // Get stored return URL or default to home
+          const returnUrl = localStorage.getItem('authReturnUrl') || '/'
+          localStorage.removeItem('authReturnUrl') // Clean up
+          
+          router.push(returnUrl)
         }
+      } catch (error) {
+        console.error('Auth callback error:', error)
+        router.push('/auth/signin') // Redirect to sign in on error
       }
     }
 
