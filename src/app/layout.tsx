@@ -3,8 +3,9 @@ import './globals.css';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import Layout from '@/components/layout/Layout';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { Metadata } from 'next';
+import { Metadata, Viewport } from 'next';
 import { Analytics } from '@vercel/analytics/react';
+import { AuthProvider } from '@/providers/auth-provider';
 
 const tajawal = Tajawal({
   subsets: ['arabic'],
@@ -17,6 +18,7 @@ const tajawal = Tajawal({
 export const metadata: Metadata = {
   title: 'مِرْقَم - تفريغ لمرئيات علمية نافعة',
   description: 'مِرْقَم - منصة لتسهيل العلم لمن يفضل القراءة على المشاهدة',
+  metadataBase: new URL('https://edu-temp.vercel.app'), // Replace with your domain
   icons: {
     icon: [
       {
@@ -85,6 +87,12 @@ export const metadata: Metadata = {
   }
 };
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
 
 export default function RootLayout({
   children,
@@ -99,19 +107,20 @@ export default function RootLayout({
         <meta name="application-name" content="مِرْقَم" />
         <meta name="apple-mobile-web-app-title" content="مِرْقَم" />
 
-      <meta name="apple-mobile-web-app-capable" content="yes" />
-      <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-      <meta name="mobile-web-app-capable" content="yes" />
-      <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-      <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#5bbad5" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+        <link rel="mask-icon" href="/icons/safari-pinned-tab.svg" color="#5bbad5" />
       </head>
       <body className={tajawal.className}>
-        <ThemeProvider defaultTheme="light" attribute="data-theme">
-          <TooltipProvider delayDuration={300}>
-            <Layout>{children}</Layout>
-          </TooltipProvider>
-        </ThemeProvider>
-
+        <AuthProvider>
+          <ThemeProvider defaultTheme="light" attribute="data-theme">
+            <TooltipProvider delayDuration={300}>
+              <Layout>{children}</Layout>
+            </TooltipProvider>
+          </ThemeProvider>
+        </AuthProvider>
         <Analytics />
       </body>
     </html>
