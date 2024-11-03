@@ -1,10 +1,20 @@
 // src/app/auth/signin/page.tsx
-import { Metadata } from 'next'
-import { LoginForm } from '@/components/auth/login-form'
+import { Suspense } from 'react';
+import { Metadata } from 'next';
+import { SignInForm } from '@/components/auth/signin-form';
+import { Loader2 } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'تسجيل الدخول | مِرْقَم',
   description: 'سجل دخولك إلى منصة مِرْقَم'
+};
+
+function LoadingState() {
+  return (
+    <div className="flex items-center justify-center p-4">
+      <Loader2 className="h-6 w-6 animate-spin" />
+    </div>
+  );
 }
 
 export default function SignInPage() {
@@ -16,7 +26,9 @@ export default function SignInPage() {
           سجل دخولك للوصول إلى محتوى المنصة
         </p>
       </div>
-      <LoginForm />
+      <Suspense fallback={<LoadingState />}>
+        <SignInForm />
+      </Suspense>
     </div>
-  )
+  );
 }

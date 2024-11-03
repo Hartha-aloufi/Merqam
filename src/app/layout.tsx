@@ -3,7 +3,7 @@ import './globals.css';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import Layout from '@/components/layout/Layout';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { Metadata } from 'next';
+import { Metadata, Viewport } from 'next';
 import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider } from '@/providers/auth-provider';
 
@@ -18,6 +18,7 @@ const tajawal = Tajawal({
 export const metadata: Metadata = {
   title: 'مِرْقَم - تفريغ لمرئيات علمية نافعة',
   description: 'مِرْقَم - منصة لتسهيل العلم لمن يفضل القراءة على المشاهدة',
+  metadataBase: new URL('https://edu-temp.vercel.app'), // Replace with your domain
   icons: {
     icon: [
       {
@@ -86,6 +87,12 @@ export const metadata: Metadata = {
   }
 };
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
 
 export default function RootLayout({
   children,
