@@ -1,44 +1,13 @@
 // src/components/auth/login-form.tsx
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { useAuth } from '@/contexts/auth-context'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useGoogleLogin } from "@/hooks/use-auth-query";
 
 export function LoginForm() {
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const { signInWithGoogle } = useAuth()
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const returnUrl = searchParams.get('returnUrl')
-
-  useEffect(() => {
-    // Store returnUrl in localStorage before redirect
-    if (returnUrl) {
-      localStorage.setItem('authReturnUrl', returnUrl)
-    }
-  }, [returnUrl])
-
-  const handleGoogleSignIn = async () => {
-    try {
-      setIsLoading(true)
-      setError(null)
-      await signInWithGoogle()
-    } catch (e) {
-      setError('حدث خطأ أثناء تسجيل الدخول')
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  const { mutate: signInWithGoogle, isPending, error } = useGoogleLogin();
 
   return (
     <Card className="w-full">
@@ -48,18 +17,18 @@ export function LoginForm() {
       <CardContent className="space-y-4">
         {error && (
           <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription>حدث خطأ أثناء تسجيل الدخول</AlertDescription>
           </Alert>
         )}
 
         <Button
           variant="outline"
           type="button"
-          disabled={isLoading}
+          disabled={isPending}
           className="w-full"
-          onClick={handleGoogleSignIn}
+          onClick={() => signInWithGoogle()}
         >
-          {isLoading ? (
+          {isPending ? (
             <span className="flex items-center gap-2">
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-r-transparent" />
               جاري التحميل...
@@ -90,5 +59,5 @@ export function LoginForm() {
         </Button>
       </CardContent>
     </Card>
-  )
+  );
 }

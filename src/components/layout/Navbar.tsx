@@ -6,7 +6,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { SettingsSheet } from '../settings/SettingsSheet'
 import ThemeToggle from './ThemeToggle'
-import { useAuth } from '@/contexts/auth-context'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,26 +13,24 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { User, LogOut } from 'lucide-react'
+import { LogOut } from 'lucide-react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { useState } from 'react'
+import { useSession, useLogout } from '@/hooks/use-auth-query'
 import { toast } from 'sonner'
 
 const Navbar = () => {
-  const { user, isLoading, signOut } = useAuth()
-  const [isSigningOut, setIsSigningOut] = useState(false)
+  const { data: session, isLoading } = useSession()
+  const { mutate: logout, isLoading: isLoggingOut } = useLogout()
 
-  const handleSignOut = async () => {
-    try {
-      setIsSigningOut(true)
-      await signOut()
-    } catch (error) {
-      toast.error('حدث خطأ أثناء تسجيل الخروج')
-      console.error('Error signing out:', error)
-    } finally {
-      setIsSigningOut(false)
-    }
+  const handleSignOut = () => {
+    logout(undefined, {
+      onError: () => {
+        toast.error('حدث خطأ أثناء تسجيل الخروج')
+      }
+    })
   }
+
+  const user = session?.data.session?.user
 
   return (
     <nav className="border-b">
@@ -82,9 +79,9 @@ const Navbar = () => {
                     <DropdownMenuItem
                       className="text-red-600 focus:text-red-600"
                       onClick={handleSignOut}
-                      disabled={isSigningOut}
+                      disabled={isLoggingOut}
                     >
-                      {isSigningOut ? (
+                      {isLoggingOut ? (
                         <span className="flex items-center gap-2">
                           <span className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-r-transparent" />
                           جاري تسجيل الخروج...
@@ -113,7 +110,7 @@ const Navbar = () => {
         </div>
       </div>
     </nav>
-  );
-};
+  )
+}
 
-export default Navbar;
+export default Navbar
