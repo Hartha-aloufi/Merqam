@@ -15,9 +15,9 @@ export async function generateStaticParams() {
 }
 
 // Dynamic metadata
-export async function generateMetadata({ params }: { params: { topicId: string } }): Promise<Metadata> {
-  const topics = await getTopics();
-  const topic = topics.find(t => t.id === params.topicId);
+export async function generateMetadata({ params }: { params: Promise<{ topicId: string }> }): Promise<Metadata> {
+  const topics = await getTopics(); 
+  const topic = topics.find(async (t) => t.id === (await params).topicId);
   
    if (!topic) return {
     title: 'الموضوع غير موجود | مِرْقَم',
@@ -32,10 +32,11 @@ export async function generateMetadata({ params }: { params: { topicId: string }
 // Mark page as static
 export const dynamic = 'force-static';
 
-export default async function TopicPage({ params }: { params: { topicId: string } }) {
+export default async function TopicPage({ params }: { params: Promise<{ topicId: string }> }) {
   const topics = await getTopics();
-  const topic = topics.find(t => t.id === params.topicId);
-  const lessons = getLessons(params.topicId);
+  const {topicId} = await params;
+  const topic = topics.find((t) => t.id === topicId);
+  const lessons = getLessons(topicId);
   
   if (!topic) return notFound();
   
@@ -71,7 +72,7 @@ export default async function TopicPage({ params }: { params: { topicId: string 
       <div className="max-w-4xl mx-auto">
         <div className="space-y-4">
           {lessons.map((lesson, index) => (
-            <Link key={lesson.id} href={`/topics/${params.topicId}/${lesson.id}`}>
+            <Link key={lesson.id} href={`/topics/${topicId}/${lesson.id}`}>
               <div className="group relative rounded-lg border bg-background p-6 hover:shadow-md transition-all duration-200">
                 <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-bl-full -z-10 transition-all duration-200 group-hover:scale-150" />
                 

@@ -28,9 +28,10 @@ export async function generateStaticParams() {
 export async function generateMetadata({ 
   params 
 }: { 
-  params: { topicId: string; lessonId: string } 
+  params: Promise<{ topicId: string; lessonId: string }> 
 }): Promise<Metadata> {
-  const lesson = await getLesson(params.topicId, params.lessonId);
+  const { topicId, lessonId } = await params;
+  const lesson = await getLesson(topicId, lessonId);
   
   if (!lesson) return {
     title: 'الدرس غير موجود | مِرْقَم',
@@ -45,9 +46,10 @@ export async function generateMetadata({
 export default async function LessonPage({
   params
 }: {
-  params: { topicId: string; lessonId: string }
+  params: Promise<{ topicId: string; lessonId: string }>
 }) {
-  const lesson = await getLesson(params.topicId, params.lessonId);
+  const { topicId, lessonId } = await params;
+  const lesson = await getLesson(topicId, lessonId);
   if (!lesson) return notFound();
 
   const readingTime = calculateReadingTime(lesson.content);
@@ -55,8 +57,8 @@ export default async function LessonPage({
   return (
     <LessonContainer
       lesson={lesson}
-      topicId={params.topicId}
-      lessonId={params.lessonId}
+      topicId={topicId}
+      lessonId={lessonId}
       readingTime={readingTime}
     />
   );
