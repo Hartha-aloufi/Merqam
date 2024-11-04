@@ -1,6 +1,6 @@
 // src/services/auth.service.ts
 import { supabase } from '@/lib/supabase';
-import { UserResponse } from '@supabase/supabase-js';
+import { User, UserResponse } from '@supabase/supabase-js';
 import { AuthError } from '@supabase/gotrue-js';
 
 interface LoginWithGoogleOptions {
