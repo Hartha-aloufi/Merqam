@@ -82,3 +82,36 @@ export function calculateReadingTime(text: string): number {
   // Return at least 1 minute
   return Math.max(1, readingTime);
 }
+
+const debounce = (fn: Function, delay: number) => {
+  let timeoutId: NodeJS.Timeout;
+  return (...args: any[]) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      fn(...args);
+    }, delay);
+  };
+}
+
+const debouncedSave = debounce((lessonProgressKey: string, progress: Object) => {
+  localStorage.setItem(lessonProgressKey, JSON.stringify(progress));
+}, 7000);
+
+const lessonProgressKey = "lesson-progress";
+
+export const setLessonProgress = (topicId: string, lessonId: string, progressInfo: { paragraphIndex: number, date: string }) => {
+  const data = localStorage.getItem(lessonProgressKey);
+  const progress = data ? JSON.parse(data) : {};
+  const lessonKey = `${topicId}:${lessonId}`;
+  progress[lessonKey] = progressInfo;
+
+  debouncedSave(lessonProgressKey, progress);
+}
+
+export const getLessonProgress = (topicId: string, lessonId: string) => {
+  const data = localStorage.getItem(lessonProgressKey);
+  const progress = data ? JSON.parse(data) : {};
+  const lessonKey = `${topicId}:${lessonId}`;
+
+  return progress[lessonKey];
+}

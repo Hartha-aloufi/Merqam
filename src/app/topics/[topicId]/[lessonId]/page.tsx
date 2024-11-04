@@ -4,6 +4,9 @@ import { getTopics, getLesson } from '@/utils/mdx';
 import { calculateReadingTime } from '@/lib/utils';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
+import { ErrorBoundary } from '@/components/error-boundary';
+
+
 
 // Generate static paths
 export async function generateStaticParams() {
@@ -54,18 +57,20 @@ interface PageProps {
 
 export default async function LessonPage({ params }: PageProps) {
   const { topicId, lessonId } = await params;
-  const lesson = await getLesson(topicId, lessonId);
+  const lessonData = await getLesson(topicId, lessonId);
   
-  if (!lesson) return notFound();
+  if (!lessonData) return notFound();
 
-  const readingTime = calculateReadingTime(lesson.content);
-
+  const readingTime = calculateReadingTime(lessonData.content);
+  
   return (
-    <LessonView
-      lesson={lesson}
-      topicId={topicId}
-      lessonId={lessonId}
-      readingTime={readingTime}
-    />
+    <ErrorBoundary>
+      <LessonView
+        lesson={lessonData}
+        topicId={topicId}
+        lessonId={lessonId}
+        readingTime={readingTime}
+      />
+    </ErrorBoundary>
   );
 }
