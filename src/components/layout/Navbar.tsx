@@ -1,39 +1,39 @@
 // src/components/layout/Navbar.tsx
-'use client'
+"use client";
 
-import { Button } from '@/components/ui/button'
-import Link from 'next/link'
-import Image from 'next/image'
-import { SettingsSheet } from '../settings/SettingsSheet'
-import ThemeToggle from './ThemeToggle'
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import Image from "next/image";
+import { SettingsSheet } from "../settings/SettingsSheet";
+import ThemeToggle from "./ThemeToggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { LogOut } from 'lucide-react'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { useSession, useLogout } from '@/hooks/use-auth-query'
-import { toast } from 'sonner'
+} from "@/components/ui/dropdown-menu";
+import { LogOut } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useSession, useLogout } from "@/hooks/use-auth-query";
+import { toast } from "sonner";
 
 const Navbar = () => {
-  const { data: session, isLoading } = useSession()
-  const { mutate: logout, isLoading: isLoggingOut } = useLogout()
+  const { data: session, isLoading } = useSession();
+  const { mutate: logout, isPending: isLoggingOut } = useLogout();
 
   const handleSignOut = () => {
     logout(undefined, {
       onError: () => {
-        toast.error('حدث خطأ أثناء تسجيل الخروج')
-      }
-    })
-  }
+        toast.error("حدث خطأ أثناء تسجيل الخروج");
+      },
+    });
+  };
 
-  const user = session?.data.session?.user
+  const user = session?.data.session?.user;
 
   return (
-    <nav className="border-b">
+    <nav>
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
           <div className="relative h-8 w-8">
@@ -61,10 +61,13 @@ const Navbar = () => {
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Button
+                      variant="ghost"
+                      className="relative h-8 w-8 rounded-full"
+                    >
                       <Avatar className="h-8 w-8">
                         <AvatarFallback>
-                          {user.email?.[0].toUpperCase() || 'U'}
+                          {user.email?.[0].toUpperCase() || "U"}
                         </AvatarFallback>
                       </Avatar>
                     </Button>
@@ -97,7 +100,9 @@ const Navbar = () => {
                 </DropdownMenu>
               ) : (
                 <Link
-                  href={`/auth/signin?returnUrl=${encodeURIComponent(window.location.pathname)}`}
+                  href={`/auth/signin?returnUrl=${encodeURIComponent(
+                    window.location.pathname
+                  )}`}
                 >
                   <Button>تسجيل الدخول</Button>
                 </Link>
@@ -110,7 +115,7 @@ const Navbar = () => {
         </div>
       </div>
     </nav>
-  )
-}
+  );
+};
 
-export default Navbar
+export default Navbar;

@@ -2,7 +2,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
- 
+@import "../styles/mdx.css";
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -10,106 +11,106 @@
 
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
- 
+
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
- 
+
     --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
- 
+
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
- 
+
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
- 
+
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
- 
+
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
- 
+
     --radius: 0.5rem;
   }
- 
+
   [data-theme="dark"] {
-     --background: 222 47% 11%;   /* Dark blue-gray background */
+    --background: 222 47% 11%; /* Dark blue-gray background */
     --foreground: 210 40% 98%;
- 
+
     --card: 222 47% 11%;
     --card-foreground: 210 40% 98%;
- 
+
     --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
- 
+
     --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
- 
+
     --secondary: 217 32% 17%;
     --secondary-foreground: 210 40% 98%;
- 
+
     --muted: 217 32% 17%;
     --muted-foreground: 215 20.2% 65.1%;
- 
+
     --accent: 217 32% 17%;
     --accent-foreground: 210 40% 98%;
- 
+
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
- 
+
     --border: 217 32% 17%;
     --input: 217 32% 17%;
     --ring: 212.7 26.8% 83.9%;
   }
 
-/* Update prose styles for dark mode */
-[data-theme="dark"] .prose {
-  --tw-prose-body: theme('colors.gray.300');
-  --tw-prose-headings: theme('colors.white');
-  --tw-prose-links: theme('colors.white');
-  --tw-prose-bold: theme('colors.white');
-  --tw-prose-counters: theme('colors.gray.400');
-  --tw-prose-bullets: theme('colors.gray.400');
-  --tw-prose-hr: theme('colors.gray.700');
-  --tw-prose-quotes: theme('colors.gray.300');
-  --tw-prose-quote-borders: theme('colors.gray.700');
-  --tw-prose-captions: theme('colors.gray.400');
-  --tw-prose-code: theme('colors.white');
-  --tw-prose-pre-code: theme('colors.gray.300');
-  --tw-prose-pre-bg: theme('colors.gray.900');
-  --tw-prose-th-borders: theme('colors.gray.700');
-  --tw-prose-td-borders: theme('colors.gray.700');
-}
+  /* Update prose styles for dark mode */
+  [data-theme="dark"] .prose {
+    --tw-prose-body: theme("colors.gray.300");
+    --tw-prose-headings: theme("colors.white");
+    --tw-prose-links: theme("colors.white");
+    --tw-prose-bold: theme("colors.white");
+    --tw-prose-counters: theme("colors.gray.400");
+    --tw-prose-bullets: theme("colors.gray.400");
+    --tw-prose-hr: theme("colors.gray.700");
+    --tw-prose-quotes: theme("colors.gray.300");
+    --tw-prose-quote-borders: theme("colors.gray.700");
+    --tw-prose-captions: theme("colors.gray.400");
+    --tw-prose-code: theme("colors.white");
+    --tw-prose-pre-code: theme("colors.gray.300");
+    --tw-prose-pre-bg: theme("colors.gray.900");
+    --tw-prose-th-borders: theme("colors.gray.700");
+    --tw-prose-td-borders: theme("colors.gray.700");
+  }
 
   [data-theme="sepia"] {
     --background: 45 37% 94%;
     --foreground: 30 40% 6%;
- 
+
     --card: 42 37% 96%;
     --card-foreground: 30 40% 6%;
- 
+
     --popover: 42 37% 96%;
     --popover-foreground: 30 40% 6%;
- 
+
     --primary: 30 40% 6%;
     --primary-foreground: 45 37% 94%;
- 
+
     --secondary: 30 15% 86%;
     --secondary-foreground: 30 40% 6%;
- 
+
     --muted: 30 15% 86%;
     --muted-foreground: 30 10% 40%;
- 
+
     --accent: 30 15% 86%;
     --accent-foreground: 30 40% 6%;
- 
+
     --destructive: 0 85% 60%;
     --destructive-foreground: 45 37% 94%;
- 
+
     --border: 30 30% 70%;
     --input: 30 30% 70%;
     --ring: 30 40% 6%;
@@ -119,7 +120,7 @@
     --link: 25 75% 40%;
   }
 }
- 
+
 @layer base {
   * {
     @apply border-border;

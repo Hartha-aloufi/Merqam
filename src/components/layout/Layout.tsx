@@ -1,5 +1,5 @@
-import { ReactNode } from 'react';
-import Navbar from './Navbar';
+import { ReactNode } from "react";
+import { StickyHeader } from "./StickyHeader";
 
 interface LayoutProps {
   children: ReactNode;
@@ -8,10 +8,8 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   return (
     <div className="min-h-screen bg-background transition-colors duration-300">
-      <Navbar />
-      <main className="container mx-auto px-4 py-8">
-        {children}
-      </main>
+      <StickyHeader />
+      <main className="container mx-auto px-4 py-8">{children}</main>
     </div>
   );
 };
