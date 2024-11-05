@@ -13,8 +13,8 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          last_read_paragraph: number[] | null
-          latest_read_paragraph: number[] | null
+          last_read_paragraph: number | null
+          latest_read_paragraph: number
           lesson_id: string
           topic_id: string
           updated_at: string
@@ -23,8 +23,8 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
-          last_read_paragraph?: number[] | null
-          latest_read_paragraph?: number[] | null
+          last_read_paragraph?: number | null
+          latest_read_paragraph: number
           lesson_id: string
           topic_id: string
           updated_at?: string
@@ -33,8 +33,8 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
-          last_read_paragraph?: number[] | null
-          latest_read_paragraph?: number[] | null
+          last_read_paragraph?: number | null
+          latest_read_paragraph?: number
           lesson_id?: string
           topic_id?: string
           updated_at?: string

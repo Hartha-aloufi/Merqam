@@ -93,10 +93,6 @@ const debounce = (fn: Function, delay: number) => {
   };
 }
 
-const debouncedSave = debounce((lessonProgressKey: string, progress: Object) => {
-  localStorage.setItem(lessonProgressKey, JSON.stringify(progress));
-}, 7000);
-
 const lessonProgressKey = "lesson-progress";
 
 export const setLessonProgress = (topicId: string, lessonId: string, progressInfo: { paragraphIndex: number, date: string }) => {
@@ -105,13 +101,13 @@ export const setLessonProgress = (topicId: string, lessonId: string, progressInf
   const lessonKey = `${topicId}:${lessonId}`;
   progress[lessonKey] = progressInfo;
 
-  debouncedSave(lessonProgressKey, progress);
+  localStorage.setItem(lessonProgressKey, JSON.stringify(progress));
 }
 
-export const getLessonProgress = (topicId: string, lessonId: string) => {
+export const getLessonProgress = (topicId: string, lessonId: string): number => {
   const data = localStorage.getItem(lessonProgressKey);
   const progress = data ? JSON.parse(data) : {};
   const lessonKey = `${topicId}:${lessonId}`;
 
-  return progress[lessonKey];
+  return progress[lessonKey]?.paragraphIndex ?? 0;
 }
