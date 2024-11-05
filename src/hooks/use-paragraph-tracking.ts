@@ -2,11 +2,11 @@
 'use client';
 
 import { useCallback, useRef } from 'react';
-import { getLessonProgress, setLessonProgress } from '@/lib/utils';
-
-
+import { getLatestReadParagraph, useReadingProgressSync } from './use-reading-progress-sync';
 
 export function useParagraphTracking(topicId: string, lessonId: string) {
+    const progress = useReadingProgressSync(topicId, lessonId);
+
     const observerRef = useRef<IntersectionObserver | null>(null);
 
     const handleIntersection = useCallback((entries: IntersectionObserverEntry[]) => {
@@ -15,10 +15,10 @@ export function useParagraphTracking(topicId: string, lessonId: string) {
                 const paragraph = entry.target as HTMLElement;
                 const index = parseInt(paragraph.dataset.paragraphIndex || '0', 10);
 
-                setLessonProgress(topicId, lessonId, { paragraphIndex: index, date: new Date().toISOString() });
+                progress.update(index);
             }
         });
-    }, [topicId, lessonId]);
+    }, [progress]);
 
     const track = useCallback(() => {
         // Initialize intersection observer
@@ -45,24 +45,20 @@ export function useParagraphTracking(topicId: string, lessonId: string) {
         observerRef.current?.disconnect();
     }, [])
 
-    const getLastReadParagraph = useCallback(() => {
-        const progress = getLessonProgress(topicId, lessonId);
-
-        return progress?.paragraphIndex ?? 0;
-    }, [topicId, lessonId]);
 
     const scrollToLastRead = useCallback(() => {
-        const lastIndex = getLastReadParagraph();
-        const element = document.querySelector(`[data-paragraph-index="${lastIndex}"]`);
-        if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'end' });
-        } else {
-            log.error(`Could not find paragraph with index ${lastIndex}`);
-        }
-    }, [getLastReadParagraph]);
+        // get the latest read paragraph index asynchronously
+        getLatestReadParagraph(topicId, lessonId).then(lastIndex => {
+            const element = document.querySelector(`[data-paragraph-index="${lastIndex}"]`);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            } else {
+                console.error(`Could not find paragraph with index ${lastIndex}`);
+            }
+        });
+    }, []);
 
     return {
-        getLastReadParagraph,
         scrollToLastRead,
         track,
         untrack

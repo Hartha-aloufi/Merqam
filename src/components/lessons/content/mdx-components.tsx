@@ -1,12 +1,10 @@
-'use client';
-
 import { VideoTimeAt } from '@/components/video/VideoTimeAt';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { cn } from '@/lib/utils';
 import { TrackedElement } from './tracked-element';
 
 // Define base MDX components with proper types
-export const createMDXComponents = (getNextPIndex: () => number) => {
+export const createMDXComponents = (indexGen: Generator<number>) => {
     return {
 
         h1: ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
@@ -39,7 +37,7 @@ export const createMDXComponents = (getNextPIndex: () => number) => {
         p: ({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
             <TrackedElement
                 as="p"
-                index={getNextPIndex()}
+                index={indexGen.next().value}
                 className={cn(
                     "leading-7 [&:not(:first-child)]:mt-6",
                     className
