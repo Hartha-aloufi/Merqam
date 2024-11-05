@@ -8,6 +8,7 @@ import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation";
 import { useParagraphTracking } from "@/hooks/use-paragraph-tracking";
 import type { Lesson } from "@/types";
 import { LessonHeader } from "./lesson-header";
+import { ReadingProgressBar } from "../reading/ReadingProgressBar";
 
 interface LessonViewProps {
   lesson: Lesson;
@@ -54,6 +55,8 @@ export function LessonView({
   return (
     <VideoProvider>
       <div className="max-w-3xl mx-auto px-4 py-8 pb-24">
+        <ReadingProgressBar />
+        
         <LessonHeader
           title={lesson.title}
           readingTime={readingTime}
