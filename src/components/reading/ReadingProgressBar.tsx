@@ -29,7 +29,7 @@ export const ReadingProgressBar = ({
         <div
           className={cn(
             "absolute top-0 left-0 h-full",
-            isComplete ? "bg-emerald-600" : "bg-primary",
+            isComplete ? "bg-primaryGreen" : "bg-primary",
             className
           )}
           style={{ width: `${progress}%` }}
