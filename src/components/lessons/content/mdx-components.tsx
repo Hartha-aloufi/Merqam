@@ -39,7 +39,7 @@ export const createMDXComponents = (indexGen: Generator<number>) => {
                 as="p"
                 index={indexGen.next().value}
                 className={cn(
-                    "leading-7 [&:not(:first-child)]:mt-6",
+                    "[&:not(:first-child)]:mt-6",
                     className
                 )}
                 {...props}

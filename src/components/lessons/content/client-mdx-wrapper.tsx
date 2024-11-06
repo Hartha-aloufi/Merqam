@@ -1,22 +1,20 @@
-'use client';
+"use client";
 
-import { cn } from '@/lib/utils';
-import { useSettings } from '@/hooks/use-settings';
+import { cn } from "@/lib/utils";
+import { useSettings } from "@/hooks/use-settings";
 
 interface ClientMDXWrapperProps {
   children: React.ReactNode;
-  fontSize?: 'small' | 'medium' | 'large';
 }
 
-export function ClientMDXWrapper({ children, fontSize }: ClientMDXWrapperProps) {
+export function ClientMDXWrapper({ children }: ClientMDXWrapperProps) {
   const { fontSize: settingsFontSize } = useSettings();
-  const activeFontSize = fontSize || settingsFontSize;
-  
+
   return (
-    <article 
+    <article
       className={cn(
-        "prose prose-lg dark:prose-invert max-w-none",
-        `prose-${activeFontSize}`
+        "dark:prose-invert max-w-none",
+        `prose-${settingsFontSize}`
       )}
     >
       {children}

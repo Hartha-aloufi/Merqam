@@ -16,7 +16,6 @@ const options = {
 
 interface LessonContentProps {
   content: string;
-  fontSize?: "small" | "medium" | "large";
   topicId: string;
   lessonId: string;
 }
@@ -32,16 +31,12 @@ function* incrementingGenerator() {
   }
 }
 
-export function LessonContent({
-  content,
-  fontSize = "medium",
-}: LessonContentProps) {
-
+export function LessonContent({ content }: LessonContentProps) {
   const paragraphIndexGen = incrementingGenerator();
   const mdxComponents = createMDXComponents(paragraphIndexGen);
 
   return (
-    <ClientMDXWrapper fontSize={fontSize}>
+    <ClientMDXWrapper>
       <MDXRemote
         source={content}
         components={mdxComponents}
