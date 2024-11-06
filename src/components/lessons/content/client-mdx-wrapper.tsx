@@ -5,21 +5,16 @@ import { useSettings } from "@/hooks/use-settings";
 
 interface ClientMDXWrapperProps {
   children: React.ReactNode;
-  fontSize?: "sm" | "base" | "lg";
 }
 
-export function ClientMDXWrapper({
-  children,
-  fontSize,
-}: ClientMDXWrapperProps) {
+export function ClientMDXWrapper({ children }: ClientMDXWrapperProps) {
   const { fontSize: settingsFontSize } = useSettings();
-  const activeFontSize = fontSize || settingsFontSize;
-  console.log(activeFontSize)
+
   return (
     <article
       className={cn(
         "prose prose-lg dark:prose-invert max-w-none",
-        `prose-${activeFontSize}`
+        `prose-${settingsFontSize}`
       )}
     >
       {children}
