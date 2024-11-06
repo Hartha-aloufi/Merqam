@@ -111,3 +111,19 @@ export const getLessonProgress = (topicId: string, lessonId: string): number => 
 
   return progress[lessonKey]?.paragraphIndex ?? 0;
 }
+
+export function convertToSeconds(timeStr: string, floor = true) {
+  const [hours, minutes, secondsMillis] = timeStr.split(':');
+  const [seconds, millis] = secondsMillis.split(',');
+
+  const totalSeconds =
+    parseInt(hours, 10) * 3600 +
+    parseInt(minutes, 10) * 60 +
+    parseInt(seconds, 10) +
+    parseInt(millis, 10) / 1000;
+
+  if (floor) {
+    return Math.floor(totalSeconds);
+  }
+  return Math.ceil(totalSeconds);
+}

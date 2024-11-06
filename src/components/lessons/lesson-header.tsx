@@ -13,7 +13,6 @@ interface LessonHeaderProps {
 }
 
 export function LessonHeader({
-  title,
   readingTime,
   youtubeUrl,
   topicId,
@@ -21,8 +20,6 @@ export function LessonHeader({
 }: LessonHeaderProps) {
   return (
     <div className="mb-8">
-      <h1 className="text-3xl font-bold mb-4">{title}</h1>
-
       <div className="flex flex-wrap items-center gap-4 text-muted-foreground mb-6">
         <div className="flex items-center gap-1">
           <Clock className="h-4 w-4" />
