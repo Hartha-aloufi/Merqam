@@ -13,7 +13,7 @@ export function ClientMDXWrapper({ children }: ClientMDXWrapperProps) {
   return (
     <article
       className={cn(
-        "prose prose-lg dark:prose-invert max-w-none",
+        "dark:prose-invert max-w-none",
         `prose-${settingsFontSize}`
       )}
     >

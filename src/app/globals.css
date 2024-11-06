@@ -134,12 +134,6 @@
     @apply text-[#8B4513] hover:text-[#A0522D];
   }
 
-  /* Enhanced border styles for sepia mode */
-  [data-theme="sepia"] .border,
-  [data-theme="sepia"] [class*="border-"] {
-    border-color: hsl(30 30% 70%);
-  }
-
   /* Enhanced card styles for sepia mode */
   [data-theme="sepia"] .card {
     @apply shadow-[0_2px_4px_rgba(139,69,19,0.1)];

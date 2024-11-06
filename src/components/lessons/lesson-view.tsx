@@ -54,7 +54,7 @@ export function LessonView({
 
   return (
     <VideoProvider>
-      <div className="max-w-3xl mx-auto px-4 py-8 pb-24">
+      <div className="max-w-3xl mx-auto py-8 pb-24">
         <ReadingProgressBar />
         
         <LessonHeader
