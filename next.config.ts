@@ -7,8 +7,7 @@ const withPWA = require('next-pwa')({
 });
 
 const nextConfig: NextConfig = {
-  // output: 'export',  // Enable static exports (comment out when use admin pages)
-
+  output: process.env.NODE_ENV === "development" ? "standalone" : 'export',  // We need api route in admin pages, which only used in development
   // Filtering dev pages from static export (Admin pages)
   pageExtensions: process.env.NODE_ENV === "development" ? ['tsx', 'ts', 'jsx', 'js', "dev.tsx"] : ['tsx', 'ts', 'jsx', 'js'],
   images: {

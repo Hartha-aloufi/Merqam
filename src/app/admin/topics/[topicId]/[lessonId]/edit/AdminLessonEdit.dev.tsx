@@ -21,6 +21,8 @@ import {
 } from "@mdxeditor/editor";
 import "@mdxeditor/editor/style.css";
 import { debounce } from "lodash";
+import { YouTubeMusicPlayer } from "@/components/lessons/YouTubeMusicPlayer";
+import { VideoProvider } from "@/contexts/video-context";
 
 interface PageProps {
   lesson: Lesson;
@@ -93,7 +95,7 @@ export default function AdminLessonEditPage({
   };
 
   return (
-    <div>
+    <VideoProvider>
       <EditorToolbar onSave={handleSave} isSaving={isSaving} />
 
       <div className="container py-8">
@@ -122,6 +124,9 @@ export default function AdminLessonEditPage({
           />
         </div>
       </div>
-    </div>
+      {lesson.youtubeUrl && (
+        <YouTubeMusicPlayer youtubeUrl={lesson.youtubeUrl} />
+      )}
+    </VideoProvider>
   );
 }
