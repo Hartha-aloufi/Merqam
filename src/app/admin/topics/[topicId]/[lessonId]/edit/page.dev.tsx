@@ -1,11 +1,7 @@
 // app/topics/[topicId]/[lessonId]/page.tsx
-import { LessonView } from "@/components/lessons/lesson-view";
 import { getTopics, getLesson } from "@/utils/mdx";
-import { calculateReadingTime } from "@/lib/utils";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
-import { ErrorBoundary } from "@/components/error-boundary";
-import { LessonContent } from "@/components/lessons/content/lesson-content";
 import AdminLessonEditPage from "./AdminLessonEdit.dev";
 
 // Generate static paths
@@ -44,10 +40,6 @@ export async function generateMetadata({
   };
 }
 
-// Mark as static
-export const dynamic = "force-static";
-// Optional: Add revalidation period
-// export const revalidate = 3600; // Revalidate every hour
 
 interface PageProps {
   params: Promise<{
@@ -57,10 +49,15 @@ interface PageProps {
 }
 
 export default async function LessonPage({ params }: PageProps) {
-    const { topicId, lessonId } = await params;
-    const lessonData = await getLesson(topicId, lessonId);
+  const { topicId, lessonId } = await params;
+  const lessonData = await getLesson(topicId, lessonId);
 
-    if (!lessonData) return notFound();
+  if (!lessonData) return notFound();
 
-  return <AdminLessonEditPage lesson={lessonData} topicId={topicId} lessonId={lessonId} />;
+  return (
+    <AdminLessonEditPage
+      lesson={lessonData}
+      params={{ topicId, lessonId }}
+    />
+  );
 }

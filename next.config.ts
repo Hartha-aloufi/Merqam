@@ -7,12 +7,8 @@ const withPWA = require('next-pwa')({
 });
 
 const nextConfig: NextConfig = {
-  output: 'export',  // Enable static exports
-  // ... other config
-  // webpack: (config) => {
-  //   config.externals = [...(config.externals || []), "@mdxeditor/editor"];
-  //   return config;
-  // },
+  // output: 'export',  // Enable static exports (comment out when use admin pages)
+
   // Filtering dev pages from static export (Admin pages)
   pageExtensions: process.env.NODE_ENV === "development" ? ['tsx', 'ts', 'jsx', 'js', "dev.tsx"] : ['tsx', 'ts', 'jsx', 'js'],
   images: {

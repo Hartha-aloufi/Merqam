@@ -1,7 +1,7 @@
-// app/admin/topics/[topicId]/[lessonId]/edit/page.tsx
+// app/admin/topics/[topicId]/[lessonId]/edit/AdminLessonEdit.dev.tsx
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { notFound } from "next/navigation";
 import { MDXEditor } from "@mdxeditor/editor";
 import { adminLessonsService } from "@/services/admin/lessons.service";
@@ -20,6 +20,7 @@ import {
   toolbarPlugin,
 } from "@mdxeditor/editor";
 import "@mdxeditor/editor/style.css";
+import { debounce } from "lodash";
 
 interface PageProps {
   lesson: Lesson;
@@ -29,16 +30,17 @@ interface PageProps {
   };
 }
 
-export default function AdminLessonEditPage(props: PageProps) {
+export default function AdminLessonEditPage({
+  lesson: initialLesson,
+  params,
+}: PageProps) {
   const [lesson, setLesson] = useState<{
     title: string;
     content: string;
     youtubeUrl?: string;
-  } | null>(props.lesson);
+  } | null>(initialLesson);
 
   const [isSaving, setIsSaving] = useState(false);
-
-  const params = props.params;
 
   const handleSave = async () => {
     if (!lesson) return;
@@ -57,7 +59,38 @@ export default function AdminLessonEditPage(props: PageProps) {
     }
   };
 
+  // Debounced auto-save
+  const debouncedSave = useMemo(
+    () =>
+      debounce(async (content: string) => {
+        try {
+          await adminLessonsService.updateLesson(
+            params.topicId,
+            params.lessonId,
+            { content }
+          );
+          toast.success("Autosaved successfully");
+        } catch (error) {
+          console.error("Autosave error:", error);
+          toast.error("Failed to autosave");
+        }
+      }, 2000),
+    [params.topicId, params.lessonId]
+  );
+
+  // Cleanup
+  useEffect(() => {
+    return () => {
+      debouncedSave.cancel();
+    };
+  }, [debouncedSave]);
+
   if (!lesson) return notFound();
+
+  const handleChange = (content: string) => {
+    setLesson((prev) => (prev ? { ...prev, content } : null));
+    debouncedSave(content);
+  };
 
   return (
     <div>
@@ -67,19 +100,15 @@ export default function AdminLessonEditPage(props: PageProps) {
         <div className="prose prose-lg dark:prose-invert max-w-none">
           <MDXEditor
             markdown={lesson.content}
-            onChange={(content: string) => {
-              setLesson((prev) => (prev ? { ...prev, content } : null));
-            }}
+            onChange={handleChange}
             contentEditableClassName="min-h-[500px] outline-none"
             plugins={[
-              // Example Plugin Usage
               headingsPlugin(),
               listsPlugin(),
               quotePlugin(),
               thematicBreakPlugin(),
               markdownShortcutPlugin(),
               toolbarPlugin({
-                toolbarClassName: "my-classname",
                 toolbarContents: () => (
                   <>
                     {" "}
