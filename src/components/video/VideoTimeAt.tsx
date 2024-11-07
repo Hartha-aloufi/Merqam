@@ -7,8 +7,8 @@ import { Play, Pause } from 'lucide-react';
 import { useVideoContext } from '@/contexts/video-context';
 
 interface VideoTimeAtProps {
-  startTime: string;
-  endTime: string;
+  startTime: number;
+  endTime: number;
   children: React.ReactNode;
 }
 
@@ -21,8 +21,8 @@ export const VideoTimeAt = ({ startTime, endTime, children }: VideoTimeAtProps) 
     pauseVideo 
   } = useVideoContext();
 
-  const startTimeSeconds = startTime //useMemo(() => convertToSeconds(startTime), [startTime]);
-  const endTimeSeconds = endTime // useMemo(() => convertToSeconds(endTime), [endTime]);
+  const startTimeSeconds = startTime 
+  const endTimeSeconds = endTime 
 
   const isCurrentSegment =
     isPlaying &&
