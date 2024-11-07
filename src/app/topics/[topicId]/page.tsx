@@ -70,7 +70,7 @@ export default async function TopicPage({ params }: { params: Promise<{ topicId:
 
       {/* Lessons List */}
       <div className="max-w-4xl mx-auto">
-        <div className="space-y-4">
+        <div className="space-y-4 flex flex-col gap-1">
           {lessons.map((lesson, index) => (
             <Link key={lesson.id} href={`/topics/${topicId}/${lesson.id}`}>
               <div className="group relative rounded-lg border bg-background p-6 hover:shadow-md transition-all duration-200">
@@ -89,12 +89,12 @@ export default async function TopicPage({ params }: { params: Promise<{ topicId:
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <BookOpen className="h-4 w-4" />
-                        <span>درس تفاعلي</span>
+                        <span>تفريغ</span>
                       </div>
                       {lesson.youtubeUrl && (
                         <div className="flex items-center gap-1">
                           <Video className="h-4 w-4" />
-                          <span>فيديو تعليمي</span>
+                          <span>فيديو</span>
                         </div>
                       )}
                     </div>
@@ -105,7 +105,7 @@ export default async function TopicPage({ params }: { params: Promise<{ topicId:
                     size="sm"
                     className="opacity-0 group-hover:opacity-100 transition-opacity"
                   >
-                    ابدأ الدرس
+                   ابدأ القراءة
                   </Button>
                 </div>
               </div>

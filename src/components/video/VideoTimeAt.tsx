@@ -1,19 +1,18 @@
 // src/components/video/VideoTimeAt.tsx
 'use client';
 
-import { useState } from 'react';
-import { cn } from '@/lib/utils';
+import { useMemo } from 'react';
+import { cn, convertToSeconds } from '@/lib/utils';
 import { Play, Pause } from 'lucide-react';
 import { useVideoContext } from '@/contexts/video-context';
 
 interface VideoTimeAtProps {
-  startTime: number;
-  endTime: number;
+  startTime: string;
+  endTime: string;
   children: React.ReactNode;
 }
 
 export const VideoTimeAt = ({ startTime, endTime, children }: VideoTimeAtProps) => {
-  const [isHovered, setIsHovered] = useState(false);
   const { 
     player, 
     isPlaying, 
@@ -22,10 +21,13 @@ export const VideoTimeAt = ({ startTime, endTime, children }: VideoTimeAtProps) 
     pauseVideo 
   } = useVideoContext();
 
-  const isCurrentSegment = 
-    isPlaying && 
-    currentTime >= startTime && 
-    currentTime <= endTime;
+  const startTimeSeconds = startTime //useMemo(() => convertToSeconds(startTime), [startTime]);
+  const endTimeSeconds = endTime // useMemo(() => convertToSeconds(endTime), [endTime]);
+
+  const isCurrentSegment =
+    isPlaying &&
+    currentTime >= startTimeSeconds &&
+    currentTime <= endTimeSeconds;
 
   const handleClick = () => {
     if (!player) return;
@@ -33,7 +35,7 @@ export const VideoTimeAt = ({ startTime, endTime, children }: VideoTimeAtProps) 
     if (isCurrentSegment) {
       pauseVideo();
     } else {
-      playSegment(startTime, endTime);
+      playSegment(startTimeSeconds, endTimeSeconds);
     }
   };
 
@@ -43,8 +45,6 @@ export const VideoTimeAt = ({ startTime, endTime, children }: VideoTimeAtProps) 
         "group relative",
         isCurrentSegment && "bg-primary/5 rounded-lg transition-colors duration-200"
       )}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
       {/* Play Button */}
       {player && (
@@ -63,7 +63,7 @@ export const VideoTimeAt = ({ startTime, endTime, children }: VideoTimeAtProps) 
             // Transitions
             "transition-all duration-200"
           )}
-          title={`${isCurrentSegment ? 'Pause' : 'Play'} video from ${formatTime(startTime)} to ${formatTime(endTime)}`}
+          title={`${isCurrentSegment ? 'Pause' : 'Play'} video from ${formatTime(startTimeSeconds)} to ${formatTime(endTimeSeconds)}`}
         >
           {isCurrentSegment ? (
             <Pause className="h-4 w-4" />
