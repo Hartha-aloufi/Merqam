@@ -3,11 +3,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { notFound } from "next/navigation";
-import { MDXEditor } from "@mdxeditor/editor";
+import { jsxPlugin, MDXEditor } from "@mdxeditor/editor";
 import { adminLessonsService } from "@/services/admin/lessons.service";
 import { EditorToolbar } from "@/components/admin/editor/editor-toolbar";
 import { toast } from "sonner";
 import { Lesson } from "@/types";
+import ABC from '../../../../../../components/video/EditableVideoTimeAt';
 import {
   headingsPlugin,
   listsPlugin,
@@ -23,6 +24,8 @@ import "@mdxeditor/editor/style.css";
 import { debounce } from "lodash";
 import { YouTubeMusicPlayer } from "@/components/lessons/YouTubeMusicPlayer";
 import { VideoProvider } from "@/contexts/video-context";
+import { InsertJsxComponents } from "@/components/admin/editor/jsx-toolbar";
+import { jsxComponentDescriptors } from "@/components/admin/editor/jsx-components-config";
 
 interface PageProps {
   lesson: Lesson;
@@ -110,6 +113,7 @@ export default function AdminLessonEditPage({
               quotePlugin(),
               thematicBreakPlugin(),
               markdownShortcutPlugin(),
+              jsxPlugin({ jsxComponentDescriptors }),
               toolbarPlugin({
                 toolbarContents: () => (
                   <>
@@ -117,6 +121,7 @@ export default function AdminLessonEditPage({
                     <UndoRedo />
                     <BoldItalicUnderlineToggles />
                     <BlockTypeSelect />
+                    <InsertJsxComponents />
                   </>
                 ),
               }),
