@@ -16,6 +16,14 @@ export function formatScore(score: number, total: number): string {
   return `${((score / total) * 100).toFixed(1)}%`;
 }
 
+/**
+ * Format time in MM:SS format
+ */
+export const formatTime = (seconds: number): string => {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+};
 
 export function calculateExerciseResults(exercise: Exercise, userAnswers: UserAnswers): QuizResults {
   const incorrectMC: number[] = [];

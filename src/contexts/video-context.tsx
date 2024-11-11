@@ -1,8 +1,14 @@
 // src/contexts/video-context.tsx
-'use client';
+"use client";
 
-import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
-import type { YouTubePlayer } from 'react-youtube';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useRef,
+} from "react";
+import type { YouTubePlayer } from "react-youtube";
 
 interface VideoContextType {
   player: YouTubePlayer | null;
@@ -34,24 +40,27 @@ export const VideoProvider = ({ children }: { children: React.ReactNode }) => {
         setCurrentTime(time);
 
         // Check if we reached the end time
-        if (endTimeRef.current !== null && time >= endTimeRef.current) {
-          player.pauseVideo();
-          endTimeRef.current = null;
-        }
+        // if (endTimeRef.current !== null && time >= endTimeRef.current) {
+        //   player.pauseVideo();
+        //   endTimeRef.current = null;
+        // }
       }
     }, 100);
   }, [player]);
 
   // Play video segment
-  const playSegment = useCallback((startTime: number, endTime: number) => {
-    if (player) {
-      endTimeRef.current = endTime;
-      player.seekTo(startTime, true);
-      player.playVideo();
-      setIsPlaying(true);
-      startTimeUpdate();
-    }
-  }, [player, startTimeUpdate]);
+  const playSegment = useCallback(
+    (startTime: number, endTime: number) => {
+      if (player) {
+        endTimeRef.current = endTime;
+        player.seekTo(startTime, true);
+        player.playVideo();
+        setIsPlaying(true);
+        startTimeUpdate();
+      }
+    },
+    [player, startTimeUpdate]
+  );
 
   // Pause video
   const pauseVideo = useCallback(() => {
@@ -75,7 +84,7 @@ export const VideoProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   return (
-    <VideoContext.Provider 
+    <VideoContext.Provider
       value={{
         player,
         isPlaying,
@@ -93,7 +102,7 @@ export const VideoProvider = ({ children }: { children: React.ReactNode }) => {
 export const useVideoContext = () => {
   const context = useContext(VideoContext);
   if (!context) {
-    throw new Error('useVideoContext must be used within a VideoProvider');
+    throw new Error("useVideoContext must be used within a VideoProvider");
   }
   return context;
 };

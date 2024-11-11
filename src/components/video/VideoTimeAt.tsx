@@ -1,8 +1,7 @@
 // src/components/video/VideoTimeAt.tsx
 'use client';
 
-import { useMemo } from 'react';
-import { cn, convertToSeconds } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { Play, Pause } from 'lucide-react';
 import { useVideoContext } from '@/contexts/video-context';
 

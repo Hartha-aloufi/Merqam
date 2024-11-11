@@ -1,0 +1,7 @@
+/* Override mdx editor default styles */
+
+.nestedEditorWrapper > div {
+    padding: 0;
+    background: unset;
+    border-radius: unset;
+}

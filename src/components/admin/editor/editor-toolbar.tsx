@@ -16,27 +16,25 @@ interface EditorToolbarProps {
 
 export function EditorToolbar({ onSave, isSaving }: EditorToolbarProps) {
   return (
-    <div className="border-b sticky top-0 z-10 bg-background">
-      <div className="container py-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onSave}
-                  disabled={isSaving}
-                >
-                  <SaveIcon className="h-4 w-4 mr-2" />
-                  {isSaving ? "جاري الحفظ..." : "حفظ"}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>حفظ التغييرات (Ctrl + S)</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
+    <div className="container py-2">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onSave}
+                disabled={isSaving}
+              >
+                <SaveIcon className="h-4 w-4 mr-2" />
+                {isSaving ? "جاري الحفظ..." : "حفظ"}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>حفظ التغييرات (Ctrl + S)</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
     </div>

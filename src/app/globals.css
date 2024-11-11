@@ -3,6 +3,7 @@
 @tailwind components;
 @tailwind utilities;
 @import "../styles/mdx.css";
+@import "../styles/mdx-editor.css";
 
 @layer base {
   :root {

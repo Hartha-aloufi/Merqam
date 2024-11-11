@@ -1,14 +1,13 @@
-// app/admin/topics/[topicId]/[lessonId]/edit/AdminLessonEdit.dev.tsx
+// src/app/admin/topics/[topicId]/[lessonId]/edit/AdminLessonEdit.dev.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { notFound } from "next/navigation";
-import { jsxPlugin, MDXEditor } from "@mdxeditor/editor";
+import { MDXEditor } from "@mdxeditor/editor";
 import { adminLessonsService } from "@/services/admin/lessons.service";
 import { EditorToolbar } from "@/components/admin/editor/editor-toolbar";
 import { toast } from "sonner";
 import { Lesson } from "@/types";
-import ABC from '../../../../../../components/video/EditableVideoTimeAt';
 import {
   headingsPlugin,
   listsPlugin,
@@ -19,13 +18,14 @@ import {
   UndoRedo,
   BoldItalicUnderlineToggles,
   toolbarPlugin,
+  jsxPlugin,
 } from "@mdxeditor/editor";
 import "@mdxeditor/editor/style.css";
 import { debounce } from "lodash";
-import { YouTubeMusicPlayer } from "@/components/lessons/YouTubeMusicPlayer";
-import { VideoProvider } from "@/contexts/video-context";
-import { InsertJsxComponents } from "@/components/admin/editor/jsx-toolbar";
 import { jsxComponentDescriptors } from "@/components/admin/editor/jsx-components-config";
+import { InsertVideoTime } from "@/components/admin/editor/jsx-toolbar";
+import { VideoProvider } from "@/contexts/video-context";
+import { YouTubeMusicPlayer } from "@/components/lessons/YouTubeMusicPlayer";
 
 interface PageProps {
   lesson: Lesson;
@@ -72,7 +72,9 @@ export default function AdminLessonEditPage({
           await adminLessonsService.updateLesson(
             params.topicId,
             params.lessonId,
-            { content }
+            {
+              content,
+            }
           );
           toast.success("Autosaved successfully");
         } catch (error) {
@@ -101,7 +103,8 @@ export default function AdminLessonEditPage({
     <VideoProvider>
       <EditorToolbar onSave={handleSave} isSaving={isSaving} />
 
-      <div className="container py-8">
+      {/* Add padding to account for fixed toolbar */}
+      <div className="container max-w-3xl mx-auto px-4">
         <div className="prose prose-lg dark:prose-invert max-w-none">
           <MDXEditor
             markdown={lesson.content}
@@ -121,7 +124,7 @@ export default function AdminLessonEditPage({
                     <UndoRedo />
                     <BoldItalicUnderlineToggles />
                     <BlockTypeSelect />
-                    <InsertJsxComponents />
+                    <InsertVideoTime />
                   </>
                 ),
               }),
@@ -129,6 +132,7 @@ export default function AdminLessonEditPage({
           />
         </div>
       </div>
+
       {lesson.youtubeUrl && (
         <YouTubeMusicPlayer youtubeUrl={lesson.youtubeUrl} />
       )}
