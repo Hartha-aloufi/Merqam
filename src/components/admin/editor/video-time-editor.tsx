@@ -115,7 +115,6 @@ export const VideoTimeEditor: React.FC<JsxEditorProps> = ({
               { name: "startTime", value: startTime + "" },
               { name: "endTime", value: endTime + "" },
             ];
-
             return { ...mdastNode, children };
           }}
         />

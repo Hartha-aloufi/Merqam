@@ -2,6 +2,7 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { Exercise, UserAnswers, QuizResults } from '@/types/exercise';
+import { Tajawal } from "next/font/google";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -91,16 +92,6 @@ export function calculateReadingTime(text: string): number {
   return Math.max(1, readingTime);
 }
 
-const debounce = (fn: Function, delay: number) => {
-  let timeoutId: NodeJS.Timeout;
-  return (...args: any[]) => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => {
-      fn(...args);
-    }, delay);
-  };
-}
-
 const lessonProgressKey = "lesson-progress";
 
 export const setLessonProgress = (topicId: string, lessonId: string, progressInfo: { paragraphIndex: number, date: string }) => {
@@ -135,3 +126,8 @@ export function convertToSeconds(timeStr: string, floor = true) {
   }
   return Math.ceil(totalSeconds);
 }
+
+export const tajawal = Tajawal({
+  subsets: ["arabic"],
+  weight: ["200", "300", "400", "500", "700", "800", "900"],
+});

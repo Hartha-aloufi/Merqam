@@ -26,6 +26,7 @@ import { jsxComponentDescriptors } from "@/components/admin/editor/jsx-component
 import { InsertVideoTime } from "@/components/admin/editor/jsx-toolbar";
 import { VideoProvider } from "@/contexts/video-context";
 import { YouTubeMusicPlayer } from "@/components/lessons/YouTubeMusicPlayer";
+import { cn, tajawal } from "@/lib/utils";
 
 interface PageProps {
   lesson: Lesson;
@@ -105,11 +106,14 @@ export default function AdminLessonEditPage({
 
       {/* Add padding to account for fixed toolbar */}
       <div className="container max-w-3xl mx-auto px-4">
-        <div className="prose prose-lg dark:prose-invert max-w-none">
+        <div className="prose prose-lg dark:prose-invert max-w-none ">
           <MDXEditor
             markdown={lesson.content}
             onChange={handleChange}
-            contentEditableClassName="min-h-[500px] outline-none"
+            contentEditableClassName={cn(
+              "min-h-[500px] outline-none ",
+              tajawal.className
+            )}
             plugins={[
               headingsPlugin(),
               listsPlugin(),
