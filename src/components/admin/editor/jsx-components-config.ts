@@ -9,11 +9,11 @@ import { VideoTimeEditor } from './video-time-editor';
 export const jsxComponentDescriptors: JsxComponentDescriptor[] = [
   {
     name: 'VideoTimeAt',
-    kind: 'flow',
+    kind: 'text',
     source: '@/components/video',
     props: [
-      { name: 'startTime', type: 'number' },
-      { name: 'endTime', type: 'number' },
+      { name: 'startTime', type: "string" },
+      { name: 'endTime', type: 'string' },
     ],
     hasChildren: true,
     Editor: VideoTimeEditor,

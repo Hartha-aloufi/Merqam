@@ -1,11 +1,24 @@
 //src/components/admin/editor/video-time-editor.tsx
-import React, { useCallback, useState } from "react";
-import { NestedLexicalEditor } from "@mdxeditor/editor";
-import type { MdxJsxFlowElement, JsxEditorProps } from "@mdxeditor/editor";
-import { Play, Pause, ArrowLeftToLine, ArrowRightToLine } from "lucide-react";
+import React, { useCallback, useMemo } from "react";
+import { NestedLexicalEditor, useMdastNodeUpdater } from "@mdxeditor/editor";
+import type { JsxEditorProps } from "@mdxeditor/editor";
+import {
+  Play,
+  Pause,
+  ArrowLeftToLine,
+  ArrowRightToLine,
+  SkipBack,
+} from "lucide-react";
 import { useVideoContext } from "@/contexts/video-context";
 import { cn, formatTime } from "@/lib/utils";
-import { start } from "repl";
+import {
+  MdxJsxAttributeValueExpression,
+  MdxJsxFlowElement,
+} from "mdast-util-mdx-jsx";
+
+const isStringValue = (
+  value: string | MdxJsxAttributeValueExpression | null | undefined
+): value is string => typeof value === "string";
 
 /**
  * Action button that appears on hover
@@ -15,24 +28,31 @@ const ActionButton: React.FC<{
   icon: React.ReactNode;
   label: string;
   className?: string;
-}> = ({ onClick, icon, label, className }) => (
-  <button
-    onClick={onClick}
-    className={cn(
-      // Base styles
-      "p-1.5 rounded-lg",
-      "bg-primary/10 hover:bg-primary/20",
-      "text-primary hover:text-primary/80",
-      // Visibility
-      "md:opacity-0 md:group-hover:opacity-100",
-      // Transitions
-      "transition-all duration-200",
-      className
+  time?: number;
+}> = ({ onClick, icon, label, className, time }) => (
+  <div className="flex gap-1 items-center justify-start">
+    {time !== undefined && (
+      <span className="text-xs text-gray-500 w-[28px] text-left">{formatTime(time)}</span>
     )}
-    title={label}
-  >
-    {icon}
-  </button>
+
+    <button
+      onClick={onClick}
+      className={cn(
+        // Base styles
+        "p-1.5 rounded-lg",
+        "bg-primary/10 hover:bg-primary/20",
+        "text-primary hover:text-primary/80",
+        // Visibility
+        "md:opacity-0 md:group-hover:opacity-100",
+        // Transitions
+        "transition-all duration-200",
+        className
+      )}
+      title={label}
+    >
+      {icon}
+    </button>
+  </div>
 );
 
 /**
@@ -42,26 +62,50 @@ export const VideoTimeEditor: React.FC<JsxEditorProps> = ({
   mdastNode,
 }: JsxEditorProps) => {
   const { player, isPlaying, playSegment, pauseVideo } = useVideoContext();
+  const updateMdastNode = useMdastNodeUpdater();
 
-  const attributes = mdastNode?.attributes || [];
-  const [startTime, setStartTime] = useState(
-    () => attributes.find((attr) => attr.name === "startTime")?.value ?? 0
-  );
-  const [endTime, setEndTime] = useState(
-    () => attributes.find((attr) => attr.name === "endTime")?.value ?? 10
-  );
+  const attributes = mdastNode?.attributes;
+
+  const startTime = useMemo(() => {
+    const attr = attributes.find((attr) => attr.name === "startTime");
+    if (isStringValue(attr?.value)) {
+      return attr.value || 0;
+    }
+    return attr?.value?.value || 0;
+  }, [attributes]);
+
+  const endTime = useMemo(() => {
+    const attr = attributes.find((attr) => attr.name === "endTime");
+    if (isStringValue(attr?.value)) {
+      return attr.value || 0;
+    }
+    return attr?.value?.value || 0;
+  }, [attributes]);
+
+  const isCurrentSegment =
+    isPlaying &&
+    player?.getCurrentTime() >= +startTime &&
+    player?.getCurrentTime() <= +endTime;
 
   const handleSetCurrentTime = useCallback(
-    (type: "start" | "end") => {
-      if (!player) return;
-      const currentTime = player.getCurrentTime();
-      if (type === "start") {
-        setStartTime(currentTime);
-      } else {
-        setEndTime(currentTime);
-      }
+    (name: "startTime" | "endTime") => {
+      updateMdastNode({
+        attributes: mdastNode.attributes.map((attr) => {
+          if (attr.name === name) {
+            if (isStringValue(attr.value)) {
+              return { ...attr, value: player?.getCurrentTime() };
+            } else {
+              return {
+                ...attr,
+                value: { ...attr.value, value: player?.getCurrentTime() },
+              };
+            }
+          }
+          return attr;
+        }),
+      });
     },
-    [player]
+    [mdastNode.attributes, player, updateMdastNode]
   );
 
   const handlePlayPause = () => {
@@ -69,7 +113,7 @@ export const VideoTimeEditor: React.FC<JsxEditorProps> = ({
     if (isPlaying) {
       pauseVideo();
     } else {
-      playSegment(startTime, endTime);
+      playSegment(+startTime, +endTime);
     }
   };
 
@@ -77,11 +121,7 @@ export const VideoTimeEditor: React.FC<JsxEditorProps> = ({
     <div className="group relative">
       {/* Action Buttons - Only visible on hover */}
       {player && (
-        <div className="absolute right-[-70px] top-0 flex flex-col items-center gap-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
-          <div className="text-xs text-muted-foreground">
-            {formatTime(startTime)} ← {formatTime(endTime)}
-          </div>
-
+        <div className="absolute right-[-70px] top-0 flex flex-col items-end gap-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
           <ActionButton
             onClick={handlePlayPause}
             icon={
@@ -91,31 +131,42 @@ export const VideoTimeEditor: React.FC<JsxEditorProps> = ({
                 <Play className="h-4 w-4" />
               )
             }
-            label={isPlaying ? "Pause Segment" : "Play Segment"}
+            label={isPlaying ? "ايقاف" : "بدء التشغيل"}
+            time={player?.getCurrentTime() || 0}
           />
+
           <ActionButton
-            onClick={() => handleSetCurrentTime("start")}
+            onClick={() => handleSetCurrentTime("startTime")}
             icon={<ArrowRightToLine className="h-4 w-4" />}
-            label="Set Start Time"
+            label="حدد وقت البداية"
+            time={+startTime}
           />
           <ActionButton
-            onClick={() => handleSetCurrentTime("end")}
+            onClick={() => handleSetCurrentTime("endTime")}
             icon={<ArrowLeftToLine className="h-4 w-4" />}
-            label="Set End Time"
+            label="حدد وقت النهاية"
+            time={+endTime}
           />
+          {/* <ActionButton
+            onClick={() => player.}
+            icon={<SkipBack className="h-4 w-4" />}
+            label="رجوع 10 ثواني"
+          /> */}
         </div>
       )}
       {/* Content Editor */}
-      <div className="nestedEditorWrapper">
+      <div
+        className={cn(
+          "nestedEditorWrapper",
+          isCurrentSegment &&
+            "bg-primary/5 rounded-lg transition-colors duration-200"
+        )}
+      >
         <NestedLexicalEditor<MdxJsxFlowElement>
           block
           getContent={(node) => node.children}
           getUpdatedMdastNode={(mdastNode, children) => {
-            mdastNode.attributes = [
-              { name: "startTime", value: startTime + "" },
-              { name: "endTime", value: endTime + "" },
-            ];
-            return { ...mdastNode, children };
+            return { ...mdastNode, children } as any;
           }}
         />
       </div>
