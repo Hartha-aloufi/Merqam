@@ -1,40 +1,40 @@
 .prose {
-  --tw-prose-body: theme('colors.foreground');
-  --tw-prose-headings: theme('colors.foreground');
-  --tw-prose-lead: theme('colors.muted.foreground');
-  --tw-prose-links: theme('colors.primary.DEFAULT');
-  --tw-prose-bold: theme('colors.foreground');
-  --tw-prose-counters: theme('colors.muted.foreground');
-  --tw-prose-bullets: theme('colors.muted.foreground');
-  --tw-prose-hr: theme('colors.border');
-  --tw-prose-quotes: theme('colors.muted.foreground');
-  --tw-prose-quote-borders: theme('colors.border');
-  --tw-prose-captions: theme('colors.muted.foreground');
-  --tw-prose-code: theme('colors.foreground');
-  --tw-prose-pre-code: theme('colors.primary.foreground');
-  --tw-prose-pre-bg: theme('colors.primary.DEFAULT');
-  --tw-prose-th-borders: theme('colors.border');
-  --tw-prose-td-borders: theme('colors.border');
+  --tw-prose-body: theme("colors.foreground");
+  --tw-prose-headings: theme("colors.foreground");
+  --tw-prose-lead: theme("colors.muted.foreground");
+  --tw-prose-links: theme("colors.primary.DEFAULT");
+  --tw-prose-bold: theme("colors.foreground");
+  --tw-prose-counters: theme("colors.muted.foreground");
+  --tw-prose-bullets: theme("colors.muted.foreground");
+  --tw-prose-hr: theme("colors.border");
+  --tw-prose-quotes: theme("colors.muted.foreground");
+  --tw-prose-quote-borders: theme("colors.border");
+  --tw-prose-captions: theme("colors.muted.foreground");
+  --tw-prose-code: theme("colors.foreground");
+  --tw-prose-pre-code: theme("colors.primary.foreground");
+  --tw-prose-pre-bg: theme("colors.primary.DEFAULT");
+  --tw-prose-th-borders: theme("colors.border");
+  --tw-prose-td-borders: theme("colors.border");
 }
 
 /* Material Design elevation (shadow) classes */
 .material-elevation-1 {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
 }
 
 .material-elevation-2 {
-  box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
 }
 
 /* Material Design transitions */
 .material-transition {
-  transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 /* Dark mode adjustments */
 .dark .prose {
-  --tw-prose-pre-bg: theme('colors.primary.DEFAULT');
-  --tw-prose-pre-code: theme('colors.primary.foreground');
+  --tw-prose-pre-bg: theme("colors.primary.DEFAULT");
+  --tw-prose-pre-code: theme("colors.primary.foreground");
 }
 
 /* Sepia mode adjustments */
@@ -44,8 +44,21 @@
   --tw-prose-links: hsl(25 75% 40%);
 }
 
-.prose :is(h1, h2, h3, h4, h5, h6) {
+.prose-no-headings {
+  h2,
+  h3,
+  h4,
+  h5 {
+    display: none;
+  }
+}
+
+.prose :is(h1) {
   text-align: center;
+  max-width: 100%;
+}
+.prose :is(h2, h3, h4, h5, h6) {
+  text-align: start;
   max-width: 100%;
 }
 
@@ -107,7 +120,6 @@ html[dir="rtl"] .prose blockquote {
   }
 }
 
-
 /* Base content sizes */
 .prose-small {
   font-size: 1rem;
@@ -125,73 +137,73 @@ html[dir="rtl"] .prose blockquote {
 }
 
 /* Lists and paragraphs */
-.prose-small ul, 
-.prose-small ol, 
-.prose-small p { 
+.prose-small ul,
+.prose-small ol,
+.prose-small p {
   margin-top: 1rem;
   margin-bottom: 1rem;
 }
 
-.prose-medium ul, 
-.prose-medium ol, 
-.prose-medium p { 
+.prose-medium ul,
+.prose-medium ol,
+.prose-medium p {
   margin-top: 1.25rem;
   margin-bottom: 1.25rem;
 }
 
-.prose-large ul, 
-.prose-large ol, 
-.prose-large p { 
+.prose-large ul,
+.prose-large ol,
+.prose-large p {
   margin-top: 1.5rem;
   margin-bottom: 1.5rem;
 }
 
 /* Code blocks */
-.prose-small pre { 
+.prose-small pre {
   font-size: 0.875rem;
   padding: 1rem;
 }
-.prose-medium pre { 
+.prose-medium pre {
   font-size: 1rem;
   padding: 1.25rem;
 }
-.prose-large pre { 
+.prose-large pre {
   font-size: 1.125rem;
   padding: 1.5rem;
 }
 
 /* Inline code */
-.prose-small code { 
+.prose-small code {
   font-size: 0.875rem;
 }
-.prose-medium code { 
+.prose-medium code {
   font-size: 1rem;
 }
-.prose-large code { 
+.prose-large code {
   font-size: 1.125rem;
 }
 
 /* Blockquotes */
-.prose-small blockquote { 
+.prose-small blockquote {
   font-size: 1.125rem;
   padding: 1rem;
 }
-.prose-medium blockquote { 
+.prose-medium blockquote {
   font-size: 1.25rem;
   padding: 1.25rem;
 }
-.prose-large blockquote { 
+.prose-large blockquote {
   font-size: 1.375rem;
   padding: 1.5rem;
 }
 
 /* Alert component */
-.prose-small .alert { 
+.prose-small .alert {
   padding: 1rem;
 }
-.prose-medium .alert { 
+.prose-medium .alert {
   padding: 1.25rem;
 }
-.prose-large .alert { 
+.prose-large .alert {
   padding: 1.5rem;
 }

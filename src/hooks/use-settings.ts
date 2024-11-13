@@ -9,6 +9,8 @@ type FontSize = 'small' | 'medium' | 'large';
 interface SettingsState {
     fontSize: FontSize;
     setFontSize: (size: FontSize) => void;
+    showHeadings: boolean;
+    setShowHeadings: (show: boolean) => void;
 }
 
 export const useSettings = create<SettingsState>()(
@@ -16,6 +18,11 @@ export const useSettings = create<SettingsState>()(
         (set) => ({
             fontSize: 'small',
             setFontSize: (size) => set({ fontSize: size }),
+            setShowHeadings: (show) => {
+                console.log(show);
+                set({ showHeadings: show });
+            },
+            showHeadings: false,
         }),
         {
             name: 'app-settings',
