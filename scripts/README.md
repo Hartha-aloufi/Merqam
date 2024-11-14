@@ -55,10 +55,9 @@ node syncWithVideo.js <mdx-file> <srt-file> <output-file>
 
 مثال:
 ```bash
-node syncWithVideo.js transcript.mdx subtitles.srt output.mdx
+node syncWithVideo.js ./examples/syncWithVideo/case 1/01-test.mdx ./examples/syncWithVideo/case 1/01-test.srt output.mdx
 ```
 
-مثال آخر: **انظر الى "./examples/syncWithVideo/case 1"**
 
 ## تفاصيل حل المشكلة
 
