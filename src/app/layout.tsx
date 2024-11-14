@@ -1,4 +1,3 @@
-import { Tajawal } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import Layout from '@/components/layout/Layout';
@@ -6,11 +5,8 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { Metadata, Viewport } from 'next';
 import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider } from '@/providers/auth-provider';
+import { tajawal } from '@/lib/utils';
 
-const tajawal = Tajawal({
-  subsets: ['arabic'],
-  weight: ['200', '300', '400', '500', '700', '800', '900'],
-});
 
 
 

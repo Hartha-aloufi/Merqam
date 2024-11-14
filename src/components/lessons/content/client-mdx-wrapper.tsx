@@ -8,13 +8,14 @@ interface ClientMDXWrapperProps {
 }
 
 export function ClientMDXWrapper({ children }: ClientMDXWrapperProps) {
-  const { fontSize: settingsFontSize } = useSettings();
+  const { fontSize: settingsFontSize, showHeadings } = useSettings();
 
   return (
     <article
       className={cn(
         "dark:prose-invert max-w-none",
-        `prose-${settingsFontSize}`
+        `prose-${settingsFontSize}`,
+        !showHeadings && "prose-no-headings"
       )}
     >
       {children}

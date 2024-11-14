@@ -1,15 +1,21 @@
 import type { NextConfig } from "next";
 
-const withPWA = require('next-pwa')({
-  dest: 'public',
-  disable: process.env.NODE_ENV === 'development',
+const withPWA = require("next-pwa")({
+  dest: "public",
+  disable: process.env.NODE_ENV === "development",
   register: true,
 });
 
 const nextConfig: NextConfig = {
-  output: 'export',  // Enable static exports
+  output: process.env.NODE_ENV === "development" ? "standalone" : "export", // We need api route in admin pages, which only used in development
+  // Filtering dev pages from static export (Admin pages)
+  pageExtensions:
+    process.env.NODE_ENV === "development"
+      ? ["tsx", "ts", "jsx", "js", "dev.tsx", "dev.ts"] // tsx for pages, ts for api
+      : ["tsx", "ts", "jsx", "js"],
+
   images: {
-    unoptimized: true // Required for static export
+    unoptimized: true, // Required for static export
   },
   trailingSlash: true, // Recommended for static exports
   // disable linting in build
@@ -19,7 +25,7 @@ const nextConfig: NextConfig = {
 
   typescript: {
     ignoreBuildErrors: true,
-  }
+  },
 };
 
 export default withPWA(nextConfig);

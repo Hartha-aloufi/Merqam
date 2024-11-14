@@ -1,26 +1,27 @@
 // src/components/settings/SettingsSheet.tsx
-'use client';
+"use client";
 
-import { useTheme } from 'next-themes';
-import { useSettings } from '@/hooks/use-settings';
-import { Button } from '@/components/ui/button';
+import { useTheme } from "next-themes";
+import { useSettings } from "@/hooks/use-settings";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from '@/components/ui/sheet';
-import { Settings, Sun, Moon, Coffee, Type } from 'lucide-react';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/sheet";
+import { Settings, Sun, Moon, Coffee, Type } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-const ThemeOption = ({ 
-  theme, 
-  current, 
-  onClick, 
-  icon: Icon, 
-  label 
-}: { 
+const ThemeOption = ({
+  theme,
+  current,
+  onClick,
+  icon: Icon,
+  label,
+}: {
   theme: string;
   current: string | undefined;
   onClick: () => void;
@@ -32,7 +33,8 @@ const ThemeOption = ({
     className={cn(
       "flex flex-col items-center gap-2 p-4 rounded-lg transition-all",
       "hover:bg-accent hover:text-accent-foreground",
-      theme === current && "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
+      theme === current &&
+        "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
     )}
   >
     <Icon className="h-8 w-8" />
@@ -44,7 +46,7 @@ const FontSizePreview = ({
   size,
   current,
   onClick,
-  label
+  label,
 }: {
   size: string;
   current: string;
@@ -52,9 +54,9 @@ const FontSizePreview = ({
   label: string;
 }) => {
   const sizes = {
-    small: 'text-sm',
-    medium: 'text-base',
-    large: 'text-lg'
+    small: "text-sm",
+    medium: "text-base",
+    large: "text-lg",
   };
 
   return (
@@ -77,7 +79,8 @@ const FontSizePreview = ({
 
 export function SettingsSheet() {
   const { theme, setTheme } = useTheme();
-  const { fontSize, setFontSize } = useSettings();
+  const { fontSize, setFontSize, showHeadings, setShowHeadings } =
+    useSettings();
 
   return (
     <Sheet>
@@ -89,9 +92,9 @@ export function SettingsSheet() {
       </SheetTrigger>
       <SheetContent side="left" className="w-80">
         <SheetHeader className="pb-6">
-        <SheetTitle>إعدادات المِرْقَم</SheetTitle>
+          <SheetTitle>إعدادات المِرْقَم</SheetTitle>
         </SheetHeader>
-        
+
         <div className="space-y-8">
           {/* Theme Selection */}
           <div className="space-y-4">
@@ -100,27 +103,38 @@ export function SettingsSheet() {
               <ThemeOption
                 theme="light"
                 current={theme}
-                onClick={() => setTheme('light')}
+                onClick={() => setTheme("light")}
                 icon={Sun}
                 label="فاتح"
               />
               <ThemeOption
                 theme="dark"
                 current={theme}
-                onClick={() => setTheme('dark')}
+                onClick={() => setTheme("dark")}
                 icon={Moon}
                 label="داكن"
               />
               <ThemeOption
                 theme="sepia"
                 current={theme}
-                onClick={() => setTheme('sepia')}
+                onClick={() => setTheme("sepia")}
                 icon={Coffee}
                 label="بني"
               />
             </div>
           </div>
 
+          {/* {Show heading} */}
+          {
+            <div className="flex items-center justify-between border-b pb-2">
+              <h3 className="text-lg font-medium">عرض العناوين</h3>
+              <Switch
+                
+                checked={showHeadings}
+                onCheckedChange={() => setShowHeadings(!showHeadings)}
+              />
+            </div>
+          }
           {/* Font Size Selection */}
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b pb-2">
@@ -131,31 +145,31 @@ export function SettingsSheet() {
               <FontSizePreview
                 size="small"
                 current={fontSize}
-                onClick={() => setFontSize('small')}
+                onClick={() => setFontSize("small")}
                 label="صغير"
               />
               <FontSizePreview
                 size="medium"
                 current={fontSize}
-                onClick={() => setFontSize('medium')}
+                onClick={() => setFontSize("medium")}
                 label="متوسط"
               />
               <FontSizePreview
                 size="large"
                 current={fontSize}
-                onClick={() => setFontSize('large')}
+                onClick={() => setFontSize("large")}
                 label="كبير"
               />
             </div>
           </div>
 
           {/* Reset Button */}
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="w-full"
             onClick={() => {
-              setTheme('light');
-              setFontSize('small');
+              setTheme("light");
+              setFontSize("small");
             }}
           >
             إعادة تعيين الإعدادات

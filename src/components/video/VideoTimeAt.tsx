@@ -1,8 +1,7 @@
 // src/components/video/VideoTimeAt.tsx
 'use client';
 
-import { useMemo } from 'react';
-import { cn, convertToSeconds } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { Play, Pause } from 'lucide-react';
 import { useVideoContext } from '@/contexts/video-context';
 
@@ -63,7 +62,7 @@ export const VideoTimeAt = ({ startTime, endTime, children }: VideoTimeAtProps) 
             // Transitions
             "transition-all duration-200"
           )}
-          title={`${isCurrentSegment ? 'Pause' : 'Play'} video from ${formatTime(startTimeSeconds)} to ${formatTime(endTimeSeconds)}`}
+          title={`${isCurrentSegment ? 'ايقاف' : 'تشغيل'} المرئية من ${formatTime(startTimeSeconds)} الى ${formatTime(endTimeSeconds)}`}
         >
           {isCurrentSegment ? (
             <Pause className="h-4 w-4" />

@@ -2,6 +2,7 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { Exercise, UserAnswers, QuizResults } from '@/types/exercise';
+import { Tajawal } from "next/font/google";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -16,6 +17,14 @@ export function formatScore(score: number, total: number): string {
   return `${((score / total) * 100).toFixed(1)}%`;
 }
 
+/**
+ * Format time in MM:SS format
+ */
+export const formatTime = (seconds: number): string => {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+};
 
 export function calculateExerciseResults(exercise: Exercise, userAnswers: UserAnswers): QuizResults {
   const incorrectMC: number[] = [];
@@ -83,16 +92,6 @@ export function calculateReadingTime(text: string): number {
   return Math.max(1, readingTime);
 }
 
-const debounce = (fn: Function, delay: number) => {
-  let timeoutId: NodeJS.Timeout;
-  return (...args: any[]) => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => {
-      fn(...args);
-    }, delay);
-  };
-}
-
 const lessonProgressKey = "lesson-progress";
 
 export const setLessonProgress = (topicId: string, lessonId: string, progressInfo: { paragraphIndex: number, date: string }) => {
@@ -127,3 +126,8 @@ export function convertToSeconds(timeStr: string, floor = true) {
   }
   return Math.ceil(totalSeconds);
 }
+
+export const tajawal = Tajawal({
+  subsets: ["arabic"],
+  weight: ["200", "300", "400", "500", "700", "800", "900"],
+});
