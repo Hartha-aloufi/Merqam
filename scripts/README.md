@@ -58,6 +58,8 @@ node syncWithVideo.js <mdx-file> <srt-file> <output-file>
 node syncWithVideo.js transcript.mdx subtitles.srt output.mdx
 ```
 
+مثال آخر: **انظر الى "./examples/syncWithVideo/case 1"**
+
 ## تفاصيل حل المشكلة
 
 ### تنميط النص (خاص باللغة العربية)
