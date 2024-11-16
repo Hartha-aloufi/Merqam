@@ -148,4 +148,122 @@
     clip-path: inset(0 calc(100% - var(--progress)) 0 0);
     transition: clip-path 0.2s linear;
   }
+} /* Print-specific styles */
+@media print {
+  /* Hide non-printable elements */
+  /* Hide UI elements */
+  .no-print,
+  nav,
+  header,
+  footer,
+  .sticky-header,
+  .video-player,
+  .settings-sheet,
+  [data-rehype-pretty-code-fragment],
+  
+  /* Hide tooltips and popovers */
+  [role="tooltip"],
+  [data-radix-popper-content-wrapper],
+  
+  /* Hide all Radix UI portals */
+  #radix-\:r\:,
+  
+  /* Hide hover-only elements */
+  .group-hover\:opacity-100,
+  .hover\:opacity-100,
+  
+  /* VideoTimeAt play button */
+  [role="button"].absolute.-right-8,
+  
+  /* General tooltip elements */
+  .tooltip,
+  .tooltipContent {
+    display: none !important;
+  }
+
+  /* Reset background and text colors for printing */
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Ensure proper page breaks */
+  h1,
+  h2,
+  h3 {
+    break-after: avoid-page;
+  }
+
+  img,
+  pre {
+    break-inside: avoid;
+  }
+
+  /* Adjust content width for print */
+  .container {
+    max-width: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Show link URLs */
+  a[href]:after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    font-style: italic;
+  }
+
+  /* Exception for internal links */
+  a[href^="/"]:after,
+  a[href^="#"]:after {
+    content: "";
+  }
+
+   /* Running header and footer */
+  @page {
+    margin: 2cm;
+    
+    @top-right {
+      content: "مِرْقَم";
+    }
+    
+    @bottom-center {
+      content: counter(page) " / " counter(pages);
+    }
+  }
+
+  /* First page shouldn't have header */
+  .first-page {
+    page-break-after: always;
+  }
+  
+  /* Table of Contents specific */
+  .toc a::after {
+    content: leader('.') target-counter(attr(href), page);
+  }
+
+  /* QR Code should be on the last page */
+  .print-qr-code {
+    position: fixed;
+    bottom: 2cm;
+    left: 2cm;
+  }
+
+  /* Avoid orphans and widows */
+  p, h2, h3 { 
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* Keep headings with their content */
+  h1, h2, h3, h4 { 
+    break-after: avoid;
+  }
+  
+  /* Ensure nextjs dev mode ui elements is hidden */
+  nextjs-portal {
+    display: none !important;
+  }
+
 }
