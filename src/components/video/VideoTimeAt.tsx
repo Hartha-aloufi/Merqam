@@ -11,17 +11,16 @@ interface VideoTimeAtProps {
   children: React.ReactNode;
 }
 
-export const VideoTimeAt = ({ startTime, endTime, children }: VideoTimeAtProps) => {
-  const { 
-    player, 
-    isPlaying, 
-    currentTime,
-    playSegment,
-    pauseVideo 
-  } = useVideoContext();
+export const VideoTimeAt = ({
+  startTime,
+  endTime,
+  children,
+}: VideoTimeAtProps) => {
+  const { player, isPlaying, currentTime, playSegment, pauseVideo } =
+    useVideoContext();
 
-  const startTimeSeconds = startTime 
-  const endTimeSeconds = endTime 
+  const startTimeSeconds = startTime;
+  const endTimeSeconds = endTime;
 
   const isCurrentSegment =
     isPlaying &&
@@ -30,7 +29,7 @@ export const VideoTimeAt = ({ startTime, endTime, children }: VideoTimeAtProps) 
 
   const handleClick = () => {
     if (!player) return;
-    
+
     if (isCurrentSegment) {
       pauseVideo();
     } else {
@@ -39,20 +38,23 @@ export const VideoTimeAt = ({ startTime, endTime, children }: VideoTimeAtProps) 
   };
 
   return (
-    <div 
+    <div
       className={cn(
         "group relative",
-        isCurrentSegment && "bg-primary/5 rounded-lg transition-colors duration-200"
+        // Remove background in print view
+        "print:bg-transparent",
+        // Only show background in screen view when segment is playing
+        isCurrentSegment &&
+          "screen:bg-primary/5 rounded-lg transition-colors duration-200"
       )}
     >
-      {/* Play Button */}
+      {/* Play Button - Hidden in print */}
       {player && (
         <button
           onClick={handleClick}
           className={cn(
-            // Position
+            // Position and base styles
             "absolute -right-8 md:-right-10 top-0",
-            // Base styles
             "p-1.5 rounded-lg",
             "bg-primary/10 hover:bg-primary/20",
             "text-primary hover:text-primary/80",
@@ -60,9 +62,15 @@ export const VideoTimeAt = ({ startTime, endTime, children }: VideoTimeAtProps) 
             "md:opacity-0 md:group-hover:opacity-100",
             isCurrentSegment && "!opacity-100",
             // Transitions
-            "transition-all duration-200"
+            "transition-all duration-200",
+            // Hide in print
+            "print:hidden"
           )}
-          title={`${isCurrentSegment ? 'ايقاف' : 'تشغيل'} المرئية من ${formatTime(startTimeSeconds)} الى ${formatTime(endTimeSeconds)}`}
+          title={`${
+            isCurrentSegment ? "Pause" : "Play"
+          } video from ${formatTime(startTimeSeconds)} to ${formatTime(
+            endTimeSeconds
+          )}`}
         >
           {isCurrentSegment ? (
             <Pause className="h-4 w-4" />
@@ -72,7 +80,12 @@ export const VideoTimeAt = ({ startTime, endTime, children }: VideoTimeAtProps) 
         </button>
       )}
 
-      {children}
+      {/* Content wrapper */}
+      <div className="print:pr-0">
+        {" "}
+        {/* Remove right padding in print */}
+        {children}
+      </div>
     </div>
   );
 };
@@ -80,5 +93,5 @@ export const VideoTimeAt = ({ startTime, endTime, children }: VideoTimeAtProps) 
 const formatTime = (seconds: number): string => {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = Math.floor(seconds % 60);
-  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 };

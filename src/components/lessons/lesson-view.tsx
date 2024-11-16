@@ -1,14 +1,17 @@
 "use client";
-
 import { useEffect } from "react";
 import { YouTubeMusicPlayer } from "./YouTubeMusicPlayer";
 import { ShortcutsToast } from "@/components/reading/ShortcutsToast";
 import { VideoProvider } from "@/contexts/video-context";
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation";
 import { useParagraphTracking } from "@/hooks/use-paragraph-tracking";
+import { usePrintLesson } from "@/hooks/use-print-lesson";
 import type { Lesson } from "@/types";
 import { LessonHeader } from "./lesson-header";
 import { ReadingProgressBar } from "../reading/ReadingProgressBar";
+import PrintButton from "./print-button";
+import PrintableLesson from "./printable-lesson";
+import { cn } from "@/lib/utils";
 
 interface LessonViewProps {
   lesson: Lesson;
@@ -27,23 +30,17 @@ export function LessonView({
 }: LessonViewProps) {
   const pTracker = useParagraphTracking(topicId, lessonId);
 
-  /**
-   * scroll to the last read paragraph when the component mounts
-   */
+  const handlePrint = usePrintLesson({
+    title: lesson.title,
+  });
+
   useEffect(() => {
     pTracker.scrollToLastRead();
   }, []);
 
-  /**
-   * Start tracking paragraphs when the lesson content changes
-   */
   useEffect(() => {
     pTracker.track();
-
-    return () => {
-      // Stop tracking when the component unmounts
-      pTracker.untrack();
-    };
+    return () => pTracker.untrack();
   }, [lesson.content]);
 
   useKeyboardNavigation({
@@ -54,28 +51,46 @@ export function LessonView({
 
   return (
     <VideoProvider>
-      <div className="max-w-3xl mx-auto py-8 pb-24">
+      {/* Regular View */}
+      <div
+        className={cn(
+          "max-w-3xl mx-auto py-8 pb-24",
+          "print:hidden" // Hide in print view
+        )}
+      >
         <ReadingProgressBar />
-        
-        <LessonHeader
-          title={lesson.title}
-          readingTime={readingTime}
-          youtubeUrl={lesson.youtubeUrl}
-          topicId={topicId}
-          lessonId={lessonId}
-        />
+
+        <div className="flex items-center justify-between mb-8">
+          <LessonHeader
+            title={lesson.title}
+            readingTime={readingTime}
+            youtubeUrl={lesson.youtubeUrl}
+            topicId={topicId}
+            lessonId={lessonId}
+          />
+          <PrintButton onClick={handlePrint} className="ml-4" />
+        </div>
 
         <div className="prose prose-lg dark:prose-invert max-w-none">
-          {/* lesson content will be rendered here, importing it directly into this client component
-           will cause many issues since it use mdx and mdx has async await */}
           {children}
         </div>
       </div>
 
-      {lesson.youtubeUrl && (
-        <YouTubeMusicPlayer youtubeUrl={lesson.youtubeUrl} />
-      )}
-      <ShortcutsToast />
+      {/* Print View */}
+      <PrintableLesson
+        title={lesson.title}
+        content={children}
+        topicId={topicId}
+        lessonId={lessonId}
+      />
+      
+      {/* Components to hide in print */}
+      <div className="print:hidden">
+        {lesson.youtubeUrl && (
+          <YouTubeMusicPlayer youtubeUrl={lesson.youtubeUrl} />
+        )}
+        <ShortcutsToast />
+      </div>
     </VideoProvider>
   );
 }
