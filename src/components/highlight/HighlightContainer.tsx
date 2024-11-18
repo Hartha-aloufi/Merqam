@@ -4,6 +4,7 @@ import React, { useCallback, useRef, useEffect } from "react";
 import { useHighlights } from "@/hooks/use-highlights";
 import { HighlightToolbar } from "./HighlightToolbar";
 import { cn } from "@/lib/utils";
+import { TextHighlight } from "@/types/highlight";
 
 interface HighlightContainerProps {
   topicId: string;
@@ -49,6 +50,30 @@ export const HighlightContainer: React.FC<HighlightContainerProps> = ({
     return offset;
   };
 
+  // Get the real text offset considering highlighted text
+  const getRealOffset = (node: Node, offset: number): number => {
+    let realOffset = calculateOffset(node);
+
+    // If the node is inside a highlight, include its own offset
+    if (
+      node.nodeType === Node.TEXT_NODE &&
+      node.parentElement?.nodeName === "MARK"
+    ) {
+      realOffset += offset;
+    } else if (
+      node.nodeType === Node.ELEMENT_NODE &&
+      node.nodeName === "MARK"
+    ) {
+      // If selecting the mark element itself, count all text before the offset
+      const markElement = node as HTMLElement;
+      realOffset += offset;
+    } else {
+      realOffset += offset;
+    }
+
+    return realOffset;
+  };
+
   // Store selection details when text is selected
   const handleSelection = useCallback(() => {
     if (!isEnabled) return;
@@ -77,120 +102,177 @@ export const HighlightContainer: React.FC<HighlightContainerProps> = ({
 
     if (!paragraph) return;
 
-    // Calculate start offset including previous marked text
-    const startNode = range.startContainer;
-    const startBaseOffset = calculateOffset(startNode);
-    const finalStartOffset = startBaseOffset + range.startOffset;
+    const elementId = paragraph.getAttribute("data-paragraph-index") || "0";
 
-    // Create the highlight
-    addHighlight({
-      text: selectedText,
-      startOffset: finalStartOffset,
-      endOffset: finalStartOffset + selectedText.length,
-      elementId: paragraph.getAttribute("data-paragraph-index") || "0",
-    });
+    // Calculate real start and end offsets
+    const startOffset = getRealOffset(range.startContainer, range.startOffset);
+    const endOffset = startOffset + selectedText.length;
+
+    // Find all highlights in this paragraph that interact with the new selection
+    const existingHighlights = highlights
+      .filter(
+        (h) =>
+          h.elementId === elementId &&
+          !(h.endOffset <= startOffset || h.startOffset >= endOffset)
+      )
+      .sort((a, b) => a.startOffset - b.startOffset);
+
+    if (existingHighlights.length > 0) {
+      // Handle expansion of existing highlight(s)
+      const firstHighlight = existingHighlights[0];
+      const lastHighlight = existingHighlights[existingHighlights.length - 1];
+
+      // Create a new highlight that spans from the earliest start to the latest end
+      const newStartOffset = Math.min(startOffset, firstHighlight.startOffset);
+      const newEndOffset = Math.max(endOffset, lastHighlight.endOffset);
+
+      // Remove all overlapping highlights
+      existingHighlights.forEach((h) => removeHighlight(h.id));
+
+      // Add the expanded highlight
+      addHighlight({
+        text: selectedText,
+        startOffset: newStartOffset,
+        endOffset: newEndOffset,
+        elementId,
+      });
+    } else {
+      // No overlaps, add new highlight normally
+      addHighlight({
+        text: selectedText,
+        startOffset,
+        endOffset,
+        elementId,
+      });
+    }
 
     // Clear the selection
     selection.removeAllRanges();
-  }, [isEnabled, addHighlight]);
+  }, [isEnabled, addHighlight, removeHighlight, highlights]);
+
+  // Sort highlights by start offset and merge overlapping ones
+  const processHighlights = (highlights: TextHighlight[]): TextHighlight[] => {
+    return highlights
+      .slice()
+      .sort((a, b) => a.startOffset - b.startOffset)
+      .reduce((acc: TextHighlight[], current) => {
+        // If we have no highlights yet or this one doesn't overlap with the last one
+        if (
+          acc.length === 0 ||
+          acc[acc.length - 1].endOffset <= current.startOffset
+        ) {
+          acc.push(current);
+        }
+        // If they overlap, extend the last highlight if needed
+        else {
+          const last = acc[acc.length - 1];
+          last.endOffset = Math.max(last.endOffset, current.endOffset);
+        }
+        return acc;
+      }, []);
+  };
 
   // Apply highlights
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Sort highlights by start offset to ensure proper ordering
-    const sortedHighlights = [...highlights].sort(
-      (a, b) => a.startOffset - b.startOffset
-    );
+    // Group highlights by element ID
+    const highlightsByElement = highlights.reduce((acc, highlight) => {
+      acc[highlight.elementId] = [
+        ...(acc[highlight.elementId] || []),
+        highlight,
+      ];
+      return acc;
+    }, {} as Record<string, TextHighlight[]>);
 
-    // Clear existing highlights
-    sortedHighlights.forEach((highlight) => {
-      const element = containerRef.current?.querySelector(
-        `[data-highlight="${highlight.id}"]`
-      );
-      if (element) {
-        const parent = element.parentNode;
-        if (parent) {
-          parent.replaceChild(
-            document.createTextNode(element.textContent || ""),
-            element
-          );
-        }
-      }
-    });
-
-    // Normalize text nodes
-    containerRef.current
-      .querySelectorAll("[data-paragraph-index]")
-      .forEach((el) => {
-        el.normalize();
-      });
-
-    // Apply highlights in order
-    sortedHighlights.forEach((highlight) => {
-      try {
+    // Process each element's highlights
+    Object.entries(highlightsByElement).forEach(
+      ([elementId, elementHighlights]) => {
         const element = containerRef.current?.querySelector(
-          `[data-paragraph-index="${highlight.elementId}"]`
+          `[data-paragraph-index="${elementId}"]`
         );
         if (!element) return;
 
-        // Get all text nodes in the element
-        const textNodes: Node[] = [];
-        const walker = document.createTreeWalker(
-          element,
-          NodeFilter.SHOW_TEXT,
-          null
-        );
-
-        let node: Node | null = walker.nextNode();
-        while (node) {
-          textNodes.push(node);
-          node = walker.nextNode();
-        }
-
-        // Find the appropriate text node and apply highlight
-        let currentOffset = 0;
-        for (const textNode of textNodes) {
-          const nodeLength = textNode.textContent?.length || 0;
-          const nodeEndOffset = currentOffset + nodeLength;
-
-          // Check if this node contains our highlight
-          if (
-            currentOffset <= highlight.startOffset &&
-            highlight.startOffset < nodeEndOffset
-          ) {
-            const range = document.createRange();
-            const relativeStart = highlight.startOffset - currentOffset;
-            const relativeEnd = Math.min(
-              nodeLength,
-              highlight.endOffset - currentOffset
+        // Clear existing highlights
+        const existingMarks = element.querySelectorAll("mark[data-highlight]");
+        existingMarks.forEach((mark) => {
+          const parent = mark.parentNode;
+          if (parent) {
+            parent.replaceChild(
+              document.createTextNode(mark.textContent || ""),
+              mark
             );
-
-            range.setStart(textNode, relativeStart);
-            range.setEnd(textNode, relativeEnd);
-
-            const mark = document.createElement("mark");
-            mark.dataset.highlight = highlight.id;
-            mark.style.backgroundColor = highlight.color;
-            mark.style.borderRadius = "2px";
-            mark.addEventListener("dblclick", () =>
-              removeHighlight(highlight.id)
-            );
-
-            try {
-              range.surroundContents(mark);
-            } catch (e) {
-              console.warn("Failed to highlight range:", e);
-            }
-            break;
           }
+        });
 
-          currentOffset = nodeEndOffset;
-        }
-      } catch (error) {
-        console.error("Error applying highlight:", error);
+        // Normalize text nodes
+        element.normalize();
+
+        // Process and sort highlights
+        const processedHighlights = processHighlights(elementHighlights);
+
+        // Apply highlights
+        processedHighlights.forEach((highlight) => {
+          try {
+            // Get all text nodes
+            const textNodes: Node[] = [];
+            const walker = document.createTreeWalker(
+              element,
+              NodeFilter.SHOW_TEXT,
+              null
+            );
+
+            let node: Node | null = walker.nextNode();
+            while (node) {
+              textNodes.push(node);
+              node = walker.nextNode();
+            }
+
+            // Find and highlight the text
+            let currentOffset = 0;
+            for (const textNode of textNodes) {
+              const nodeLength = textNode.textContent?.length || 0;
+              const nodeEndOffset = currentOffset + nodeLength;
+
+              if (
+                currentOffset <= highlight.startOffset &&
+                highlight.startOffset < nodeEndOffset
+              ) {
+                const range = document.createRange();
+                const relativeStart = highlight.startOffset - currentOffset;
+                const relativeEnd = Math.min(
+                  nodeLength,
+                  highlight.endOffset - currentOffset
+                );
+
+                range.setStart(textNode, relativeStart);
+                range.setEnd(textNode, relativeEnd);
+
+                const mark = document.createElement("mark");
+                mark.dataset.highlight = highlight.id;
+                mark.style.backgroundColor = highlight.color;
+                mark.style.padding = "0 2px";
+                mark.style.borderRadius = "2px";
+                mark.addEventListener("dblclick", () =>
+                  removeHighlight(highlight.id)
+                );
+
+                try {
+                  range.surroundContents(mark);
+                  break;
+                } catch (e) {
+                  console.warn("Failed to highlight range:", e);
+                }
+              }
+
+              currentOffset = nodeEndOffset;
+            }
+          } catch (error) {
+            console.error("Error applying highlight:", error);
+          }
+        });
       }
-    });
+    );
   }, [highlights, removeHighlight]);
 
   return (
