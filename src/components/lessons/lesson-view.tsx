@@ -9,8 +9,8 @@ import { usePrintLesson } from "@/hooks/use-print-lesson";
 import type { Lesson } from "@/types";
 import { LessonHeader } from "./lesson-header";
 import { ReadingProgressBar } from "../reading/ReadingProgressBar";
-import PrintButton from "./print-button";
-import PrintableLesson from "./printable-lesson";
+import PrintButton from "./print/print-button";
+import PrintableLesson from "./print/printable-lesson";
 import { cn } from "@/lib/utils";
 
 interface LessonViewProps {
@@ -83,7 +83,7 @@ export function LessonView({
         topicId={topicId}
         lessonId={lessonId}
       />
-      
+
       {/* Components to hide in print */}
       <div className="print:hidden">
         {lesson.youtubeUrl && (
