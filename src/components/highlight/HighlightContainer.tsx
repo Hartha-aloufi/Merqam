@@ -32,6 +32,15 @@ export const HighlightContainer: React.FC<HighlightContainerProps> = ({
   } = useHighlights(topicId, lessonId);
 
   // Calculate offset including marked text
+  // Helper to detect if selection is backwards (right to left)
+  const detectBackwardsSelection = (range: Range): boolean => {
+    const tempRange = document.createRange();
+    tempRange.setStart(range.startContainer, range.startOffset);
+    tempRange.setEnd(range.endContainer, range.endOffset);
+    return tempRange.collapsed;
+  };
+
+  // Calculate offset including marked text
   const calculateOffset = (node: Node): number => {
     let offset = 0;
     let current = node.previousSibling;
@@ -47,26 +56,64 @@ export const HighlightContainer: React.FC<HighlightContainerProps> = ({
       }
       current = current.previousSibling;
     }
+
+    // If node is inside a mark, we need to add parent offsets too
+    let parent = node.parentElement;
+    while (parent && parent.closest("[data-paragraph-index]") !== parent) {
+      if (parent.nodeName === "MARK") {
+        const prevSiblings = Array.from(parent.parentNode?.childNodes || []);
+        const beforeMark = prevSiblings.slice(0, prevSiblings.indexOf(parent));
+        offset += beforeMark.reduce(
+          (acc, node) => acc + (node.textContent?.length || 0),
+          0
+        );
+      }
+      parent = parent.parentElement;
+    }
+
     return offset;
   };
 
-  // Get the real text offset considering highlighted text
-  const getRealOffset = (node: Node, offset: number): number => {
+  // Get the real text offset considering highlighted text and direction
+  const getRealOffset = (
+    node: Node,
+    offset: number,
+    isStart: boolean
+  ): number => {
     let realOffset = calculateOffset(node);
 
-    // If the node is inside a highlight, include its own offset
     if (
       node.nodeType === Node.TEXT_NODE &&
       node.parentElement?.nodeName === "MARK"
     ) {
-      realOffset += offset;
+      // Handle text node inside a highlight
+      const mark = node.parentElement;
+      const markId = mark.getAttribute("data-highlight");
+      const highlight = highlights.find((h) => h.id === markId);
+
+      if (highlight && isStart) {
+        // For start offset, use the highlight's start offset plus our local offset
+        realOffset = highlight.startOffset + offset;
+      } else if (highlight && !isStart) {
+        // For end offset, use the highlight's start offset plus our local offset
+        realOffset = highlight.startOffset + offset;
+      } else {
+        // Fallback if highlight not found
+        realOffset += offset;
+      }
     } else if (
       node.nodeType === Node.ELEMENT_NODE &&
       node.nodeName === "MARK"
     ) {
-      // If selecting the mark element itself, count all text before the offset
-      const markElement = node as HTMLElement;
-      realOffset += offset;
+      // If selecting the mark element itself
+      const markId = (node as HTMLElement).getAttribute("data-highlight");
+      const highlight = highlights.find((h) => h.id === markId);
+
+      if (highlight) {
+        realOffset = isStart ? highlight.startOffset : highlight.endOffset;
+      } else {
+        realOffset += offset;
+      }
     } else {
       realOffset += offset;
     }
@@ -104,9 +151,23 @@ export const HighlightContainer: React.FC<HighlightContainerProps> = ({
 
     const elementId = paragraph.getAttribute("data-paragraph-index") || "0";
 
+    // Check if selection is backwards (right to left)
+    const isBackwards = detectBackwardsSelection(range);
+
     // Calculate real start and end offsets
-    const startOffset = getRealOffset(range.startContainer, range.startOffset);
-    const endOffset = startOffset + selectedText.length;
+    let startOffset, endOffset;
+
+    if (isBackwards) {
+      endOffset = getRealOffset(range.startContainer, range.startOffset, false);
+      startOffset = getRealOffset(range.endContainer, range.endOffset, true);
+    } else {
+      startOffset = getRealOffset(
+        range.startContainer,
+        range.startOffset,
+        true
+      );
+      endOffset = getRealOffset(range.endContainer, range.endOffset, false);
+    }
 
     // Find all highlights in this paragraph that interact with the new selection
     const existingHighlights = highlights
