@@ -31,8 +31,14 @@ export const HighlightContainer: React.FC<HighlightContainerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Manage highlight state
-  const { isEnabled, activeColor, setActiveColor, toggleHighlighting } =
-    useHighlightState();
+  const {
+    isEnabled,
+    isDeleteMode,
+    activeColor,
+    setActiveColor,
+    toggleHighlighting,
+    toggleDeleteMode,
+  } = useHighlightState();
 
   // Manage highlights storage
   const {
@@ -57,7 +63,9 @@ export const HighlightContainer: React.FC<HighlightContainerProps> = ({
       {/* Toolbar */}
       <HighlightToolbar
         isEnabled={isEnabled}
+        isDeleteMode={isDeleteMode}
         onToggle={toggleHighlighting}
+        onToggleDeleteMode={toggleDeleteMode}
         activeColor={activeColor}
         onColorChange={setActiveColor}
         onClear={clearHighlights}
@@ -67,10 +75,11 @@ export const HighlightContainer: React.FC<HighlightContainerProps> = ({
       {/* Content Container */}
       <div
         ref={containerRef}
-        onMouseUp={handleSelection}
+        onMouseUp={!isDeleteMode ? handleSelection : undefined}
         className={cn(
           "relative transition-colors duration-200",
-          isEnabled && "cursor-text",
+          isEnabled && !isDeleteMode && "cursor-text",
+          isEnabled && isDeleteMode && "cursor-pointer",
           className
         )}
       >

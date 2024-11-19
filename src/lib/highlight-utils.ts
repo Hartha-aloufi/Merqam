@@ -97,4 +97,4 @@ export function processHighlights(highlights: TextHighlight[]): TextHighlight[] 
             }
             return acc;
         }, []);
-}
+} 

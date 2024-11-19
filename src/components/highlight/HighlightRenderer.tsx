@@ -25,13 +25,13 @@ export const HighlightRenderer = React.memo(function HighlightRenderer({
       const mark = document.createElement("mark");
       mark.setAttribute("data-highlight", highlight.id);
       mark.style.backgroundColor = highlight.color;
-      mark.style.padding = "0 2px";
       mark.style.borderRadius = "2px";
-      mark.style.transition = "background-color 0.2s";
+      mark.style.cursor = "pointer";
+      mark.style.transition = "background-color 0.2s, filter 0.2s";
       // Add hover effect class
       mark.className = "hover:brightness-95";
 
-        mark.addEventListener("dblclick", (e) => {
+      mark.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
         onRemoveHighlight(highlight.id);
