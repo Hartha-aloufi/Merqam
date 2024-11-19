@@ -1,10 +1,9 @@
-// components/lessons/content/lesson-content.tsx
-// This is a server component that handles MDX rendering
+// Server component that handles MDX rendering
 import { MDXRemote } from "next-mdx-remote/rsc";
 import rehypeHighlight from "rehype-highlight";
 import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
-import { ClientMDXWrapper } from "./client-mdx-wrapper";
+import { MDXClientWrapper } from "./client-mdx-wrapper";
 import { createMDXComponents } from "./mdx-components";
 
 const options = {
@@ -31,17 +30,28 @@ function* incrementingGenerator() {
   }
 }
 
-export function LessonContent({ content }: LessonContentProps) {
+/**
+ * Server component that renders MDX content with:
+ * - Syntax highlighting
+ * - Auto-generated slugs for headings
+ * - Custom MDX components
+ * - Client-side features (highlighting, font size, etc.)
+ */
+export function LessonContent({
+  content,
+  topicId,
+  lessonId,
+}: LessonContentProps) {
   const paragraphIndexGen = incrementingGenerator();
   const mdxComponents = createMDXComponents(paragraphIndexGen);
 
   return (
-    <ClientMDXWrapper>
+    <MDXClientWrapper topicId={topicId} lessonId={lessonId}>
       <MDXRemote
         source={content}
         components={mdxComponents}
         options={options}
       />
-    </ClientMDXWrapper>
+    </MDXClientWrapper>
   );
 }
