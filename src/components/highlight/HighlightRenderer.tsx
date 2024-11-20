@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { TextHighlight } from "@/types/highlight";
 import { processHighlights } from "@/lib/highlight-utils";
+import { getHighlightColor } from "@/constants/highlights";
 
 interface HighlightRendererProps {
   containerRef: React.RefObject<HTMLElement>;
@@ -24,7 +25,7 @@ export const HighlightRenderer = React.memo(function HighlightRenderer({
     const createHighlightMark = (highlight: TextHighlight): HTMLElement => {
       const mark = document.createElement("mark");
       mark.setAttribute("data-highlight", highlight.id);
-      mark.style.backgroundColor = highlight.color;
+      mark.style.backgroundColor = getHighlightColor(highlight.color);
       mark.style.borderRadius = "2px";
       mark.style.cursor = "pointer";
       mark.style.transition = "background-color 0.2s, filter 0.2s";

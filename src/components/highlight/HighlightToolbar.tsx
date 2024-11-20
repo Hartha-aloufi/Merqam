@@ -1,7 +1,11 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Highlighter, Trash2, Palette, X } from "lucide-react";
-import { HIGHLIGHT_COLORS } from "@/types/highlight";
+import { Highlighter, Trash2, X } from "lucide-react";
+import {
+  HIGHLIGHT_COLORS,
+  type HighlightColorKey,
+} from "@/constants/highlights";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,14 +19,14 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
+
 interface HighlightToolbarProps {
   isEnabled: boolean;
   isDeleteMode: boolean;
   onToggle: (enabled: boolean) => void;
   onToggleDeleteMode: (enabled: boolean) => void;
-  activeColor: string;
-  onColorChange: (color: string) => void;
-  onClear: () => void;
+  activeColor: HighlightColorKey;
+  onColorChange: (color: HighlightColorKey) => void;
   highlightsCount: number;
 }
 
@@ -33,7 +37,6 @@ export const HighlightToolbar: React.FC<HighlightToolbarProps> = ({
   onToggleDeleteMode,
   activeColor,
   onColorChange,
-  onClear,
   highlightsCount,
 }) => {
   return (
@@ -85,26 +88,25 @@ export const HighlightToolbar: React.FC<HighlightToolbarProps> = ({
               </TooltipContent>
             </Tooltip>
             <DropdownMenuContent align="start">
-              {Object.entries(HIGHLIGHT_COLORS).map(
-                ([name, { background }]) => (
-                  <DropdownMenuItem
-                    key={name}
-                    onClick={() => onColorChange(background)}
-                    className="flex items-center gap-2"
-                  >
-                    <div
-                      className="h-4 w-4 rounded"
-                      style={{ backgroundColor: background }}
-                    />
-                    <span className="capitalize">{name}</span>
-                  </DropdownMenuItem>
-                )
-              )}
+              {Object.entries(HIGHLIGHT_COLORS).map(([key, { background }]) => (
+                <DropdownMenuItem
+                  key={key}
+                  onClick={() => onColorChange(key as HighlightColorKey)}
+                  className="flex items-center gap-2"
+                >
+                  <div
+                    className="h-4 w-4 rounded"
+                    style={{ backgroundColor: background }}
+                  />
+                  <span className="capitalize">{key}</span>
+                </DropdownMenuItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
 
           {highlightsCount > 0 && (
             <>
+              {/* Delete Mode Toggle */}
               {/* Delete Mode Toggle */}
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -112,17 +114,24 @@ export const HighlightToolbar: React.FC<HighlightToolbarProps> = ({
                     variant={isDeleteMode ? "destructive" : "outline"}
                     size="icon"
                     onClick={() => onToggleDeleteMode(!isDeleteMode)}
-                    className="h-8 w-8"
+                    className={cn(
+                      "h-8 w-8 transition-all duration-200",
+                      isDeleteMode && "ring-2 ring-destructive/50"
+                    )}
                   >
                     {isDeleteMode ? (
-                      <X className="h-4 w-4" />
+                      <X className="h-4 w-4 animate-in zoom-in-50" />
                     ) : (
                       <Trash2 className="h-4 w-4" />
                     )}
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  <p>{isDeleteMode ? "إلغاء وضع الحذف" : "تفعيل وضع الحذف"}</p>
+                <TooltipContent side="bottom" align="center">
+                  <p>
+                    {isDeleteMode
+                      ? "انقر على أي تظليل لحذفه، أو انقر هنا للإلغاء"
+                      : "تفعيل وضع الحذف"}
+                  </p>
                 </TooltipContent>
               </Tooltip>
             </>

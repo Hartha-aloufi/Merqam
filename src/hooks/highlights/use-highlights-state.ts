@@ -1,12 +1,11 @@
+// hooks/highlights/use-highlights-state.ts
 import { useState, useCallback } from 'react';
+import { HighlightColorKey } from '@/constants/highlights';
 
-/**
- * Hook to manage the highlight feature state
- */
 export const useHighlightState = () => {
     const [isEnabled, setIsEnabled] = useState(false);
     const [isDeleteMode, setIsDeleteMode] = useState(false);
-    const [activeColor, setActiveColor] = useState<string>('#FFF9C4'); // Default yellow
+    const [activeColor, setActiveColor] = useState<HighlightColorKey>('yellow');
 
     const enableHighlighting = useCallback(() => {
         setIsEnabled(true);
