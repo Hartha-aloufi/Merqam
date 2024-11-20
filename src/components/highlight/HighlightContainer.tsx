@@ -4,7 +4,6 @@ import { useHighlightState } from "@/hooks/highlights/use-highlights-state";
 import { useHighlightStorage } from "@/hooks/highlights/use-highlights-storage";
 import { useHighlightSelection } from "@/hooks/highlights/use-highlight-selection";
 import { useSession } from "@/hooks/use-auth-query";
-import { usePathname } from "next/navigation";
 import { HighlightToolbar } from "./HighlightToolbar";
 import { UnauthorizedToolbar } from "./UnauthorizedToolbar";
 import { HighlightRenderer } from "./HighlightRenderer";
@@ -31,7 +30,6 @@ export const HighlightContainer: React.FC<HighlightContainerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const { data: session } = useSession();
   const isAuthenticated = !!session?.data.session;
-  const pathname = usePathname();
 
   // Only initialize these hooks if user is authenticated
   const state = useHighlightState();
@@ -46,12 +44,17 @@ export const HighlightContainer: React.FC<HighlightContainerProps> = ({
     onRemoveHighlights: storage.removeHighlight,
   });
 
+  // Content wrapper with padding for fixed toolbar
+  const ContentWrapper: React.FC<{ children: React.ReactNode }> = ({
+    children,
+  }) => <div className="pt-14">{children}</div>;
+
   // If not authenticated, show unauthorized toolbar and content
   if (!isAuthenticated) {
     return (
       <div className="relative">
-        <UnauthorizedToolbar returnUrl={pathname} className={className} />
-        <div>{children}</div>
+        <UnauthorizedToolbar />
+        <ContentWrapper>{children}</ContentWrapper>
       </div>
     );
   }
@@ -78,26 +81,28 @@ export const HighlightContainer: React.FC<HighlightContainerProps> = ({
       />
 
       {/* Content Container */}
-      <div
-        ref={containerRef}
-        onMouseUp={!state.isDeleteMode ? handleSelection : undefined}
-        className={cn(
-          "relative transition-colors duration-200",
-          state.isEnabled && !state.isDeleteMode && "cursor-text",
-          state.isEnabled && state.isDeleteMode && "cursor-pointer",
-          className
-        )}
-      >
-        {/* Highlight Renderer */}
-        <HighlightRenderer
-          containerRef={containerRef}
-          highlights={storage.highlights}
-          onRemoveHighlight={storage.removeHighlight}
-        />
+      <ContentWrapper>
+        <div
+          ref={containerRef}
+          onMouseUp={!state.isDeleteMode ? handleSelection : undefined}
+          className={cn(
+            "relative transition-colors duration-200",
+            state.isEnabled && !state.isDeleteMode && "cursor-text",
+            state.isEnabled && state.isDeleteMode && "cursor-pointer",
+            className
+          )}
+        >
+          {/* Highlight Renderer */}
+          <HighlightRenderer
+            containerRef={containerRef}
+            highlights={storage.highlights}
+            onRemoveHighlight={storage.removeHighlight}
+          />
 
-        {/* Content */}
-        {children}
-      </div>
+          {/* Content */}
+          {children}
+        </div>
+      </ContentWrapper>
     </div>
   );
 };

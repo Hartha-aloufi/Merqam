@@ -1,38 +1,36 @@
-// components/highlight/UnauthorizedToolbar.tsx
 import React from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Highlighter, LogIn } from "lucide-react";
+import { Highlighter, ChevronDown } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { CollapsibleToolbar } from "./CollapsibleToolbar";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface UnauthorizedToolbarProps {
-  returnUrl: string;
   className?: string;
 }
 
 export const UnauthorizedToolbar: React.FC<UnauthorizedToolbarProps> = ({
-  returnUrl,
   className,
 }) => {
   return (
-    <div
-      className={cn(
-        "sticky top-16 z-10 mb-4",
-        "bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60",
-        "rounded-lg border p-2",
-        "flex items-center gap-2 overflow-hidden",
-        className
-      )}
+    <CollapsibleToolbar
+      className={className}
+      pullTabContent={
+        <>
+          <Highlighter className="mr-2 h-3 w-3" />
+          <span className="text-xs">ميزة التظليل</span>
+          <ChevronDown className="ml-2 h-3 w-3" />
+        </>
+      }
     >
       {/* Highlight Icon */}
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="p-2 rounded-md bg-muted">
+          <div className="rounded-md bg-muted p-2">
             <Highlighter className="h-4 w-4 text-muted-foreground" />
           </div>
         </TooltipTrigger>
@@ -42,20 +40,13 @@ export const UnauthorizedToolbar: React.FC<UnauthorizedToolbarProps> = ({
       </Tooltip>
 
       {/* Message */}
-      <div className="flex-1 text-sm text-muted-foreground">
-        سجل دخولك للوصول إلى ميزة التظليل والمزيد من المميزات
-      </div>
-
-      {/* Login Button */}
-      <Link
-        href={`/auth/signin?returnUrl=${encodeURIComponent(returnUrl)}`}
-        className="shrink-0"
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="text-sm text-muted-foreground"
       >
-        <Button size="sm" className="gap-2">
-          <LogIn className="h-4 w-4" />
-          تسجيل الدخول
-        </Button>
-      </Link>
-    </div>
+        سجل دخولك للوصول إلى ميزة التظليل والمزيد من المميزات
+      </motion.div>
+    </CollapsibleToolbar>
   );
 };
