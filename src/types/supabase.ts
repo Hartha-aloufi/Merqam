@@ -9,6 +9,48 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      highlights: {
+        Row: {
+          color: string
+          created_at: string
+          element_id: string
+          end_offset: number
+          id: string
+          is_deleted: boolean
+          lesson_id: string
+          start_offset: number
+          topic_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color: string
+          created_at?: string
+          element_id: string
+          end_offset: number
+          id?: string
+          is_deleted?: boolean
+          lesson_id: string
+          start_offset: number
+          topic_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          element_id?: string
+          end_offset?: number
+          id?: string
+          is_deleted?: boolean
+          lesson_id?: string
+          start_offset?: number
+          topic_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       reading_progress: {
         Row: {
           created_at: string
