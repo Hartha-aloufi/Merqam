@@ -23,7 +23,7 @@ export const CollapsibleToolbar: React.FC<CollapsibleToolbarProps> = ({
       className={cn(
         "fixed inset-x-0 z-40 transition-all duration-300",
         // Place it below the header (z-50)
-        "top-16 md:top-[4.5rem]",
+        "top-[65px]",
         isCollapsed ? "-translate-y-full" : "translate-y-0",
         className
       )}
@@ -61,7 +61,7 @@ export const CollapsibleToolbar: React.FC<CollapsibleToolbarProps> = ({
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="absolute left-1/2 -bottom-6 -translate-x-1/2"
+            className="absolute left-1/2 -bottom-[29px] -translate-x-1/2"
           >
             <Button
               variant="outline"
