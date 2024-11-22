@@ -13,6 +13,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { ColorPicker } from "./ColorPicker";
 
 interface ColorButtonProps {
   color: HighlightColorKey;
@@ -60,7 +61,6 @@ export const HighlightToolbar: React.FC<HighlightToolbarProps> = ({
   onToggleDeleteMode,
   activeColor,
   onColorChange,
-  onClear,
   highlightsCount,
 }) => {
   // Create the content for the pull tab
@@ -103,35 +103,11 @@ export const HighlightToolbar: React.FC<HighlightToolbarProps> = ({
 
         {isEnabled && (
           <>
-            {/* Color Picker Sheet */}
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="h-8 w-8">
-                  <div
-                    className="h-4 w-4 rounded"
-                    style={{
-                      backgroundColor: HIGHLIGHT_COLORS[activeColor].background,
-                    }}
-                  />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-[300px] sm:w-[400px]">
-                <SheetHeader>
-                  <SheetTitle>اختر لون التظليل</SheetTitle>
-                </SheetHeader>
-                <div className="mt-8 space-y-2">
-                  {Object.keys(HIGHLIGHT_COLORS).map((key) => (
-                    <SheetClose asChild key={key}>
-                      <ColorButton
-                        color={key as HighlightColorKey}
-                        isActive={key === activeColor}
-                        onClick={() => onColorChange(key as HighlightColorKey)}
-                      />
-                    </SheetClose>
-                  ))}
-                </div>
-              </SheetContent>
-            </Sheet>
+            {/* Color Picker - Now using dropdown */}
+            <ColorPicker
+              activeColor={activeColor}
+              onColorChange={onColorChange}
+            />
 
             {/* Delete Mode Toggle */}
             {highlightsCount > 0 && (
