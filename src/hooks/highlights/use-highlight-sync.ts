@@ -37,17 +37,14 @@ export const useCreateHighlight = () => {
     return useMutation({
         mutationFn: highlightService.createHighlight,
         onMutate: async (newHighlight: CreateHighlightDto) => {
-            // Cancel any outgoing refetches so they don't overwrite our optimistic update
             await queryClient.cancelQueries({
                 queryKey: HIGHLIGHT_KEYS.lesson(newHighlight.topic_id, newHighlight.lesson_id)
             });
 
-            // Snapshot the previous value
             const previousHighlights = queryClient.getQueryData<HighlightRow[]>(
                 HIGHLIGHT_KEYS.lesson(newHighlight.topic_id, newHighlight.lesson_id)
             );
 
-            // Optimistically update to the new value
             queryClient.setQueryData<HighlightRow[]>(
                 HIGHLIGHT_KEYS.lesson(newHighlight.topic_id, newHighlight.lesson_id),
                 old => {
@@ -56,31 +53,28 @@ export const useCreateHighlight = () => {
                         id: 'temp-' + new Date().getTime(),
                         created_at: new Date().toISOString(),
                         updated_at: new Date().toISOString(),
-                        is_deleted: false,
-                        user_id: 'temp', // Will be replaced with actual user_id
+                        user_id: 'temp',
                     };
 
                     return [...(old || []), optimisticHighlight];
                 }
             );
 
-            // Return a context object with the snapshot
             return { previousHighlights };
         },
-        onError: (err, newHighlight, context) => {
-            // If the mutation fails, revert back to the previous state
-            queryClient.setQueryData(
-                HIGHLIGHT_KEYS.lesson(newHighlight.topic_id, newHighlight.lesson_id),
-                context?.previousHighlights
-            );
-
-            toast.error('فشل إضافة التظليل');
-        },
-        onSuccess: (savedHighlight) => {
+        onSuccess: () => {
             toast.success('تم حفظ التظليل');
         },
+        onError: (err, newHighlight, context) => {
+            if (context?.previousHighlights) {
+                queryClient.setQueryData(
+                    HIGHLIGHT_KEYS.lesson(newHighlight.topic_id, newHighlight.lesson_id),
+                    context.previousHighlights
+                );
+            }
+            toast.error('فشل حفظ التظليل');
+        },
         onSettled: (data, error, variables) => {
-            // Always refetch after error or success to ensure data is in sync
             queryClient.invalidateQueries({
                 queryKey: HIGHLIGHT_KEYS.lesson(variables.topic_id, variables.lesson_id)
             });
@@ -112,46 +106,53 @@ export const useDeleteHighlight = () => {
                 throw new Error('Highlight not found');
             }
 
-            // Cancel any outgoing refetches
             await queryClient.cancelQueries({
                 queryKey: HIGHLIGHT_KEYS.lesson(highlight.topic_id, highlight.lesson_id)
             });
 
-            // Snapshot the previous value
             const previousHighlights = queryClient.getQueryData<HighlightRow[]>(
                 HIGHLIGHT_KEYS.lesson(highlight.topic_id, highlight.lesson_id)
             );
 
-            // Optimistically remove the highlight
             queryClient.setQueryData<HighlightRow[]>(
                 HIGHLIGHT_KEYS.lesson(highlight.topic_id, highlight.lesson_id),
                 old => old?.filter(h => h.id !== highlightId) || []
             );
 
-            // Return context with the snapshot
             return { previousHighlights, highlight };
         },
-        onError: (err, id, context?: DeleteHighlightContext) => {
-            if (context?.highlight) {
-                // Revert the optimistic update
+        onSuccess: () => {
+            toast.success('تم حذف التظليل');
+        },
+        onError: (err, _, context) => {
+            if (context?.previousHighlights && context?.highlight) {
                 queryClient.setQueryData(
                     HIGHLIGHT_KEYS.lesson(context.highlight.topic_id, context.highlight.lesson_id),
                     context.previousHighlights
                 );
             }
-
             toast.error('فشل حذف التظليل');
         },
-        onSuccess: (_, __, context?: DeleteHighlightContext) => {
-            toast.success('تم حذف التظليل');
+    });
+};
+
+/**
+ * Hook to delete multiple highlights
+ */
+export const useDeleteHighlights = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: highlightService.deleteHighlights,
+        onSuccess: () => {
+            // Invalidate all highlight queries
+            queryClient.invalidateQueries({
+                queryKey: HIGHLIGHT_KEYS.all,
+            });
+            toast.success('تم حذف التظليلات');
         },
-        onSettled: (_, __, ___, context?: DeleteHighlightContext) => {
-            if (context?.highlight) {
-                // Always refetch after error or success
-                queryClient.invalidateQueries({
-                    queryKey: HIGHLIGHT_KEYS.lesson(context.highlight.topic_id, context.highlight.lesson_id)
-                });
-            }
+        onError: () => {
+            toast.error('فشل حذف التظليلات');
         },
     });
 };
