@@ -7,11 +7,8 @@ type HighlightRow = Database['public']['Tables']['highlights']['Row'];
 type HighlightInsert = Omit<Database['public']['Tables']['highlights']['Insert'], 'color'> & {
     color: HighlightColorKey;
 };
-type HighlightUpdate = Omit<Database['public']['Tables']['highlights']['Update'], 'color'> & {
-    color?: HighlightColorKey;
-};
 
-export type CreateHighlightDto = Omit<HighlightInsert, 'id' | 'created_at' | 'updated_at' | 'user_id' | 'is_deleted'>;
+export type CreateHighlightDto = Omit<HighlightInsert, 'id' | 'created_at' | 'updated_at' | 'user_id'>;
 
 export const highlightService = {
     getHighlights: async (topicId: string, lessonId: string) => {
@@ -20,7 +17,6 @@ export const highlightService = {
             .select()
             .eq('topic_id', topicId)
             .eq('lesson_id', lessonId)
-            .eq('is_deleted', false)
             .order('created_at', { ascending: true });
 
         if (error) throw error;
@@ -61,12 +57,22 @@ export const highlightService = {
     deleteHighlight: async (id: string) => {
         const { error } = await supabase
             .from('highlights')
-            .update({ is_deleted: true })
+            .delete()
             .eq('id', id);
+
+        if (error) throw error;
+    },
+
+    // New method to delete multiple highlights
+    deleteHighlights: async (ids: string[]) => {
+        const { error } = await supabase
+            .from('highlights')
+            .delete()
+            .in('id', ids);
 
         if (error) throw error;
     },
 };
 
 // Export the service types
-export type { HighlightRow, HighlightInsert, HighlightUpdate };
+export type { HighlightRow, HighlightInsert };
