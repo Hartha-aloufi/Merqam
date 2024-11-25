@@ -1,16 +1,16 @@
-//hooks/highlights/use-highlight-storage.ts
 import { useCallback } from 'react';
-import { TextHighlight } from '@/types/highlight';
+import { TextHighlight } from "@/types/highlight";
 import { useSession } from '@/hooks/use-auth-query';
 import {
     useLessonHighlights,
     useCreateHighlight,
-    useDeleteHighlight
+    useDeleteHighlight,
+    useUpdateHighlight
 } from './use-highlight-sync';
 import { HighlightColorKey } from '@/constants/highlights';
 
 /**
- * Hook to manage highlights for authenticated users
+ * Hook to manage highlights for authenticated users with update support
  */
 export const useHighlightStorage = (
     topicId: string,
@@ -20,14 +20,15 @@ export const useHighlightStorage = (
     const { data: session } = useSession();
     const isAuthenticated = !!session?.data.session;
 
-    // Supabase queries and mutations with optimistic updates
+    // Supabase queries and mutations
     const { data: highlights = [], isLoading: isLoadingHighlights } = useLessonHighlights(topicId, lessonId);
     const { mutate: createHighlight, isPending: isCreating } = useCreateHighlight();
     const { mutate: deleteHighlight, isPending: isDeleting } = useDeleteHighlight();
+    const { mutate: updateHighlight, isPending: isUpdating } = useUpdateHighlight();
 
     // Add new highlight
     const addHighlight = useCallback(async (info: {
-        text: string, // We receive the text but don't store it
+        text: string,
         startOffset: number;
         endOffset: number;
         elementId: string;
@@ -55,37 +56,31 @@ export const useHighlightStorage = (
         deleteHighlight(id);
     }, [isAuthenticated, deleteHighlight]);
 
+    // Update highlight
+    const updateHighlightOptions = useCallback(async (id: string, options: { color: HighlightColorKey }) => {
+        if (!isAuthenticated) {
+            throw new Error('User must be authenticated to update highlights');
+        }
+
+        updateHighlight({ id, ...options });
+    }, [isAuthenticated, updateHighlight]);
+
     // Format highlights for rendering
-    const formattedHighlights: TextHighlight[] = highlights.map(h => {
-        // Get the text content from the DOM based on offsets
-        const element = document.querySelector(`[data-paragraph-index="${h.element_id}"]`);
-        const text = element?.textContent?.slice(h.start_offset, h.end_offset) || '';
-
-        return {
-            id: h.id,
-            text,
-            startOffset: h.start_offset,
-            endOffset: h.end_offset,
-            elementId: h.element_id,
-            color: h.color as HighlightColorKey,
-            createdAt: h.created_at
-        };
-    });
-
-    // Combine all loading states
-    const isLoading = isLoadingHighlights || isCreating || isDeleting;
+    const formattedHighlights: TextHighlight[] = highlights.map(h => ({
+        id: h.id,
+        text: '', // Will be populated from DOM
+        startOffset: h.start_offset,
+        endOffset: h.end_offset,
+        elementId: h.element_id,
+        color: h.color as HighlightColorKey,
+        createdAt: h.created_at
+    }));
 
     return {
         highlights: formattedHighlights,
-        isLoading,
+        isLoading: isLoadingHighlights || isCreating || isDeleting || isUpdating,
         addHighlight,
         removeHighlight,
-        clearHighlights: useCallback(async () => {
-            if (!isAuthenticated) {
-                throw new Error('User must be authenticated to clear highlights');
-            }
-            // Delete all highlights for this lesson
-            await Promise.all(formattedHighlights.map(h => deleteHighlight(h.id)));
-        }, [isAuthenticated, deleteHighlight, formattedHighlights])
+        updateHighlight: updateHighlightOptions,
     };
 };

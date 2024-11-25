@@ -1,8 +1,9 @@
 // hooks/highlights/use-highlight-sync.ts
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, QueryKey } from '@tanstack/react-query';
 import { highlightService, type HighlightRow, type CreateHighlightDto } from '@/services/highlight.service';
 import { useSession } from '@/hooks/use-auth-query';
 import { toast } from 'sonner';
+import { HighlightColorKey } from '@/constants/highlights';
 
 // Query key factory for type-safe query keys
 export const HIGHLIGHT_KEYS = {
@@ -54,6 +55,7 @@ export const useCreateHighlight = () => {
                         created_at: new Date().toISOString(),
                         updated_at: new Date().toISOString(),
                         user_id: 'temp',
+                        is_deleted: false
                     };
 
                     return [...(old || []), optimisticHighlight];
@@ -82,10 +84,67 @@ export const useCreateHighlight = () => {
     });
 };
 
-interface DeleteHighlightContext {
-    previousHighlights: HighlightRow[] | undefined;
-    highlight: HighlightRow;
-}
+/**
+ * Hook to update a highlight with optimistic updates
+ */
+export const useUpdateHighlight = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ id, ...data }: { id: string; color: HighlightColorKey }) =>
+            highlightService.updateHighlight(id, data),
+        onMutate: async ({ id, color }) => {
+            // Find the highlight in the cache to get its topic and lesson IDs
+            const allHighlightQueries = queryClient.getQueriesData<HighlightRow[]>({
+                queryKey: HIGHLIGHT_KEYS.all
+            });
+
+            let highlight: HighlightRow | undefined;
+            let queryKey: QueryKey | undefined;
+
+            for (const [key, data] of allHighlightQueries) {
+                highlight = data?.find(h => h.id === id);
+                if (highlight) {
+                    queryKey = key;
+                    break;
+                }
+            }
+
+            if (!highlight || !queryKey) throw new Error('Highlight not found');
+
+            // Cancel related queries
+            await queryClient.cancelQueries({ queryKey });
+
+            // Save previous state
+            const previousHighlights = queryClient.getQueryData<HighlightRow[]>(queryKey);
+
+            // Optimistically update
+            queryClient.setQueryData<HighlightRow[]>(queryKey, old =>
+                (old || []).map(h =>
+                    h.id === id ? { ...h, color } : h
+                )
+            );
+
+            return { previousHighlights, queryKey };
+        },
+        onSuccess: () => {
+            toast.success('تم تحديث التظليل');
+        },
+        onError: (err, { id }, context) => {
+            if (context?.previousHighlights && context?.queryKey) {
+                queryClient.setQueryData(context.queryKey, context.previousHighlights);
+            }
+            toast.error('فشل تحديث التظليل');
+        },
+        onSettled: (data, error, variables, context) => {
+            if (context?.queryKey) {
+                queryClient.invalidateQueries({
+                    queryKey: context.queryKey
+                });
+            }
+        },
+    });
+};
 
 /**
  * Hook to delete a highlight with optimistic updates
@@ -132,27 +191,6 @@ export const useDeleteHighlight = () => {
                 );
             }
             toast.error('فشل حذف التظليل');
-        },
-    });
-};
-
-/**
- * Hook to delete multiple highlights
- */
-export const useDeleteHighlights = () => {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: highlightService.deleteHighlights,
-        onSuccess: () => {
-            // Invalidate all highlight queries
-            queryClient.invalidateQueries({
-                queryKey: HIGHLIGHT_KEYS.all,
-            });
-            toast.success('تم حذف التظليلات');
-        },
-        onError: () => {
-            toast.error('فشل حذف التظليلات');
         },
     });
 };
