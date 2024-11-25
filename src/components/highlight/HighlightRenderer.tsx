@@ -1,7 +1,9 @@
+// components/highlight/HighlightRenderer.tsx
 import React, { useEffect } from "react";
 import { TextHighlight } from "@/types/highlight";
 import { processHighlights } from "@/lib/highlight-utils";
 import { getHighlightColor } from "@/constants/highlights";
+import { useHighlightPopover } from "./HighlightPopover";
 
 interface HighlightRendererProps {
   containerRef: React.RefObject<HTMLElement>;
@@ -9,37 +11,15 @@ interface HighlightRendererProps {
   onRemoveHighlight: (id: string) => void;
 }
 
-/**
- * Component that handles rendering highlights in text content
- */
 export const HighlightRenderer = React.memo(function HighlightRenderer({
   containerRef,
   highlights,
-  onRemoveHighlight,
 }: HighlightRendererProps) {
+  const { showPopover } = useHighlightPopover();
+
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-
-    // Function to create highlight mark element
-    const createHighlightMark = (highlight: TextHighlight): HTMLElement => {
-      const mark = document.createElement("mark");
-      mark.setAttribute("data-highlight", highlight.id);
-      mark.style.backgroundColor = getHighlightColor(highlight.color);
-      mark.style.borderRadius = "2px";
-      mark.style.cursor = "pointer";
-      mark.style.transition = "background-color 0.2s, filter 0.2s";
-      // Add hover effect class
-      mark.className = "hover:brightness-95";
-
-      mark.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onRemoveHighlight(highlight.id);
-      });
-
-      return mark;
-    };
 
     // Group highlights by element ID
     const highlightsByElement = highlights.reduce((acc, highlight) => {
@@ -61,25 +41,18 @@ export const HighlightRenderer = React.memo(function HighlightRenderer({
         // Clear existing highlights
         const existingMarks = element.querySelectorAll("mark[data-highlight]");
         existingMarks.forEach((mark) => {
-          const parent = mark.parentNode;
-          if (parent) {
-            parent.replaceChild(
-              document.createTextNode(mark.textContent || ""),
-              mark
-            );
-          }
+          mark.replaceWith(document.createTextNode(mark.textContent || ""));
         });
 
         // Normalize text nodes
         element.normalize();
 
-        // Process and sort highlights
+        // Process highlights
         const processedHighlights = processHighlights(elementHighlights);
 
         // Apply highlights
         processedHighlights.forEach((highlight) => {
           try {
-            // Get all text nodes
             const textNodes: Node[] = [];
             const walker = document.createTreeWalker(
               element,
@@ -93,7 +66,6 @@ export const HighlightRenderer = React.memo(function HighlightRenderer({
               node = walker.nextNode();
             }
 
-            // Find and highlight the text
             let currentOffset = 0;
             for (const textNode of textNodes) {
               const nodeLength = textNode.textContent?.length || 0;
@@ -113,14 +85,34 @@ export const HighlightRenderer = React.memo(function HighlightRenderer({
                 range.setStart(textNode, relativeStart);
                 range.setEnd(textNode, relativeEnd);
 
-                const markElement = createHighlightMark(highlight);
+                const mark = document.createElement("mark");
+                mark.setAttribute("data-highlight", highlight.id);
+                mark.setAttribute("data-color", highlight.color);
+                mark.style.backgroundColor = getHighlightColor(highlight.color);
+                mark.style.borderRadius = "2px";
+                mark.style.cursor = "pointer";
+                mark.style.transition = "background-color 0.2s";
+                mark.className = "hover:brightness-95";
 
-                try {
-                  range.surroundContents(markElement);
-                  break;
-                } catch (e) {
-                  console.warn("Failed to highlight range:", e);
-                }
+                // Handle click events on marks
+                mark.addEventListener("click", (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+
+                  // Make sure we use the current state of the highlight
+                  const currentHighlight = highlights.find(
+                    (h) => h.id === highlight.id
+                  );
+                  if (currentHighlight) {
+                    showPopover(currentHighlight, {
+                      getBoundingClientRect: () => mark.getBoundingClientRect(),
+                      contextElement: mark,
+                    });
+                  }
+                });
+
+                range.surroundContents(mark);
+                break;
               }
 
               currentOffset = nodeEndOffset;
@@ -132,14 +124,15 @@ export const HighlightRenderer = React.memo(function HighlightRenderer({
       }
     );
 
-    // Cleanup function
+    // Cleanup
     return () => {
       const allMarks = container.querySelectorAll("mark[data-highlight]");
       allMarks.forEach((mark) => {
-        mark.removeEventListener("dblclick", () => {});
+        mark.removeEventListener("click", () => {});
+        mark.replaceWith(document.createTextNode(mark.textContent || ""));
       });
     };
-  }, [containerRef, highlights, onRemoveHighlight]);
+  }, [containerRef, highlights, showPopover]);
 
   return null;
 });

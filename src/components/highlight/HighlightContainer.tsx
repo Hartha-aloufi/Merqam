@@ -1,5 +1,4 @@
-// components/highlight/HighlightContainer.tsx
-import React, { useRef } from "react";
+import React, { useRef, useCallback } from "react";
 import { useHighlightState } from "@/hooks/highlights/use-highlights-state";
 import { useHighlightStorage } from "@/hooks/highlights/use-highlights-storage";
 import { useHighlightSelection } from "@/hooks/highlights/use-highlight-selection";
@@ -7,7 +6,8 @@ import { useSession } from "@/hooks/use-auth-query";
 import { HighlightToolbar } from "./HighlightToolbar";
 import { UnauthorizedToolbar } from "./UnauthorizedToolbar";
 import { HighlightRenderer } from "./HighlightRenderer";
-import { Loader2 } from "lucide-react";
+import { HighlightPopoverProvider } from "./HighlightPopover";
+import { HighlightColorKey } from "@/constants/highlights";
 import { cn } from "@/lib/utils";
 
 interface HighlightContainerProps {
@@ -18,8 +18,8 @@ interface HighlightContainerProps {
 }
 
 /**
- * Container component that provides highlighting functionality for authenticated users
- * and a friendly prompt for unauthorized users
+ * Container component that provides highlighting functionality
+ * Manages highlighting state, storage, selection, and UI components
  */
 export const HighlightContainer: React.FC<HighlightContainerProps> = ({
   topicId,
@@ -27,15 +27,18 @@ export const HighlightContainer: React.FC<HighlightContainerProps> = ({
   children,
   className,
 }) => {
+  // Reference to the container element for highlight positioning
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Authentication state
   const { data: session } = useSession();
   const isAuthenticated = !!session?.data.session;
 
-  // Only initialize these hooks if user is authenticated
+  // Highlighting state and storage
   const state = useHighlightState();
   const storage = useHighlightStorage(topicId, lessonId, state.activeColor);
 
-  // Handle text selection
+  // Handle text selection for new highlights
   const handleSelection = useHighlightSelection({
     isEnabled: state.isEnabled,
     containerRef,
@@ -44,65 +47,70 @@ export const HighlightContainer: React.FC<HighlightContainerProps> = ({
     onRemoveHighlights: storage.removeHighlight,
   });
 
-  // Content wrapper with padding for fixed toolbar
-  const ContentWrapper: React.FC<{ children: React.ReactNode }> = ({
-    children,
-  }) => <div className="pt-14">{children}</div>;
+  // Handle color updates for existing highlights
+  const handleUpdateHighlight = useCallback(
+    (id: string, color: HighlightColorKey) => {
+      storage.updateHighlight(id, { color });
+    },
+    [storage]
+  );
 
-  // If not authenticated, show unauthorized toolbar and content
+  // Render unauthorized state
   if (!isAuthenticated) {
     return (
       <div className="relative">
         <UnauthorizedToolbar />
-        <ContentWrapper>{children}</ContentWrapper>
+        <div className="pt-14">{children}</div>
       </div>
     );
   }
 
   return (
-    <div className="relative">
-      {/* Loading State */}
-      {storage.isLoading && (
-        <div className="fixed bottom-4 left-4 z-50 rounded-full bg-background/95 p-2 shadow-md backdrop-blur">
-          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+    <HighlightPopoverProvider
+      onRemoveHighlight={storage.removeHighlight}
+      onUpdateHighlight={handleUpdateHighlight}
+    >
+      <div className="relative">
+        {/* Toolbar */}
+        <HighlightToolbar
+          isEnabled={state.isEnabled}
+          onToggle={state.toggleHighlighting}
+          activeColor={state.activeColor}
+          onColorChange={state.setActiveColor}
+          highlightsCount={storage.highlights.length}
+        />
+
+        {/* Content with highlights */}
+        <div className="pt-14">
+          <div
+            ref={containerRef}
+            onMouseUp={state.isEnabled ? handleSelection : undefined}
+            onTouchEnd={state.isEnabled ? handleSelection : undefined}
+            className={cn(
+              "relative transition-colors duration-200",
+              state.isEnabled && "cursor-text",
+              className
+            )}
+          >
+            {/* Highlight overlay */}
+            <HighlightRenderer
+              containerRef={containerRef}
+              highlights={storage.highlights}
+              onRemoveHighlight={storage.removeHighlight}
+            />
+
+            {/* Original content */}
+            {children}
+          </div>
         </div>
-      )}
 
-      {/* Toolbar */}
-      <HighlightToolbar
-        isEnabled={state.isEnabled}
-        isDeleteMode={state.isDeleteMode}
-        onToggle={state.toggleHighlighting}
-        onToggleDeleteMode={state.toggleDeleteMode}
-        activeColor={state.activeColor}
-        onColorChange={state.setActiveColor}
-        onClear={storage.clearHighlights}
-        highlightsCount={storage.highlights.length}
-      />
-
-      {/* Content Container */}
-      <ContentWrapper>
-        <div
-          ref={containerRef}
-          onMouseUp={!state.isDeleteMode ? handleSelection : undefined}
-          className={cn(
-            "relative transition-colors duration-200",
-            state.isEnabled && !state.isDeleteMode && "cursor-text",
-            state.isEnabled && state.isDeleteMode && "cursor-pointer",
-            className
-          )}
-        >
-          {/* Highlight Renderer */}
-          <HighlightRenderer
-            containerRef={containerRef}
-            highlights={storage.highlights}
-            onRemoveHighlight={storage.removeHighlight}
-          />
-
-          {/* Content */}
-          {children}
-        </div>
-      </ContentWrapper>
-    </div>
+        {/* Loading indicator */}
+        {storage.isLoading && (
+          <div className="fixed bottom-4 left-4 z-50 rounded-full bg-background/95 p-2 shadow-md backdrop-blur">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-r-transparent" />
+          </div>
+        )}
+      </div>
+    </HighlightPopoverProvider>
   );
 };

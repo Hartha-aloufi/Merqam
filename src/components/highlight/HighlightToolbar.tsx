@@ -1,64 +1,26 @@
 // components/highlight/HighlightToolbar.tsx
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Highlighter, Trash2, X, ChevronDown } from "lucide-react";
-import { HIGHLIGHT_COLORS, HighlightColorKey } from "@/constants/highlights";
+import { Highlighter, ChevronDown } from "lucide-react";
 import { CollapsibleToolbar } from "./CollapsibleToolbar";
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { cn } from "@/lib/utils";
 import { ColorPicker } from "./ColorPicker";
-
-interface ColorButtonProps {
-  color: HighlightColorKey;
-  isActive: boolean;
-  onClick: () => void;
-}
-
-const ColorButton: React.FC<ColorButtonProps> = ({
-  color,
-  isActive,
-  onClick,
-}) => (
-  <button
-    onClick={onClick}
-    className={cn(
-      "flex items-center gap-3 w-full p-4 rounded-lg transition-all",
-      "hover:bg-muted",
-      isActive && "bg-muted"
-    )}
-  >
-    <div
-      className="h-6 w-6 rounded"
-      style={{ backgroundColor: HIGHLIGHT_COLORS[color].background }}
-    />
-    <span className="text-base capitalize">{color}</span>
-    {isActive && <div className="ml-auto h-2 w-2 rounded-full bg-primary" />}
-  </button>
-);
+import { HIGHLIGHT_COLORS, HighlightColorKey } from "@/constants/highlights";
 
 interface HighlightToolbarProps {
   isEnabled: boolean;
-  isDeleteMode: boolean;
   onToggle: (enabled: boolean) => void;
-  onToggleDeleteMode: (enabled: boolean) => void;
   activeColor: HighlightColorKey;
   onColorChange: (color: HighlightColorKey) => void;
-  onClear: () => void;
   highlightsCount: number;
 }
 
+/**
+ * Toolbar component for highlight controls
+ * Simplified version without delete mode
+ */
 export const HighlightToolbar: React.FC<HighlightToolbarProps> = ({
   isEnabled,
-  isDeleteMode,
   onToggle,
-  onToggleDeleteMode,
   activeColor,
   onColorChange,
   highlightsCount,
@@ -92,39 +54,17 @@ export const HighlightToolbar: React.FC<HighlightToolbarProps> = ({
         <Button
           variant={isEnabled ? "default" : "outline"}
           size="icon"
-          onClick={() => {
-            onToggle(!isEnabled);
-            if (isDeleteMode) onToggleDeleteMode(false);
-          }}
+          onClick={() => onToggle(!isEnabled)}
           className="h-8 w-8"
         >
           <Highlighter className="h-4 w-4" />
         </Button>
 
         {isEnabled && (
-          <>
-            {/* Color Picker - Now using dropdown */}
-            <ColorPicker
-              activeColor={activeColor}
-              onColorChange={onColorChange}
-            />
-
-            {/* Delete Mode Toggle */}
-            {highlightsCount > 0 && (
-              <Button
-                variant={isDeleteMode ? "destructive" : "outline"}
-                size="icon"
-                onClick={() => onToggleDeleteMode(!isDeleteMode)}
-                className="h-8 w-8"
-              >
-                {isDeleteMode ? (
-                  <X className="h-4 w-4" />
-                ) : (
-                  <Trash2 className="h-4 w-4" />
-                )}
-              </Button>
-            )}
-          </>
+          <ColorPicker
+            activeColor={activeColor}
+            onColorChange={onColorChange}
+          />
         )}
       </div>
 
