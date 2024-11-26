@@ -13,8 +13,6 @@ import {
   useInteractions,
   useDismiss,
   useHover,
-  useClick,
-  useFocus,
   arrow,
   offset,
   flip,
@@ -50,7 +48,7 @@ const ColorButton = React.memo(
     <button
       onClick={onClick}
       className={cn(
-        "w-6 h-6 rounded-full transition-all duration-150",
+        "w-6 h-6 rounded-sm transition-all duration-150",
         "hover:scale-110 active:scale-95",
         "focus:outline-none focus:ring-2 focus:ring-offset-2",
         "focus:ring-primary focus:ring-offset-background",
@@ -81,7 +79,6 @@ export function HighlightPopoverProvider({
   onRemoveHighlight,
   onUpdateHighlight,
 }: HighlightPopoverProviderProps) {
-
   const [popoverState, setPopoverState] = useState<PopoverState>({
     highlight: null,
     anchorElement: null,
@@ -91,6 +88,9 @@ export function HighlightPopoverProvider({
 
   const { refs, floatingStyles, context, middlewareData } = useFloating({
     open: !!popoverState.highlight,
+    onOpenChange: (open) => {
+      if (!open) hidePopover();
+    },
     placement: "top",
     middleware: [
       offset(8),
@@ -100,22 +100,26 @@ export function HighlightPopoverProvider({
       shift({ padding: 8 }),
       arrow({ element: arrowRef }),
     ],
-    whileElementsMounted: (reference, floating, update) => {
-      const cleanup = update();
-      return cleanup;
-    },
   });
 
-  // Setup interactions (hover, click, focus)
-  const { getFloatingProps } = useInteractions([
-    useHover(context, { delay: { open: 0, close: 150 } }),
-    useFocus(context),
-    useClick(context),
-    useDismiss(context, { outsidePress: true }),
+  const dismiss = useDismiss(context, {
+    outsidePress: true, // Enable click outside
+    referencePress: false, // Don't dismiss when clicking reference (highlight)
+    escapeKey: true, // Enable Esc key to dismiss
+  });
+
+  const hover = useHover(context, {
+    delay: { open: 0, close: 150 },
+    restMs: 40,
+  });
+
+  const { getReferenceProps, getFloatingProps } = useInteractions([
+    dismiss,
+    hover,
   ]);
 
   const showPopover = useCallback(
-    (highlight: TextHighlight, element: HTMLElement) => {
+    (highlight: TextHighlight, element: VirtualElement) => {
       setPopoverState({ highlight, anchorElement: element });
       refs.setReference(element);
     },
