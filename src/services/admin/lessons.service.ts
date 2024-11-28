@@ -6,6 +6,17 @@ type Lesson = {
   youtubeUrl?: string;
 }
 
+interface GenerateLessonData {
+  url: string;
+  title: string;
+  topicId: string;
+}
+
+interface GenerateLessonResponse {
+  topicId: string;
+  lessonId: string;
+}
+
 export const adminLessonsService = {
   getLesson: async (topicId: string, lessonId: string): Promise<Lesson> => {
     // Only run in development
@@ -45,6 +56,22 @@ export const adminLessonsService = {
     if (!response.ok) {
       const errorData = await response.text();
       throw new Error(errorData || 'Failed to update lesson');
+    }
+
+    return response.json();
+  },
+
+    generateLesson: async (data: GenerateLessonData): Promise<GenerateLessonResponse> => {
+    const response = await fetch('/api/admin/lessons/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to generate lesson');
     }
 
     return response.json();
