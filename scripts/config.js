@@ -27,12 +27,12 @@ function loadEnv() {
 // Create configuration with validation
 function createConfig() {
     const config = {
-        openai: {
-            apiKey: process.env.OPENAI_API_KEY,
-            model: process.env.OPENAI_MODEL || 'gpt-4',
-            temperature: parseFloat(process.env.OPENAI_TEMPERATURE || '0.84'),
-            maxTokens: parseInt(process.env.OPENAI_MAX_TOKENS || '16383', 10)
-        }
+      openai: {
+        apiKey: process.env.OPENAI_API_KEY,
+        model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+        temperature: parseFloat(process.env.OPENAI_TEMPERATURE || "0.84"),
+        maxTokens: parseInt(process.env.OPENAI_MAX_TOKENS || "16383", 10),
+      },
     };
 
     // Validate required configuration

@@ -45,3 +45,7 @@ supbase-sql
 
 scripts/error.log
 scripts/downloads/*
+
+temp
+combined.log
+error.log
