@@ -3,15 +3,8 @@ import puppeteer, { Page } from "puppeteer";
 import fs from "fs/promises";
 import path from "path";
 import winston from "winston";
+import { TranscriptResult } from "./types";
 
-interface TranscriptResult {
-  videoId: string;
-  files: {
-    txt: string;
-    srt: string;
-  };
-  timestamp: string;
-}
 
 export const logger = winston.createLogger({
   level: "info",
@@ -31,26 +24,35 @@ export const logger = winston.createLogger({
   ],
 });
 
-async function extractVideoId(page: Page): Promise<string | null> {
-  logger.info("Attempting to extract video ID");
+
+async function extractVideoInfo(
+  page: Page
+): Promise<{ videoId: string | null; title: string }> {
+  logger.info("Attempting to extract video info");
   return page
     .evaluate(() => {
       const videoFrame =
         document.querySelector('iframe[src*="youtube-nocookie.com"]') ||
         document.querySelector('iframe[src*="youtube.com"]');
-      if (!videoFrame) return null;
+
+      if (!videoFrame) return { videoId: null, title: "" };
 
       const srcUrl = (videoFrame as HTMLIFrameElement).src;
+      const title = (videoFrame as HTMLIFrameElement).title || "";
       const match = srcUrl.match(/(?:embed|v|vi|youtu\.be)\/([^?&"'>]+)/);
-      return match ? match[1] : null;
+
+      return {
+        videoId: match ? match[1] : null,
+        title: title.replace("YouTube video player", "").trim(),
+      };
     })
-    .then((videoId) => {
+    .then(({ videoId, title }) => {
       if (videoId) {
-        logger.info(`Video ID extracted: ${videoId}`);
+        logger.info("Video info extracted:", { videoId, title });
       } else {
-        logger.warn("Failed to extract video ID");
+        logger.warn("Failed to extract video info");
       }
-      return videoId;
+      return { videoId, title };
     });
 }
 
@@ -97,7 +99,7 @@ async function downloadTranscript(
   logger.info(`Downloading ${format} transcript to ${outputDir}`);
   try {
     // Setup download behavior
-    await setupDownloadListener(page, outputDir);
+    await setupDownloadListener(page, path.resolve(outputDir, videoId));
 
     // Click the download link
     await page.evaluate((format) => {
@@ -143,7 +145,7 @@ export async function scrapeTranscript(
       timeout: 30000,
     });
 
-    const videoId = await extractVideoId(page);
+    const { videoId, title } = await extractVideoInfo(page);
     if (!videoId) {
       throw new Error("Could not find YouTube video ID");
     }
@@ -161,6 +163,7 @@ export async function scrapeTranscript(
 
     return {
       videoId,
+      title,
       files: {
         txt: txtPath,
         srt: srtPath,

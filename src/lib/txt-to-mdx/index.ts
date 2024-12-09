@@ -27,10 +27,6 @@ export class TxtToMdxConverter {
     this.dataPath = dataPath;
   }
 
-  private getYoutubeUrl(videoId: string): string {
-    return `https://www.youtube.com/watch?v=${videoId}`;
-  }
-
   async processContent(
     bahethUrl: string,
     topicId: string
@@ -106,7 +102,7 @@ export class TxtToMdxConverter {
     title: string
   ): Promise<string> {
     const completion = await this.openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
