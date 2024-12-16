@@ -1,4 +1,5 @@
 // src/app/api/admin/lessons/generate/route.ts
+// src/app/api/admin/lessons/generate/route.ts
 import { NextResponse } from "next/server";
 import path from "path";
 import fs from "fs/promises";

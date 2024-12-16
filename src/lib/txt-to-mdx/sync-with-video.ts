@@ -8,7 +8,7 @@ interface SyncConfig {
   START_SIMILARITY_THRESHOLD: number;
   WINDOW_SIZE: number;
 
-  // Output formatting
+  // Output formatting 
   ADD_BLANK_LINES: boolean;
   INDENT_SPACES: number;
 

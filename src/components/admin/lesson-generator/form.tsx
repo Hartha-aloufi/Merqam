@@ -1,16 +1,20 @@
-// src/components/admin/lesson-generator/form.tsx
 "use client";
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, ExternalLink } from "lucide-react";
+import { Loader2, ExternalLink, Search } from "lucide-react";
 import { Topic } from "@/types";
-import { cn } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
 import { adminLessonsService } from "@/services/admin/lessons.service";
-
+import {
+  Command,
+  CommandEmpty,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import {
   Form,
   FormControl,
@@ -32,12 +36,10 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 const urlSchema = z.string().refine((url) => {
   try {
@@ -81,6 +83,13 @@ export function LessonGeneratorForm({
   existingTopics,
 }: LessonGeneratorFormProps) {
   const [newLessonUrl, setNewLessonUrl] = useState<string>();
+  const [openCombobox, setOpenCombobox] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Filter topics based on search
+  const filteredTopics = existingTopics.filter((topic) =>
+    topic.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -93,13 +102,12 @@ export function LessonGeneratorForm({
 
   const {
     mutate: generateLesson,
-    isLoading,
+    isPending,
     error,
   } = useMutation({
     mutationFn: async (data: FormData) => {
       const topicId =
         data.topicType === "existing" ? data.topicId : data.newTopicId;
-
       const topicTitle =
         data.topicType === "existing"
           ? existingTopics.find((t) => t.id === data.topicId)?.title
@@ -113,7 +121,7 @@ export function LessonGeneratorForm({
       });
     },
     onSuccess: (data) => {
-      setNewLessonUrl(`/admin/topics/${data.topicId}/${data.lessonId}/edit`);
+      setNewLessonUrl(`/topics/${data.topicId}/${data.lessonId}`);
     },
   });
 
@@ -122,7 +130,19 @@ export function LessonGeneratorForm({
   }
 
   return (
-    <Card className="border-2">
+    <Card className="border-2 relative">
+      {isPending && (
+        <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="text-center space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+            <p className="text-lg font-medium">جاري إنشاء الدرس...</p>
+            <p className="text-sm text-muted-foreground">
+              قد تستغرق العملية عدة دقائق
+            </p>
+          </div>
+        </div>
+      )}
+
       <CardHeader className="space-y-1">
         <CardTitle className="text-xl">إنشاء درس جديد</CardTitle>
         <CardDescription>
@@ -143,6 +163,7 @@ export function LessonGeneratorForm({
                   <FormControl>
                     <Input
                       dir="ltr"
+                      disabled={isPending}
                       placeholder="https://baheth.ieasybooks.com/..."
                       className="font-mono text-sm text-left"
                       {...field}
@@ -164,7 +185,11 @@ export function LessonGeneratorForm({
                 <FormItem>
                   <FormLabel>عنوان الدرس</FormLabel>
                   <FormControl>
-                    <Input placeholder="أدخل عنوان الدرس" {...field} />
+                    <Input
+                      placeholder="أدخل عنوان الدرس"
+                      disabled={isPending}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -183,6 +208,7 @@ export function LessonGeneratorForm({
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                       className="space-y-4"
+                      disabled={isPending}
                     >
                       {/* Existing Topic Option */}
                       <FormItem className="flex items-start space-x-reverse space-x-3 space-y-0">
@@ -195,25 +221,57 @@ export function LessonGeneratorForm({
                             control={form.control}
                             name="topicId"
                             render={({ field }) => (
-                              <Select
-                                disabled={
-                                  form.watch("topicType") !== "existing"
-                                }
-                                onValueChange={field.onChange}
+                              <Popover
+                                open={openCombobox}
+                                onOpenChange={setOpenCombobox}
                               >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="اختر موضوعاً" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {existingTopics.map((topic) => (
-                                    <SelectItem key={topic.id} value={topic.id}>
-                                      {topic.title}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                                <PopoverTrigger asChild>
+                                  <FormControl>
+                                    <Button
+                                      variant="outline"
+                                      role="combobox"
+                                      aria-expanded={openCombobox}
+                                      className="w-full justify-between"
+                                      disabled={
+                                        form.watch("topicType") !==
+                                          "existing" || isPending
+                                      }
+                                    >
+                                      {field.value
+                                        ? existingTopics.find(
+                                            (topic) => topic.id === field.value
+                                          )?.title
+                                        : "اختر موضوعاً"}
+                                      <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                  </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-full p-0">
+                                  <Command>
+                                    <CommandInput
+                                      placeholder="ابحث عن موضوع..."
+                                      onValueChange={setSearchQuery}
+                                    />
+                                    <CommandList>
+                                      <CommandEmpty>
+                                        لم يتم العثور على نتائج
+                                      </CommandEmpty>
+                                      {filteredTopics.map((topic) => (
+                                        <CommandItem
+                                          value={topic.title}
+                                          key={topic.id}
+                                          onSelect={() => {
+                                            form.setValue("topicId", topic.id);
+                                            setOpenCombobox(false);
+                                          }}
+                                        >
+                                          {topic.title}
+                                        </CommandItem>
+                                      ))}
+                                    </CommandList>
+                                  </Command>
+                                </PopoverContent>
+                              </Popover>
                             )}
                           />
                         </div>
@@ -238,7 +296,8 @@ export function LessonGeneratorForm({
                                       dir="ltr"
                                       placeholder="quran-tafseer"
                                       disabled={
-                                        form.watch("topicType") !== "new"
+                                        form.watch("topicType") !== "new" ||
+                                        isPending
                                       }
                                       className="text-left"
                                       {...field}
@@ -261,7 +320,8 @@ export function LessonGeneratorForm({
                                     <Input
                                       placeholder="تفسير القرآن"
                                       disabled={
-                                        form.watch("topicType") !== "new"
+                                        form.watch("topicType") !== "new" ||
+                                        isPending
                                       }
                                       {...field}
                                     />
@@ -291,10 +351,10 @@ export function LessonGeneratorForm({
             <div className="flex gap-4 flex-col sm:flex-row">
               <Button
                 type="submit"
-                disabled={isLoading}
+                disabled={isPending}
                 className="min-w-[140px]"
               >
-                {isLoading ? (
+                {isPending ? (
                   <>
                     <Loader2 className="ml-2 h-4 w-4 animate-spin" />
                     جاري الإنشاء...
