@@ -42,3 +42,10 @@ next-env.d.ts
 supbase-sql
 
 .vscode
+
+scripts/error.log
+scripts/downloads/*
+
+temp
+combined.log
+error.log
