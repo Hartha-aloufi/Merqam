@@ -8,7 +8,7 @@ interface SyncConfig {
   START_SIMILARITY_THRESHOLD: number;
   WINDOW_SIZE: number;
 
-  // Output formatting 
+  // Output formatting
   ADD_BLANK_LINES: boolean;
   INDENT_SPACES: number;
 
@@ -54,13 +54,6 @@ const DEFAULT_CONFIG: SyncConfig = {
   MAX_LOOK_BACK_SEGMENTS: 2,
 };
 
-// Parse SRT timestamps
-function parseTimestamp(timestamp: string): number {
-  const [time, ms] = timestamp.split(".");
-  const [hours, minutes, seconds] = time.split(":").map(Number);
-  return hours * 3600 + minutes * 60 + seconds + (parseInt(ms) || 0) / 1000;
-}
-
 // Normalize Arabic text for comparison
 function normalizeArabicText(text: string): string {
   return text
@@ -76,20 +69,35 @@ function normalizeArabicText(text: string): string {
 }
 
 // Parse SRT content
+function parseTimestamp(timestamp: string): number {
+  const [time, ms] = timestamp.split(/[,.]/).map((str) => str.trim());
+  const [hours, minutes, seconds] = time.split(":").map(Number);
+  return hours * 3600 + minutes * 60 + seconds + (parseInt(ms) || 0) / 1000;
+}
+
 function parseSRT(content: string): SrtSegment[] {
-  const segments = content
-    .replace(/\r\n/g, "\n")
-    .trim()
-    .split(/\n\n+/)
-    .filter((segment) => segment.includes("-->"));
+  const segments = content.replace(/\r\n/g, "\n").trim().split(/\n\n+/);
 
   return segments
     .map((segment) => {
       const lines = segment.split("\n").filter((line) => line.trim());
       if (lines.length < 2) return null;
 
-      const [startTime, endTime] = lines[0].split("-->").map((t) => t.trim());
-      const text = lines.slice(1).join(" ").trim();
+      // Find timestamp line
+      const timeLineIndex = lines.findIndex((line) => line.includes("-->"));
+      if (timeLineIndex === -1) return null;
+
+      // Parse timestamp line
+      const [startTime, endTime] = lines[timeLineIndex]
+        .split("-->")
+        .map((t) => t.trim());
+
+      // Get text (combine all lines after timestamp)
+      const textLines = lines.slice(timeLineIndex + 1);
+      const text = textLines.join(" ").trim();
+
+      // Skip segments without text or with just [music] tags
+      if (!text || text === "[موسيقى]") return null;
 
       return {
         startTime: parseTimestamp(startTime),
