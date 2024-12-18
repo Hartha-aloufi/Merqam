@@ -1,11 +1,11 @@
 // src/lib/txt-to-mdx/index.ts
 import OpenAI from "openai";
 import { syncWithVideo } from "./sync-with-video";
-import { scrapeTranscript } from "./download-transcripts";
 import path from "path";
 import fs from "fs/promises";
 import { createDir } from "@/lib/utils/fs";
-import { logger } from "./download-transcripts";
+import { ScraperFactory } from "./scrapers";
+import { logger } from "./scrapers/logger";
 
 export interface ConversionResult {
   mdxPath: string;
@@ -28,15 +28,16 @@ export class TxtToMdxConverter {
   }
 
   async processContent(
-    bahethUrl: string,
+    url: string,
     topicId: string
   ): Promise<ConversionResult> {
     try {
-      // Create topic directory if it doesn't exist
+      // Get appropriate scraper based on URL
+      const scraper = ScraperFactory.getScraper(url);
+
+      // Create directories
       const topicPath = path.join(this.dataPath, topicId);
       await createDir(topicPath);
-
-      // Create temp directory for downloads
       const tempDir = path.join(process.cwd(), "temp");
       await createDir(tempDir);
 
@@ -46,7 +47,7 @@ export class TxtToMdxConverter {
         videoId,
         title,
         files: { txt: txtPath, srt: srtPath },
-      } = await scrapeTranscript(bahethUrl, tempDir);
+      } = await scraper.scrape(url, tempDir);
       logger.info("Transcript download complete", { txtPath, srtPath, title });
 
       // Verify files exist

@@ -9,7 +9,6 @@ export interface AdminLesson {
 
 export interface GenerateLessonData {
   url: string;
-  title: string;
   topicId: string;
   topicTitle: string;
 }

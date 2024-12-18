@@ -44,16 +44,15 @@ import {
 const urlSchema = z.string().refine((url) => {
   try {
     const parsedUrl = new URL(url);
-    return parsedUrl.hostname === "baheth.ieasybooks.com";
+    return parsedUrl.hostname === "baheth.ieasybooks.com" || "downsub.com" || "youtube.com";
   } catch {
     return false;
   }
-}, "الرجاء إدخال رابط صحيح من موقع باحث");
+}, "الرجاء إدخال رابط صحيح من موقع باحث او Downsub او YouTube");
 
 const formSchema = z
   .object({
     url: urlSchema,
-    title: z.string().min(2, "العنوان يجب أن يكون 3 أحرف على الأقل"),
     topicType: z.enum(["existing", "new"]),
     topicId: z.string().optional(),
     newTopicId: z.string().optional(),
@@ -96,7 +95,6 @@ export function LessonGeneratorForm({
     defaultValues: {
       topicType: "existing",
       url: "",
-      title: "",
     },
   });
 
@@ -115,7 +113,6 @@ export function LessonGeneratorForm({
 
       return adminLessonsService.generateLesson({
         url: data.url,
-        title: data.title,
         topicId: topicId!,
         topicTitle: topicTitle!,
       });
@@ -178,7 +175,7 @@ export function LessonGeneratorForm({
             />
 
             {/* Title Field */}
-            <FormField
+            {/* <FormField
               control={form.control}
               name="title"
               render={({ field }) => (
@@ -194,7 +191,7 @@ export function LessonGeneratorForm({
                   <FormMessage />
                 </FormItem>
               )}
-            />
+            /> */}
 
             {/* Topic Selection */}
             <FormField
