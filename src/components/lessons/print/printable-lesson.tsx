@@ -1,7 +1,6 @@
 import React from "react";
 import { cn, tajawal } from "@/lib/utils";
 import Image from "next/image";
-import TableOfContents from "../table-of-contents";
 import PrintQRCode from "./print-qr-code";
 
 // PrintOnly component to wrap content that should only appear in print
@@ -58,9 +57,6 @@ const PrintableLesson = ({
           <PrintQRCode topicId={topicId} lessonId={lessonId} />
         </div>
       </div>
-
-      {/* Table of Contents */}
-      <TableOfContents />
 
       {/* Main Content */}
       <div

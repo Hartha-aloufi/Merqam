@@ -55,7 +55,7 @@ export const HighlightToolbar: React.FC<HighlightToolbarProps> = ({
           variant={isEnabled ? "default" : "outline"}
           size="icon"
           onClick={() => onToggle(!isEnabled)}
-          className="h-8 w-8"
+          className="h-9 w-9"
         >
           <Highlighter className="h-4 w-4" />
         </Button>

@@ -16,6 +16,7 @@ export const TrackedElement = forwardRef<HTMLElement, TrackedElementProps>(
         ref={ref}
         className={cn('relative', className)}
         data-paragraph-index={index}
+        id={`paragraph-${index}`}
         {...props}
       />
     );

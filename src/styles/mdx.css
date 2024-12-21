@@ -127,13 +127,13 @@ html[dir="rtl"] .prose blockquote {
 }
 
 .prose-medium {
-  font-size: 1.125rem;
+  font-size: 1.2rem;
   line-height: 1.8;
 }
 
 .prose-large {
-  font-size: 1.25rem;
-  line-height: 1.85;
+  font-size: 1.4rem;
+  line-height: 2;
 }
 
 /* Lists and paragraphs */
