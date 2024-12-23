@@ -1,6 +1,3 @@
-// src/components/lessons/YouTubeMusicPlayer.tsx
-"use client";
-
 import { useState, useEffect, useCallback, useRef } from "react";
 import YouTube from "react-youtube";
 import {
@@ -27,18 +24,18 @@ import {
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { debounce } from "lodash";
 import { useVideoContext } from "@/contexts/video-context";
+import { useVideoSettings } from "@/stores/use-video-settings";
+import { VideoPositionControl } from "./video-position-control";
 
 interface YouTubeMusicPlayerProps {
   youtubeUrl: string;
 }
 
-const isVideoPlaying = (video) =>
-  !!(
-    video.currentTime > 0 &&
-    !video.paused &&
-    !video.ended &&
-    video.readyState > 2
-  );
+const formatTime = (seconds: number): string => {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+};
 
 export function YouTubeMusicPlayer({ youtubeUrl }: YouTubeMusicPlayerProps) {
   const [player, setPlayer] = useState<any>(null);
@@ -51,18 +48,12 @@ export function YouTubeMusicPlayer({ youtubeUrl }: YouTubeMusicPlayerProps) {
   const [duration, setDuration] = useState(0);
   const progressInterval = useRef<NodeJS.Timeout>();
   const [isSkipping, setIsSkipping] = useState(false);
+  const { position } = useVideoSettings();
 
   const videoContext = useVideoContext();
 
   // Extract video ID from URL
   const videoId = youtubeUrl.split("v=")[1]?.split("&")[0];
-
-  // Format time in MM:SS
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
-  };
 
   // Player controls
   const togglePlay = useCallback(() => {
@@ -150,7 +141,6 @@ export function YouTubeMusicPlayer({ youtubeUrl }: YouTubeMusicPlayerProps) {
   // Player event handlers
   const onReady = (event: any) => {
     videoContext.setPlayer(event.target);
-
     setPlayer(event.target);
     setDuration(event.target.getDuration());
   };
@@ -177,14 +167,11 @@ export function YouTubeMusicPlayer({ youtubeUrl }: YouTubeMusicPlayerProps) {
   // Cleanup
   useEffect(() => {
     return () => {
-      if (player && isVideoPlaying(player)) {
-        player.stopVideo();
-      }
       if (progressInterval.current) {
         clearInterval(progressInterval.current);
       }
     };
-  }, [player]);
+  }, []);
 
   const openYouTube = useCallback(() => {
     window.open(youtubeUrl, "_blank");
@@ -197,15 +184,27 @@ export function YouTubeMusicPlayer({ youtubeUrl }: YouTubeMusicPlayerProps) {
       <div
         className={cn(
           "fixed transition-all duration-300 z-50",
-          isCollapsed ? "bottom-[-64px]" : "bottom-0",
-          "left-0 right-0 bg-background border-t shadow-lg",
-          isMinimized ? "h-16" : "h-96"
+          position === "bottom" ? "bottom-0" : "top-16",
+          isCollapsed
+            ? position === "bottom"
+              ? "bottom-[-64px]"
+              : "top-[-48px]"
+            : "bottom-0",
+          "left-0 right-0 bg-background shadow-lg",
+          isMinimized ? "h-16" : "h-96",
+          position === "bottom" ? "border-t" : "border-b"
         )}
       >
         {/* Collapse Toggle Button */}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-background border border-b-0 rounded-t-lg px-3 py-1 shadow-lg group hover:bg-accent transition-colors"
+          className={cn(
+            "absolute transform -translate-x-1/2 bg-background border rounded-lg px-3 py-1 shadow-lg group hover:bg-accent transition-colors",
+            position === "bottom"
+              ? "-top-8 border-b-0 rounded-b-none"
+              : "-bottom-8 border-t-0 rounded-t-none",
+            "left-1/2"
+          )}
         >
           {isCollapsed ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground group-hover:text-foreground">
@@ -238,8 +237,7 @@ export function YouTubeMusicPlayer({ youtubeUrl }: YouTubeMusicPlayerProps) {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button variant="ghost" size="icon" onClick={skipForward}>
-                        <SkipForward className="h-4 w-4" />{" "}
-                        {/* Using SkipForward for RTL */}
+                        <SkipForward className="h-4 w-4" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>تقديم 10 ثوان</TooltipContent>
@@ -265,8 +263,7 @@ export function YouTubeMusicPlayer({ youtubeUrl }: YouTubeMusicPlayerProps) {
                         size="icon"
                         onClick={skipBackward}
                       >
-                        <SkipBack className="h-4 w-4" />{" "}
-                        {/* Using SkipBack for RTL */}
+                        <SkipBack className="h-4 w-4" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>رجوع 10 ثوان</TooltipContent>
@@ -302,6 +299,9 @@ export function YouTubeMusicPlayer({ youtubeUrl }: YouTubeMusicPlayerProps) {
                     />
                   </div>
                 </div>
+
+                {/* Position Control */}
+                <VideoPositionControl />
 
                 {/* YouTube Link */}
                 <Tooltip>

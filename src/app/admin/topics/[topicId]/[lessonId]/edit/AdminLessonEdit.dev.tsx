@@ -25,7 +25,7 @@ import { debounce } from "lodash";
 import { jsxComponentDescriptors } from "@/components/admin/editor/jsx-components-config";
 import { InsertVideoTime } from "@/components/admin/editor/jsx-toolbar";
 import { VideoProvider } from "@/contexts/video-context";
-import { YouTubeMusicPlayer } from "@/components/lessons/YouTubeMusicPlayer";
+import { YouTubeMusicPlayer } from "@/components/video/youtube-music-player";
 import { cn, tajawal } from "@/lib/utils";
 
 interface PageProps {

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect } from "react";
-import { YouTubeMusicPlayer } from "./YouTubeMusicPlayer";
+import { YouTubeMusicPlayer } from "@/components/video/youtube-music-player";
 import { ShortcutsToast } from "@/components/reading/ShortcutsToast";
 import { VideoProvider } from "@/contexts/video-context";
 import { useKeyboardNavigation } from "@/hooks/use-keyboard-navigation";
