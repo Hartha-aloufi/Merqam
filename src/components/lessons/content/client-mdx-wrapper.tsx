@@ -3,6 +3,7 @@
 import { useSettings } from "@/hooks/use-settings";
 import { cn } from "@/lib/utils";
 import { HighlightContainer } from "@/components/highlight/HighlightContainer";
+import { useEffect } from "react";
 
 interface MDXClientWrapperProps {
   children: React.ReactNode;
@@ -22,6 +23,10 @@ export function MDXClientWrapper({
   lessonId,
 }: MDXClientWrapperProps) {
   const { fontSize, showHeadings } = useSettings();
+
+  useEffect(() => {
+    console.log('finish rendering mdx wrapper');
+  }, []);
 
   return (
     <HighlightContainer
