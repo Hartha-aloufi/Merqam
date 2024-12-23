@@ -5,6 +5,7 @@ import path from "path";
 import fs from "fs/promises";
 import { TranscriptResult } from "../types";
 import { BaseScraper } from "./base-scraper";
+import { getSearchParamFromURL } from "@/lib/utils";
 
 export class DownsubScraper extends BaseScraper {
   async extractVideoInfo(
@@ -27,9 +28,8 @@ export class DownsubScraper extends BaseScraper {
       logger.info("Extracted video info from Downsub", pageInfo);
 
       // Extract video ID from URL
-      const url = new URL(pageInfo.url);
-      const searchParams = new URLSearchParams(url.search);
-      const videoId = searchParams.get("v");
+      const youtubeUrl = getSearchParamFromURL(pageInfo.url, "url");
+      const videoId = getSearchParamFromURL(youtubeUrl as string, "v");
 
       if (!videoId) {
         throw new Error("Could not extract YouTube video ID from Downsub URL");
@@ -132,6 +132,8 @@ export class DownsubScraper extends BaseScraper {
 
       // wait for 3 seconds
       page.waitForSelector(".v-card__title.title a", { timeout: 60000 });
+      // wait for more one second
+      await new Promise((r) => setTimeout(r, 10000));
 
       // Extract video information
       const { videoId, title } = await this.extractVideoInfo(page);

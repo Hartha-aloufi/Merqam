@@ -131,3 +131,9 @@ export const tajawal = Tajawal({
   subsets: ["arabic"],
   weight: ["200", "300", "400", "500", "700", "800", "900"],
 });
+
+export const getSearchParamFromURL = (urlStr: string, param: string): string | null => {
+  const url = new URL(urlStr);
+  const searchParams = new URLSearchParams(url.search);
+  return searchParams.get(param);
+}
