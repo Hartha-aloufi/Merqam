@@ -39,9 +39,13 @@ export function LessonView({
   }, []);
 
   useEffect(() => {
-    pTracker.track();
+    // delay tracking to ensure that the content is rendered
+    setTimeout(() => {
+      console.log("track");
+      pTracker.track();
+    }, 2000);
     return () => pTracker.untrack();
-  }, [lesson.content]);
+  }, [lesson.content, pTracker]);
 
   useKeyboardNavigation({
     scrollTargets: ".prose h1, .prose h2, .prose h3, .prose p",

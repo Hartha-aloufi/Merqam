@@ -19,7 +19,6 @@ export const useSettings = create<SettingsState>()(
             fontSize: 'small',
             setFontSize: (size) => set({ fontSize: size }),
             setShowHeadings: (show) => {
-                console.log(show);
                 set({ showHeadings: show });
             },
             showHeadings: false,

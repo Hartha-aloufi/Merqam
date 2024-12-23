@@ -4,6 +4,7 @@
 import { ReactNode, useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { authService } from '@/services/auth.service';
+import {ReactQueryDevtools} from '@tanstack/react-query-devtools'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,6 +42,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   return (
     <QueryClientProvider client={queryClient}>
       {children}
+      <ReactQueryDevtools />
     </QueryClientProvider>
   );
 }
