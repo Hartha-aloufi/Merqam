@@ -125,7 +125,7 @@ export function SettingsSheet() {
           </div>
 
           {/* {Show heading} */}
-          {
+          {/* {
             <div className="flex items-center justify-between border-b pb-2">
               <h3 className="text-lg font-medium">عرض العناوين</h3>
               <Switch
@@ -134,7 +134,8 @@ export function SettingsSheet() {
                 onCheckedChange={() => setShowHeadings(!showHeadings)}
               />
             </div>
-          }
+          } */}
+          
           {/* Font Size Selection */}
           <div className="space-y-4">
             <div className="flex items-center justify-between border-b pb-2">
