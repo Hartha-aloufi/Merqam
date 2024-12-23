@@ -27,8 +27,9 @@ export class DownsubScraper extends BaseScraper {
       logger.info("Extracted video info from Downsub", pageInfo);
 
       // Extract video ID from URL
-      const videoIdMatch = pageInfo.url.match(/v\%3D([^&]+)/);
-      const videoId = videoIdMatch ? videoIdMatch[1] : null;
+      const url = new URL(pageInfo.url);
+      const searchParams = new URLSearchParams(url.search);
+      const videoId = searchParams.get("v");
 
       if (!videoId) {
         throw new Error("Could not extract YouTube video ID from Downsub URL");
