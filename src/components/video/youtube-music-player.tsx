@@ -1,17 +1,12 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo, memo } from "react";
 import YouTube from "react-youtube";
 import {
   Play,
   Pause,
   Volume2,
   VolumeX,
-  Maximize2,
-  Minimize2,
   SkipBack,
   SkipForward,
-  Youtube as YoutubeIcon,
-  ChevronDown,
-  ChevronUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -24,8 +19,17 @@ import {
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { debounce } from "lodash";
 import { useVideoContext } from "@/contexts/video-context";
-import { useVideoSettings } from "@/stores/use-video-settings";
+import { useVideoSettings, VideoPosition } from "@/stores/use-video-settings";
 import { VideoPositionControl } from "./video-position-control";
+import {
+  PlayerControlsProps,
+  VolumeControlProps,
+  YouTubePlayerProps,
+} from "@/types/video";
+import { YouTubeButton } from "./youtube-button";
+import { MinimizeButton } from "./minimize-button";
+import { ProgressBar } from "./progress-bar";
+import { CollapseButton } from "./collapse-button";
 
 interface YouTubeMusicPlayerProps {
   youtubeUrl: string;
@@ -36,6 +40,126 @@ const formatTime = (seconds: number): string => {
   const remainingSeconds = Math.floor(seconds % 60);
   return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
 };
+
+const PlayerControls = memo(
+  ({
+    isPlaying,
+    onPlayPause,
+    onSkipForward,
+    onSkipBackward,
+    currentTime,
+    duration,
+  }: PlayerControlsProps) => {
+    return (
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" onClick={onSkipForward}>
+                <SkipForward className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>تقديم 10 ثوان</TooltipContent>
+          </Tooltip>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onPlayPause}
+            className="h-10 w-10"
+          >
+            {isPlaying ? (
+              <Pause className="h-5 w-5" />
+            ) : (
+              <Play className="h-5 w-5" />
+            )}
+          </Button>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" onClick={onSkipBackward}>
+                <SkipBack className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>رجوع 10 ثوان</TooltipContent>
+          </Tooltip>
+        </div>
+
+        <TimeDisplay currentTime={currentTime} duration={duration} />
+      </div>
+    );
+  }
+);
+
+// Extract TimeDisplay component
+const TimeDisplay = memo(
+  ({ currentTime, duration }: { currentTime: number; duration: number }) => (
+    <div className="text-sm text-muted-foreground">
+      <span>{formatTime(currentTime)}</span>
+      <span className="mx-1">/</span>
+      <span>{formatTime(duration)}</span>
+    </div>
+  )
+);
+
+// Extract VolumeControl component
+const VolumeControl = memo(
+  ({ isMuted, volume, onMuteToggle, onVolumeChange }: VolumeControlProps) => {
+    return (
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" size="icon" onClick={onMuteToggle}>
+          {isMuted ? (
+            <VolumeX className="h-4 w-4" />
+          ) : (
+            <Volume2 className="h-4 w-4" />
+          )}
+        </Button>
+        <div className="w-24 hidden sm:block">
+          <Slider
+            value={[isMuted ? 0 : volume]}
+            max={100}
+            step={1}
+            onValueChange={onVolumeChange}
+            className="cursor-pointer"
+          />
+        </div>
+      </div>
+    );
+  }
+);
+
+// YouTubePlayer component using useCallback and memo
+const YouTubePlayer = memo(
+  ({ videoId, onReady, onStateChange }: YouTubePlayerProps) => (
+    <YouTube
+      videoId={videoId}
+      onReady={onReady}
+      onStateChange={onStateChange}
+      opts={{
+        height: "100%",
+        width: "100%",
+        playerVars: {
+          autoplay: 0,
+          controls: 1,
+          modestbranding: 1,
+        },
+      }}
+      className="h-full w-full"
+    />
+  )
+);
+
+// Main component with position calculation moved to a hook
+function usePlayerPosition(position: VideoPosition, isCollapsed: boolean) {
+  return useMemo(() => {
+    if (position !== "top") return undefined;
+    const headerHeight = 65;
+    const toolbarHeight = 48;
+    return isCollapsed
+      ? `${headerHeight}px`
+      : `calc(${headerHeight}px + ${toolbarHeight}px)`;
+  }, [position, isCollapsed]);
+}
 
 export function YouTubeMusicPlayer({ youtubeUrl }: YouTubeMusicPlayerProps) {
   const [player, setPlayer] = useState<any>(null);
@@ -50,33 +174,34 @@ export function YouTubeMusicPlayer({ youtubeUrl }: YouTubeMusicPlayerProps) {
   const [isSkipping, setIsSkipping] = useState(false);
   const { position } = useVideoSettings();
 
+  const topPosition = usePlayerPosition(position, isCollapsed);
+
   const videoContext = useVideoContext();
+  const videoId = useMemo(
+    () => youtubeUrl.split("v=")[1]?.split("&")[0],
+    [youtubeUrl]
+  );
 
-  // Extract video ID from URL
-  const videoId = youtubeUrl.split("v=")[1]?.split("&")[0];
-
-  // Player controls
+  // Memoized callbacks
   const togglePlay = useCallback(() => {
-    if (player) {
-      if (isPlaying) {
-        player.pauseVideo();
-      } else {
-        player.playVideo();
-      }
-      setIsPlaying(!isPlaying);
+    if (!player) return;
+    if (isPlaying) {
+      player.pauseVideo();
+    } else {
+      player.playVideo();
     }
+    setIsPlaying(!isPlaying);
   }, [player, isPlaying]);
 
   const toggleMute = useCallback(() => {
-    if (player) {
-      if (isMuted) {
-        player.unMute();
-        player.setVolume(volume);
-      } else {
-        player.mute();
-      }
-      setIsMuted(!isMuted);
+    if (!player) return;
+    if (isMuted) {
+      player.unMute();
+      player.setVolume(volume);
+    } else {
+      player.mute();
     }
+    setIsMuted(!isMuted);
   }, [player, isMuted, volume]);
 
   const handleVolumeChange = useCallback(
@@ -173,183 +298,84 @@ export function YouTubeMusicPlayer({ youtubeUrl }: YouTubeMusicPlayerProps) {
     };
   }, []);
 
-  const openYouTube = useCallback(() => {
-    window.open(youtubeUrl, "_blank");
-  }, [youtubeUrl]);
+  if (!videoId) return null;
+
+  const containerClassNames = useMemo(
+    () =>
+      cn(
+        "fixed transition-all duration-300 z-40 left-0 right-0 bg-background shadow-lg",
+        isMinimized ? "h-16" : "h-96",
+        position === "bottom"
+          ? ["bottom-0 border-t", isCollapsed && "bottom-[-64px]"]
+          : ["border-b", "print:hidden"]
+      ),
+    [position, isMinimized, isCollapsed]
+  );
 
   if (!videoId) return null;
 
   return (
     <TooltipProvider delayDuration={300}>
       <div
-        className={cn(
-          "fixed transition-all duration-300 z-50",
-          position === "bottom" ? "bottom-0" : "top-16",
-          isCollapsed
-            ? position === "bottom"
-              ? "bottom-[-64px]"
-              : "top-[-48px]"
-            : "bottom-0",
-          "left-0 right-0 bg-background shadow-lg",
-          isMinimized ? "h-16" : "h-96",
-          position === "bottom" ? "border-t" : "border-b"
-        )}
+        className={containerClassNames}
+        style={{
+          top: topPosition,
+          bottom:
+            position === "bottom" ? (isCollapsed ? "-64px" : 0) : undefined,
+        }}
       >
-        {/* Collapse Toggle Button */}
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className={cn(
-            "absolute transform -translate-x-1/2 bg-background border rounded-lg px-3 py-1 shadow-lg group hover:bg-accent transition-colors",
-            position === "bottom"
-              ? "-top-8 border-b-0 rounded-b-none"
-              : "-bottom-8 border-t-0 rounded-t-none",
-            "left-1/2"
-          )}
-        >
-          {isCollapsed ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground group-hover:text-foreground">
-              <ChevronUp className="h-4 w-4" />
-              <span>{isPlaying ? "يتم التشغيل" : "متوقف"}</span>
-            </div>
-          ) : (
-            <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
-          )}
-        </button>
+        <CollapseButton
+          position={position}
+          isCollapsed={isCollapsed}
+          isPlaying={isPlaying}
+          onToggle={() => setIsCollapsed(!isCollapsed)}
+        />
 
         <div className="h-full">
-          {/* Progress Bar */}
-          <div className="w-full h-1 bg-secondary">
-            <Slider
-              value={[duration ? (currentTime / duration) * 100 : 0]}
-              max={100}
-              step={0.1}
-              onValueChange={handleSeek}
-              className="cursor-pointer"
-            />
-          </div>
+          <ProgressBar
+            currentTime={currentTime}
+            duration={duration}
+            onSeek={handleSeek}
+          />
 
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between h-[60px]">
-              {/* Left Controls */}
-              <div className="flex items-center gap-4">
-                {/* Playback Controls */}
-                <div className="flex items-center gap-2">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" onClick={skipForward}>
-                        <SkipForward className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>تقديم 10 ثوان</TooltipContent>
-                  </Tooltip>
+              <PlayerControls
+                isPlaying={isPlaying}
+                onPlayPause={togglePlay}
+                onSkipForward={skipForward}
+                onSkipBackward={skipBackward}
+                currentTime={currentTime}
+                duration={duration}
+              />
 
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={togglePlay}
-                    className="h-10 w-10"
-                  >
-                    {isPlaying ? (
-                      <Pause className="h-5 w-5" />
-                    ) : (
-                      <Play className="h-5 w-5" />
-                    )}
-                  </Button>
-
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={skipBackward}
-                      >
-                        <SkipBack className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>رجوع 10 ثوان</TooltipContent>
-                  </Tooltip>
-                </div>
-
-                {/* Time Display */}
-                <div className="text-sm text-muted-foreground">
-                  <span>{formatTime(currentTime)}</span>
-                  <span className="mx-1">/</span>
-                  <span>{formatTime(duration)}</span>
-                </div>
-              </div>
-
-              {/* Right Controls */}
               <div className="flex items-center gap-3">
-                {/* Volume Control */}
-                <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="icon" onClick={toggleMute}>
-                    {isMuted ? (
-                      <VolumeX className="h-4 w-4" />
-                    ) : (
-                      <Volume2 className="h-4 w-4" />
-                    )}
-                  </Button>
-                  <div className="w-24 hidden sm:block">
-                    <Slider
-                      value={[isMuted ? 0 : volume]}
-                      max={100}
-                      step={1}
-                      onValueChange={handleVolumeChange}
-                      className="cursor-pointer"
-                    />
-                  </div>
-                </div>
-
-                {/* Position Control */}
+                <VolumeControl
+                  isMuted={isMuted}
+                  volume={volume}
+                  onMuteToggle={toggleMute}
+                  onVolumeChange={handleVolumeChange}
+                />
                 <VideoPositionControl />
-
-                {/* YouTube Link */}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" onClick={openYouTube}>
-                      <YoutubeIcon className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>فتح في يوتيوب</TooltipContent>
-                </Tooltip>
-
-                {/* Expand/Minimize */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setIsMinimized(!isMinimized)}
-                >
-                  {isMinimized ? (
-                    <Maximize2 className="h-4 w-4" />
-                  ) : (
-                    <Minimize2 className="h-4 w-4" />
-                  )}
-                </Button>
+                <YouTubeButton url={youtubeUrl} />
+                <MinimizeButton
+                  isMinimized={isMinimized}
+                  onToggle={() => setIsMinimized(!isMinimized)}
+                />
               </div>
             </div>
           </div>
 
-          {/* YouTube Player */}
           <div
             className={cn(
               "transition-all duration-300",
               isMinimized ? "h-0 opacity-0" : "h-72 opacity-100"
             )}
           >
-            <YouTube
+            <YouTubePlayer
               videoId={videoId}
               onReady={onReady}
               onStateChange={onStateChange}
-              opts={{
-                height: "100%",
-                width: "100%",
-                playerVars: {
-                  autoplay: 0,
-                  controls: 1,
-                  modestbranding: 1,
-                },
-              }}
-              className="h-full w-full"
             />
           </div>
         </div>

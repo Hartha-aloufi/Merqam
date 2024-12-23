@@ -12,6 +12,7 @@ import { ReadingProgressBar } from "../reading/ReadingProgressBar";
 import PrintButton from "./print/print-button";
 import PrintableLesson from "./print/printable-lesson";
 import { cn } from "@/lib/utils";
+import { useVideoSettings } from "@/stores/use-video-settings";
 
 interface LessonViewProps {
   lesson: Lesson;
@@ -20,7 +21,6 @@ interface LessonViewProps {
   readingTime: number;
   children: React.ReactNode;
 }
-
 export function LessonView({
   lesson,
   topicId,
@@ -29,19 +29,15 @@ export function LessonView({
   children,
 }: LessonViewProps) {
   const pTracker = useParagraphTracking(topicId, lessonId);
-
-  const handlePrint = usePrintLesson({
-    title: lesson.title,
-  });
+  const { position } = useVideoSettings();
+  const handlePrint = usePrintLesson({ title: lesson.title });
 
   useEffect(() => {
     pTracker.scrollToLastRead();
   }, []);
 
   useEffect(() => {
-    // delay tracking to ensure that the content is rendered
     setTimeout(() => {
-      console.log("track");
       pTracker.track();
     }, 2000);
     return () => pTracker.untrack();
@@ -55,13 +51,7 @@ export function LessonView({
 
   return (
     <VideoProvider>
-      {/* Regular View */}
-      <div
-        className={cn(
-          "max-w-3xl mx-auto py-8 pb-24",
-          "print:hidden" // Hide in print view
-        )}
-      >
+      <div className={cn("max-w-3xl mx-auto py-8 pb-24", "print:hidden")}>
         <ReadingProgressBar />
 
         <div className="flex items-center justify-between mb-8">
@@ -75,12 +65,23 @@ export function LessonView({
           <PrintButton onClick={handlePrint} className="ml-4" />
         </div>
 
+        {/* YouTube Player for top position */}
+        {position === "top" && lesson.youtubeUrl && (
+          <div className="fixed-top top-16 left-0 right-0 -mx-11 z-50">
+            <YouTubeMusicPlayer youtubeUrl={lesson.youtubeUrl} />
+          </div>
+        )}
+
         <div className="prose prose-lg dark:prose-invert max-w-none">
           {children}
         </div>
       </div>
 
-      {/* Print View */}
+      {/* YouTube Player for bottom position */}
+      {position === "bottom" && lesson.youtubeUrl && (
+        <YouTubeMusicPlayer youtubeUrl={lesson.youtubeUrl} />
+      )}
+
       <PrintableLesson
         title={lesson.title}
         content={children}
@@ -88,11 +89,7 @@ export function LessonView({
         lessonId={lessonId}
       />
 
-      {/* Components to hide in print */}
       <div className="print:hidden">
-        {lesson.youtubeUrl && (
-          <YouTubeMusicPlayer youtubeUrl={lesson.youtubeUrl} />
-        )}
         <ShortcutsToast />
       </div>
     </VideoProvider>
