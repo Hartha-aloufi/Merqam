@@ -7,6 +7,8 @@ interface NavigationOptions {
 	scrollTargets?: string;
 	onNavigate?: (direction: 'up' | 'down') => void;
 	onHighlightNavigate?: (direction: 'prev' | 'next') => void;
+	onUndo?: () => void;
+	onRedo?: () => void;
 }
 
 export const useKeyboardNavigation = ({
@@ -14,6 +16,8 @@ export const useKeyboardNavigation = ({
 	scrollTargets = 'h1, h2, h3, h4, p',
 	onNavigate,
 	onHighlightNavigate,
+	onUndo,
+	onRedo,
 }: NavigationOptions = {}) => {
 	const findTargetElement = useCallback(
 		(direction: 'up' | 'down') => {
@@ -63,6 +67,20 @@ export const useKeyboardNavigation = ({
 				return;
 			}
 
+			// Add undo/redo shortcuts
+			if (
+				(event.key.toLowerCase() === 'z' && event.ctrlKey) ||
+				event.metaKey
+			) {
+				event.preventDefault();
+				if (event.shiftKey) {
+					onRedo?.();
+				} else {
+					onUndo?.();
+				}
+				return;
+			}
+      
 			let direction: 'up' | 'down' | null = null;
 
 			switch (event.key.toLowerCase()) {

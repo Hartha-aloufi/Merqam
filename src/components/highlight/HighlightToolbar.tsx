@@ -1,7 +1,13 @@
 // src/components/highlight/HighlightToolbar.tsx
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Highlighter, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+	Highlighter,
+	ChevronDown,
+	ChevronUp,
+	Undo2,
+	Redo2,
+} from 'lucide-react';
 import { CollapsibleToolbar } from './CollapsibleToolbar';
 import { ColorPicker } from './ColorPicker';
 import { HIGHLIGHT_COLORS, HighlightColorKey } from '@/constants/highlights';
@@ -15,6 +21,10 @@ interface HighlightToolbarProps {
 	highlightsCount: number;
 	onNavigate: (direction: 'prev' | 'next') => void;
 	currentHighlightIndex: number;
+	onUndo: () => void;
+	onRedo: () => void;
+	canUndo: boolean;
+	canRedo: boolean;
 }
 
 export const HighlightToolbar = React.memo(function HighlightToolbar({
@@ -25,6 +35,10 @@ export const HighlightToolbar = React.memo(function HighlightToolbar({
 	highlightsCount,
 	onNavigate,
 	currentHighlightIndex,
+	onUndo,
+	onRedo,
+	canUndo,
+	canRedo,
 }: HighlightToolbarProps) {
 	const { position } = useVideoSettings();
 	const isPlacedBottom = position === 'bottom';
@@ -74,6 +88,28 @@ export const HighlightToolbar = React.memo(function HighlightToolbar({
 						onColorChange={onColorChange}
 					/>
 				)}
+			</div>
+
+			{/* Undo/Redo */}
+			<div className="flex gap-1">
+				<Button
+					variant="ghost"
+					size="icon"
+					onClick={onUndo}
+					disabled={!canUndo}
+					className="h-8 w-8"
+				>
+					<Undo2 className="h-4 w-4" />
+				</Button>
+				<Button
+					variant="ghost"
+					size="icon"
+					onClick={onRedo}
+					disabled={!canRedo}
+					className="h-8 w-8"
+				>
+					<Redo2 className="h-4 w-4" />
+				</Button>
 			</div>
 
 			{/* Navigation Controls */}
