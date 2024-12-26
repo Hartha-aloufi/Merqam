@@ -1,8 +1,11 @@
 // src/components/highlight/HighlightContainer.tsx
-import React, { useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { useHighlightState } from '@/hooks/highlights/use-highlights-state';
-import { useHighlightOperations } from '@/hooks/highlights/use-highlight-sync';
-import { useHighlightSelection } from '@/hooks/highlights/use-highlight-selection';
+import { useHighlightOperations } from '@/hooks/highlights/use-highlight-operations';
+import {
+	HighlightRange,
+	useHighlightSelection,
+} from '@/hooks/highlights/use-highlight-selection';
 import { useSession } from '@/hooks/use-auth-query';
 import { HighlightToolbar } from './HighlightToolbar';
 import { UnauthorizedToolbar } from './UnauthorizedToolbar';
@@ -11,6 +14,9 @@ import { HighlightPopoverProvider } from './HighlightPopover';
 import { HighlightColorKey } from '@/constants/highlights';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { useHighlightNavigation } from './HighlightNavigation';
+import { useKeyboardNavigation } from '@/hooks/use-keyboard-navigation';
 
 interface HighlightContainerProps {
 	topicId: string;
@@ -22,6 +28,7 @@ interface HighlightContainerProps {
 /**
  * Container component that provides highlighting functionality.
  * Manages highlighting state, batch operations for storage, and UI components.
+ * Supports both single and multi-paragraph highlights.
  */
 export const HighlightContainer = ({
 	topicId,
@@ -31,6 +38,8 @@ export const HighlightContainer = ({
 }: HighlightContainerProps) => {
 	// Reference to the container element for highlight positioning
 	const containerRef = useRef<HTMLDivElement>(null);
+	const { scrollToHighlight } = useHighlightNavigation();
+	const [currentHighlightIndex, setCurrentHighlightIndex] = useState(-1);
 
 	// Authentication state
 	const { data: session } = useSession();
@@ -44,6 +53,7 @@ export const HighlightContainer = ({
 		addHighlight,
 		removeHighlight,
 		updateHighlightColor,
+		batchAddHighlights,
 	} = useHighlightOperations(topicId, lessonId);
 
 	// Handle text selection for new highlights
@@ -51,13 +61,29 @@ export const HighlightContainer = ({
 		isEnabled: state.isEnabled,
 		containerRef,
 		highlights,
-		onAddHighlight: (info) => {
-			addHighlight({
-				elementId: info.elementId,
-				startOffset: info.startOffset,
-				endOffset: info.endOffset,
-				color: state.activeColor,
-			});
+		onAddHighlight: (highlightInfo: HighlightRange | HighlightRange[]) => {
+			try {
+				if (Array.isArray(highlightInfo)) {
+					// Handle multiple paragraphs
+					const newHighlights = highlightInfo.map((info) => ({
+						...info,
+						color: state.activeColor,
+					}));
+					batchAddHighlights(newHighlights);
+					toast.success('تم إضافة التظليلات');
+				} else {
+					// Handle single paragraph
+					addHighlight({
+						elementId: highlightInfo.elementId,
+						startOffset: highlightInfo.startOffset,
+						endOffset: highlightInfo.endOffset,
+						color: state.activeColor,
+					});
+				}
+			} catch (error) {
+				console.error('Failed to create highlight:', error);
+				toast.error('فشل في إضافة التظليل');
+			}
 		},
 	});
 
@@ -69,7 +95,35 @@ export const HighlightContainer = ({
 		[updateHighlightColor]
 	);
 
-	// If not authenticated, show unauthorized state
+	// Navigation handler
+	const handleNavigate = useCallback(
+		(direction: 'prev' | 'next') => {
+			if (highlights.length === 0) return;
+
+			const newIndex =
+				direction === 'next'
+					? currentHighlightIndex >= highlights.length - 1
+						? 0
+						: currentHighlightIndex + 1
+					: currentHighlightIndex <= 0
+					? highlights.length - 1
+					: currentHighlightIndex - 1;
+
+			setCurrentHighlightIndex(newIndex);
+			scrollToHighlight(highlights[newIndex]);
+		},
+		[highlights, currentHighlightIndex, scrollToHighlight]
+	);
+
+	
+		useKeyboardNavigation({
+			scrollTargets: '.prose h1, .prose h2, .prose h3, .prose p',
+			scrollStep: 100,
+			smooth: true,
+			onHighlightNavigate: handleNavigate,
+		});
+
+	// Show unauthorized toolbar if not authenticated
 	if (!isAuthenticated) {
 		return (
 			<div className="relative">
@@ -92,6 +146,8 @@ export const HighlightContainer = ({
 					activeColor={state.activeColor}
 					onColorChange={state.setActiveColor}
 					highlightsCount={highlights.length}
+					onNavigate={handleNavigate}
+					currentHighlightIndex={currentHighlightIndex}
 				/>
 
 				{/* Content with highlights */}
@@ -106,9 +162,7 @@ export const HighlightContainer = ({
 						}
 						className={cn(
 							'relative transition-colors duration-200',
-							// Show text cursor when highlighting is enabled
 							state.isEnabled && 'cursor-text',
-							// Apply custom classes
 							className
 						)}
 					>

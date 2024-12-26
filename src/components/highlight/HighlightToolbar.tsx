@@ -13,6 +13,8 @@ interface HighlightToolbarProps {
 	activeColor: HighlightColorKey;
 	onColorChange: (color: HighlightColorKey) => void;
 	highlightsCount: number;
+	onNavigate: (direction: 'prev' | 'next') => void;
+	currentHighlightIndex: number;
 }
 
 export const HighlightToolbar = React.memo(function HighlightToolbar({
@@ -21,11 +23,12 @@ export const HighlightToolbar = React.memo(function HighlightToolbar({
 	activeColor,
 	onColorChange,
 	highlightsCount,
+	onNavigate,
+	currentHighlightIndex,
 }: HighlightToolbarProps) {
 	const { position } = useVideoSettings();
 	const isPlacedBottom = position === 'bottom';
 
-	// Content for the collapsed tab
 	const pullTabContent = (
 		<>
 			<Highlighter className="mr-2 h-3 w-3" />
@@ -53,7 +56,6 @@ export const HighlightToolbar = React.memo(function HighlightToolbar({
 
 	return (
 		<CollapsibleToolbar pullTabContent={pullTabContent}>
-			{/* Main Controls */}
 			<div className="flex items-center gap-3">
 				{/* Highlight Toggle */}
 				<Button
@@ -74,14 +76,30 @@ export const HighlightToolbar = React.memo(function HighlightToolbar({
 				)}
 			</div>
 
-			{/* Highlights Count */}
-			{isEnabled && (
-				<div className="text-sm text-muted-foreground">
-					{highlightsCount > 0 ? (
-						<span>{highlightsCount} تظليلات</span>
-					) : (
-						<span>لا توجد تظليلات</span>
-					)}
+			{/* Navigation Controls */}
+			{highlightsCount > 0 && (
+				<div className="flex items-center gap-2 ml-auto">
+					<span className="text-sm text-muted-foreground">
+						{currentHighlightIndex + 1} / {highlightsCount}
+					</span>
+					<div className="flex gap-1">
+						<Button
+							variant="ghost"
+							size="icon"
+							onClick={() => onNavigate('prev')}
+							className="h-8 w-8"
+						>
+							<ChevronUp className="h-4 w-4" />
+						</Button>
+						<Button
+							variant="ghost"
+							size="icon"
+							onClick={() => onNavigate('next')}
+							className="h-8 w-8"
+						>
+							<ChevronDown className="h-4 w-4" />
+						</Button>
+					</div>
 				</div>
 			)}
 		</CollapsibleToolbar>
