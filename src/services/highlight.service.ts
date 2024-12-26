@@ -1,4 +1,4 @@
-// src/services/highlight.service.ts
+// services/highlight.service.ts
 import { supabase } from '@/lib/supabase';
 import type {
 	BatchUpdateHighlightsDto,
@@ -8,10 +8,11 @@ import { Database } from '@/types/supabase';
 
 type DbHighlightInsert = Database['public']['Tables']['highlights']['Insert'];
 
-/**
- * Service for managing highlights with the new data model
- * Each lesson-user pair has a single row containing an array of highlights
- */
+interface StoredHighlightData {
+	highlights: HighlightItem[];
+	groups?: { [groupId: string]: { color: string } };
+}
+
 export const highlightService = {
 	/**
 	 * Get highlights for a specific lesson
@@ -41,29 +42,30 @@ export const highlightService = {
 			return { highlights: [] };
 		}
 
+		// Parse stored data
+		const storedData = data.highlights as StoredHighlightData;
 		return {
-			highlights: ((data.highlights as any[]) || []).map((h) => ({
-				id: h.id,
-				elementId: h.elementId,
-				startOffset: h.startOffset,
-				endOffset: h.endOffset,
-				color: h.color,
-				createdAt: h.createdAt,
-				updatedAt: h.updatedAt,
+			highlights: (storedData.highlights || []).map((h) => ({
+				...h,
+				// Ensure groupId is preserved if it exists
+				...(h.groupId &&
+					storedData.groups?.[h.groupId] && {
+						groupId: h.groupId,
+						color: storedData.groups[h.groupId].color,
+					}),
 			})),
 		};
 	},
 
 	/**
 	 * Batch update highlights for a lesson
-	 * This will create or update the entire highlights array
+	 * Now preserves group information
 	 */
 	batchUpdateHighlights: async ({
 		topicId,
 		lessonId,
 		highlights,
 	}: BatchUpdateHighlightsDto) => {
-		// Get current user
 		const {
 			data: { user },
 			error: userError,
@@ -71,7 +73,21 @@ export const highlightService = {
 		if (userError) throw userError;
 		if (!user) throw new Error('No authenticated user');
 
+		// Extract and organize group information
+		const groups: { [groupId: string]: { color: string } } = {};
+		highlights.forEach((h) => {
+			if (h.groupId) {
+				groups[h.groupId] = { color: h.color };
+			}
+		});
+
 		const now = new Date().toISOString();
+
+		// Prepare data for storage
+		const storedData: StoredHighlightData = {
+			highlights,
+			...(Object.keys(groups).length > 0 && { groups }),
+		};
 
 		// Use upsert to create or update the row
 		const { data, error } = await supabase
@@ -81,9 +97,8 @@ export const highlightService = {
 					user_id: user.id,
 					topic_id: topicId,
 					lesson_id: lessonId,
-					highlights,
+					highlights: storedData,
 					updated_at: now,
-					// Only set created_at if it's a new row
 					created_at: now,
 				} satisfies DbHighlightInsert,
 				{

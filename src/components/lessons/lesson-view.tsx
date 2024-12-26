@@ -3,7 +3,6 @@ import { useEffect } from 'react';
 import { YouTubeMusicPlayer } from '@/components/video/youtube-music-player';
 import { ShortcutsToast } from '@/components/reading/ShortcutsToast';
 import { VideoProvider } from '@/contexts/video-context';
-import { useKeyboardNavigation } from '@/hooks/use-keyboard-navigation';
 import { useParagraphTracking } from '@/hooks/use-paragraph-tracking';
 import { usePrintLesson } from '@/hooks/use-print-lesson';
 import type { Lesson } from '@/types';
@@ -43,11 +42,6 @@ export function LessonView({
 		return () => pTracker.untrack();
 	}, [lesson.content, pTracker]);
 
-	useKeyboardNavigation({
-		scrollTargets: '.prose h1, .prose h2, .prose h3, .prose p',
-		scrollStep: 100,
-		smooth: true,
-	});
 
 	return (
 		<VideoProvider>
