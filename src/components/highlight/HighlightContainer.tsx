@@ -47,14 +47,17 @@ export const HighlightContainer = ({
 
 	// Highlighting state and operations
 	const state = useHighlightState();
-	const {
+  const {
 		highlights,
 		isLoading,
 		addHighlight,
 		removeHighlight,
 		updateHighlightColor,
-		batchAddHighlights,
-	} = useHighlightOperations(topicId, lessonId);
+		undo,
+		redo,
+		canUndo,
+		canRedo,
+  } = useHighlightOperations(topicId, lessonId);
 
 	// Handle text selection for new highlights
 	const handleSelection = useHighlightSelection({
@@ -148,6 +151,10 @@ export const HighlightContainer = ({
 					highlightsCount={highlights.length}
 					onNavigate={handleNavigate}
 					currentHighlightIndex={currentHighlightIndex}
+					onUndo={undo}
+					onRedo={redo}
+					canUndo={canUndo}
+					canRedo={canRedo}
 				/>
 
 				{/* Content with highlights */}

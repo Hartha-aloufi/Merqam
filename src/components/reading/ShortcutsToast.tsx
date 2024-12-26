@@ -30,6 +30,8 @@ export const ShortcutsToast = () => {
 		{ keys: ['↓', 'j'], description: 'الفقرة التالية' },
 		{ keys: ['Alt', '+', 'p'], description: 'التظليل السابق' },
 		{ keys: ['Alt', '+', 'n'], description: 'التظليل التالي' },
+		{ keys: ['Ctrl/⌘', '+', 'z'], description: 'تراجع' },
+		{ keys: ['Ctrl/⌘', '+', 'Shift', '+', 'z'], description: 'إعادة' },
 		{ keys: ['Space'], description: 'صفحة للأسفل' },
 		{ keys: ['Shift', '+', 'Space'], description: 'صفحة للأعلى' },
 		{ keys: ['Home'], description: 'بداية الصفحة' },

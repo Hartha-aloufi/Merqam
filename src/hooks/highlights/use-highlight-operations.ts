@@ -5,7 +5,9 @@ import { useSession } from '@/hooks/use-auth-query';
 import { toast } from 'sonner';
 import type { BatchUpdateHighlightsDto, HighlightItem, TextHighlight } from '@/types/highlight';
 import { HighlightColorKey } from '@/constants/highlights';
-import React, { useMemo } from 'react';
+import { useHighlightHistory } from './use-highlight-history';
+import { useCallback } from 'react';
+
 const HIGHLIGHT_KEYS = {
 	all: ['highlights'] as const,
 	lesson: (topicId: string, lessonId: string) =>
@@ -71,144 +73,77 @@ const useLessonHighlights = (topicId: string, lessonId: string) => {
 /**
  * Hook to manage highlights with batch operations
  */
-// hooks/highlights/use-highlight-operations.ts
 export const useHighlightOperations = (topicId: string, lessonId: string) => {
-  const { data: highlights = [], isLoading } = useLessonHighlights(topicId, lessonId);
-  const { mutate: batchUpdate, isPending: isUpdating } = useBatchUpdateHighlights();
+	const { data: highlights = [], isLoading } = useLessonHighlights(
+		topicId,
+		lessonId
+	);
+	const { mutate: batchUpdate, isPending: isUpdating } =
+		useBatchUpdateHighlights();
 
-  // Add new highlight
-  const addHighlight = React.useCallback(
-    (highlight: Omit<HighlightItem, 'id' | 'createdAt' | 'updatedAt'>) => {
-      const now = new Date().toISOString();
-      const newHighlight: HighlightItem = {
-        ...highlight,
-        id: crypto.randomUUID(),
-        createdAt: now,
-        updatedAt: now,
-      };
+	const batchAddHighlights = useCallback(
+		(
+			newHighlights: Omit<
+				HighlightItem,
+				'id' | 'createdAt' | 'updatedAt' | 'groupId'
+			>[]
+		) => {
+			const now = new Date().toISOString();
+			const groupId = crypto.randomUUID();
 
-      batchUpdate({
-        topicId,
-        lessonId,
-        highlights: [...highlights, newHighlight],
-      });
-    },
-    [highlights, batchUpdate, topicId, lessonId]
-  );
+			const highlightsToAdd = newHighlights.map((highlight) => ({
+				...highlight,
+				id: crypto.randomUUID(),
+				groupId,
+				createdAt: now,
+				updatedAt: now,
+			}));
 
-  // Batch add multiple highlights as a group
-  const batchAddHighlights = React.useCallback(
-    (newHighlights: Omit<HighlightItem, 'id' | 'createdAt' | 'updatedAt' | 'groupId'>[]) => {
-      const now = new Date().toISOString();
-      const groupId = crypto.randomUUID();
-      
-      const highlightsToAdd = newHighlights.map(highlight => ({
-        ...highlight,
-        id: crypto.randomUUID(),
-        groupId, // Same groupId for all highlights in batch
-        createdAt: now,
-        updatedAt: now,
-      }));
+			batchUpdate({
+				topicId,
+				lessonId,
+				highlights: [...highlights, ...highlightsToAdd],
+			});
+		},
+		[highlights, batchUpdate, topicId, lessonId]
+	);
 
-      batchUpdate({
-        topicId,
-        lessonId,
-        highlights: [...highlights, ...highlightsToAdd],
-      });
-    },
-    [highlights, batchUpdate, topicId, lessonId]
-  );
+	const {
+		addHighlight: addHighlightWithHistory,
+		removeHighlight: removeHighlightWithHistory,
+		updateHighlightColor: updateHighlightColorWithHistory,
+		undo,
+		redo,
+		canUndo,
+		canRedo,
+	} = useHighlightHistory(highlights, (newHighlights) => {
+		batchUpdate({
+			topicId,
+			lessonId,
+			highlights: newHighlights,
+		});
+	});
 
-  // Remove highlight(s) - now handles groups
-  const removeHighlight = React.useCallback(
-    (highlightId: string) => {
-      const highlightToRemove = highlights.find(h => h.id === highlightId);
-      if (!highlightToRemove) return;
+	const handleUpdateHighlightColor = useCallback(
+		(id: string, newColor: HighlightColorKey) => {
+			const highlight = highlights.find((h) => h.id === id);
+			if (highlight) {
+				updateHighlightColorWithHistory(id, highlight.color, newColor);
+			}
+		},
+		[highlights, updateHighlightColorWithHistory]
+	);
 
-      // If highlight is part of a group, remove all highlights in the group
-      const highlightsToRemove = highlightToRemove.groupId
-        ? highlights.filter(h => h.groupId === highlightToRemove.groupId)
-        : [highlightToRemove];
-
-      const remainingHighlights = highlights.filter(
-        h => !highlightsToRemove.some(hr => hr.id === h.id)
-      );
-
-      batchUpdate({
-        topicId,
-        lessonId,
-        highlights: remainingHighlights,
-      });
-    },
-    [highlights, batchUpdate, topicId, lessonId]
-  );
-
-  // Update highlight color - now handles groups
-  const updateHighlightColor = React.useCallback(
-    (highlightId: string, color: HighlightColorKey) => {
-      const highlightToUpdate = highlights.find(h => h.id === highlightId);
-      if (!highlightToUpdate) return;
-
-      const updatedHighlights = highlights.map(h => {
-        // Update all highlights in the same group
-        if (highlightToUpdate.groupId && h.groupId === highlightToUpdate.groupId) {
-          return { ...h, color, updatedAt: new Date().toISOString() };
-        }
-        // Or just update the single highlight
-        if (h.id === highlightId) {
-          return { ...h, color, updatedAt: new Date().toISOString() };
-        }
-        return h;
-      });
-
-      batchUpdate({
-        topicId,
-        lessonId,
-        highlights: updatedHighlights,
-      });
-    },
-    [highlights, batchUpdate, topicId, lessonId]
-  );
-
-  // Process highlights to add group metadata
-  const processedHighlights = useMemo(() => {
-    const groupedHighlights = new Map<string, TextHighlight[]>();
-    
-    // First pass: organize highlights by group
-    highlights.forEach(h => {
-      if (h.groupId) {
-        const group = groupedHighlights.get(h.groupId) || [];
-        group.push({
-          ...h,
-          isGrouped: true,
-        });
-        groupedHighlights.set(h.groupId, group);
-      }
-    });
-
-    // Second pass: mark first/last in groups and return all highlights
-    return highlights.map(h => {
-      if (!h.groupId) return h;
-
-      const group = groupedHighlights.get(h.groupId);
-      if (!group) return h;
-
-      const index = group.findIndex(gh => gh.id === h.id);
-      return {
-        ...h,
-        isGrouped: true,
-        isFirstInGroup: index === 0,
-        isLastInGroup: index === group.length - 1,
-      };
-    });
-  }, [highlights]);
-
-  return {
-    highlights: processedHighlights,
-    isLoading: isLoading || isUpdating,
-    addHighlight,
-    batchAddHighlights,
-    removeHighlight,
-    updateHighlightColor,
-  };
+	return {
+		highlights,
+		isLoading: isLoading || isUpdating,
+		addHighlight: addHighlightWithHistory,
+		removeHighlight: removeHighlightWithHistory,
+		updateHighlightColor: handleUpdateHighlightColor,
+		batchAddHighlights,
+		undo,
+		redo,
+		canUndo,
+		canRedo,
+	};
 };
