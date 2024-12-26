@@ -1,4 +1,4 @@
-// components/highlight/HighlightToolbar.tsx
+// src/components/highlight/HighlightToolbar.tsx
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Highlighter, ChevronDown, ChevronUp } from 'lucide-react';
@@ -15,29 +15,25 @@ interface HighlightToolbarProps {
 	highlightsCount: number;
 }
 
-/**
- * Toolbar component for highlight controls
- * Simplified version without delete mode
- */
-export const HighlightToolbar: React.FC<HighlightToolbarProps> = ({
+export const HighlightToolbar = React.memo(function HighlightToolbar({
 	isEnabled,
 	onToggle,
 	activeColor,
 	onColorChange,
 	highlightsCount,
-}) => {
+}: HighlightToolbarProps) {
 	const { position } = useVideoSettings();
 	const isPlacedBottom = position === 'bottom';
 
-	// Create the content for the pull tab
+	// Content for the collapsed tab
 	const pullTabContent = (
 		<>
-			<Highlighter className="ml-2 h-3 w-3" />
+			<Highlighter className="mr-2 h-3 w-3" />
 			{isEnabled ? (
 				<div className="flex items-center gap-2">
 					<span className="text-xs">التظليل مفعل</span>
 					<div
-						className="h-2 w-2 rounded-full"
+						className="h-2 w-2 rounded-sm"
 						style={{
 							backgroundColor:
 								HIGHLIGHT_COLORS[activeColor].background,
@@ -49,7 +45,7 @@ export const HighlightToolbar: React.FC<HighlightToolbarProps> = ({
 			)}
 			{isPlacedBottom ? (
 				<ChevronDown className="mr-2 h-3 w-3" />
-      ) : (
+			) : (
 				<ChevronUp className="ml-2 h-3 w-3" />
 			)}
 		</>
@@ -69,6 +65,7 @@ export const HighlightToolbar: React.FC<HighlightToolbarProps> = ({
 					<Highlighter className="h-4 w-4" />
 				</Button>
 
+				{/* Color Picker */}
 				{isEnabled && (
 					<ColorPicker
 						activeColor={activeColor}
@@ -77,7 +74,7 @@ export const HighlightToolbar: React.FC<HighlightToolbarProps> = ({
 				)}
 			</div>
 
-			{/* Additional Info */}
+			{/* Highlights Count */}
 			{isEnabled && (
 				<div className="text-sm text-muted-foreground">
 					{highlightsCount > 0 ? (
@@ -89,4 +86,4 @@ export const HighlightToolbar: React.FC<HighlightToolbarProps> = ({
 			)}
 		</CollapsibleToolbar>
 	);
-};
+});
