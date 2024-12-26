@@ -11,40 +11,28 @@ export type Database = {
     Tables: {
       highlights: {
         Row: {
-          color: string
           created_at: string
-          element_id: string
-          end_offset: number
+          highlights: Json
           id: string
-          is_deleted: boolean
           lesson_id: string
-          start_offset: number
           topic_id: string
           updated_at: string
           user_id: string
         }
         Insert: {
-          color: string
           created_at?: string
-          element_id: string
-          end_offset: number
+          highlights?: Json
           id?: string
-          is_deleted?: boolean
           lesson_id: string
-          start_offset: number
           topic_id: string
           updated_at?: string
           user_id: string
         }
         Update: {
-          color?: string
           created_at?: string
-          element_id?: string
-          end_offset?: number
+          highlights?: Json
           id?: string
-          is_deleted?: boolean
           lesson_id?: string
-          start_offset?: number
           topic_id?: string
           updated_at?: string
           user_id?: string
