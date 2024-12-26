@@ -1,3 +1,4 @@
+// src/components/highlight/HighlightPopover.tsx
 import React, {
 	createContext,
 	useContext,
@@ -32,19 +33,25 @@ interface PopoverContextType {
 	onRemoveHighlight?: (id: string) => void | Promise<void>;
 	onUpdateHighlight?: (
 		id: string,
-		color: HighlightColorKey
+		options: { color: HighlightColorKey }
 	) => void | Promise<void>;
 }
 
 const PopoverContext = createContext<PopoverContextType | null>(null);
+
+// Color selection button component
 interface ColorButtonProps {
 	color: HighlightColorKey;
 	isActive: boolean;
 	onClick: () => void;
 }
 
-const ColorButton = React.memo(
-	({ color, isActive, onClick }: ColorButtonProps) => (
+const ColorButton = React.memo(function ColorButton({
+	color,
+	isActive,
+	onClick,
+}: ColorButtonProps) {
+	return (
 		<button
 			onClick={onClick}
 			className={cn(
@@ -58,17 +65,15 @@ const ColorButton = React.memo(
 			style={{ backgroundColor: HIGHLIGHT_COLORS[color].background }}
 			title={`Change to ${color}`}
 		/>
-	)
-);
-
-ColorButton.displayName = 'ColorButton';
+	);
+});
 
 interface HighlightPopoverProviderProps {
 	children: React.ReactNode;
 	onRemoveHighlight?: (id: string) => void | Promise<void>;
 	onUpdateHighlight?: (
 		id: string,
-		color: HighlightColorKey
+		options: { color: HighlightColorKey }
 	) => void | Promise<void>;
 }
 
@@ -85,7 +90,7 @@ export function HighlightPopoverProvider({
 		anchorElement: null,
 	});
 
-	const arrowRef = useRef(null);
+	const arrowRef = useRef<HTMLDivElement>(null);
 
 	const { refs, floatingStyles, context, middlewareData } = useFloating({
 		open: !!popoverState.highlight,
@@ -95,20 +100,13 @@ export function HighlightPopoverProvider({
 		placement: 'top',
 		middleware: [
 			offset(8),
-			flip({
-				fallbackPlacements: ['bottom'],
-			}),
+			flip({ fallbackPlacements: ['bottom'] }),
 			shift({ padding: 8 }),
 			arrow({ element: arrowRef }),
 		],
 	});
 
-	const dismiss = useDismiss(context, {
-		outsidePress: true, // Enable click outside
-		referencePress: false, // Don't dismiss when clicking reference (highlight)
-		escapeKey: true, // Enable Esc key to dismiss
-	});
-
+	const dismiss = useDismiss(context);
 	const hover = useHover(context, {
 		delay: { open: 0, close: 150 },
 		restMs: 40,
@@ -120,7 +118,7 @@ export function HighlightPopoverProvider({
 	]);
 
 	const showPopover = useCallback(
-		(highlight: TextHighlight, element: VirtualElement) => {
+		(highlight: TextHighlight, element: HTMLElement) => {
 			setPopoverState({ highlight, anchorElement: element });
 			refs.setReference(element);
 		},
@@ -172,7 +170,7 @@ export function HighlightPopoverProvider({
 									onClick={() => {
 										onUpdateHighlight?.(
 											popoverState.highlight!.id,
-											key as HighlightColorKey
+											{ color: key as HighlightColorKey }
 										);
 										hidePopover();
 									}}
@@ -180,10 +178,10 @@ export function HighlightPopoverProvider({
 							))}
 						</div>
 
-						{/* Separator with improved visibility */}
+						{/* Divider */}
 						<div className="w-px h-6 bg-border/50" />
 
-						{/* Delete Button with improved hover states */}
+						{/* Delete Button */}
 						<button
 							onClick={() => {
 								onRemoveHighlight?.(popoverState.highlight!.id);
@@ -201,7 +199,7 @@ export function HighlightPopoverProvider({
 							<Trash2 className="h-4 w-4" />
 						</button>
 
-						{/* Arrow with improved styling */}
+						{/* Arrow */}
 						<div
 							ref={arrowRef}
 							className={cn(
