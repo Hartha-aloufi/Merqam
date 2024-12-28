@@ -1,6 +1,6 @@
 // hooks/highlights/use-highlight-history.ts
 import { useCallback, useRef } from 'react';
-import { HighlightItem, HighlightItema } from '@/types/highlight';
+import { HighlightItem } from '@/types/highlight';
 import { HighlightColorKey } from '@/constants/highlights';
 
 interface HighlightCommand {
@@ -21,6 +21,7 @@ export const useHighlightHistory = (
 		redoStack.current = [];
 	}, []);
 
+	// Single highlight
 	const addHighlight = useCallback(
 		(highlight: Omit<HighlightItem, 'updatedAt'>) => {
 			const now = new Date().toISOString();
@@ -36,6 +37,42 @@ export const useHighlightHistory = (
 				undo: () => {
 					batchUpdate(
 						highlights.filter((h) => h.id !== fullHighlight.id)
+					);
+				},
+			};
+			executeCommand(command);
+		},
+		[highlights, batchUpdate, executeCommand]
+	);
+
+	// Batch highlights
+	const batchAddHighlights = useCallback(
+		(
+			newHighlights: Omit<
+				HighlightItem,
+				'id' | 'createdAt' | 'updatedAt' | 'groupId'
+			>[]
+		) => {
+			const now = new Date().toISOString();
+			const groupId = crypto.randomUUID();
+
+			const highlightsToAdd = newHighlights.map((highlight) => ({
+				...highlight,
+				id: crypto.randomUUID(),
+				groupId,
+				createdAt: now,
+				updatedAt: now,
+			}));
+
+			const command: HighlightCommand = {
+				execute: () => {
+					batchUpdate([...highlights, ...highlightsToAdd]);
+				},
+				undo: () => {
+					batchUpdate(
+						highlights.filter(
+							(h) => !highlightsToAdd.some((nh) => nh.id === h.id)
+						)
 					);
 				},
 			};
@@ -139,6 +176,7 @@ export const useHighlightHistory = (
 
 	return {
 		addHighlight,
+		batchAddHighlights, // Added to return object
 		removeHighlight,
 		updateHighlightColor,
 		undo: useCallback(() => {

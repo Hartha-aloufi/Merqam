@@ -53,6 +53,7 @@ export const HighlightContainer = ({
 		addHighlight,
 		removeHighlight,
 		updateHighlightColor,
+		batchAddHighlights,
 		undo,
 		redo,
 		canUndo,
@@ -81,6 +82,8 @@ export const HighlightContainer = ({
 						startOffset: highlightInfo.startOffset,
 						endOffset: highlightInfo.endOffset,
 						color: state.activeColor,
+						id: '',
+						createdAt: ''
 					});
 				}
 			} catch (error) {
