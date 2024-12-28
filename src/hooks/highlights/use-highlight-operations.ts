@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { highlightService } from '@/services/highlight.service';
 import { useSession } from '@/hooks/use-auth-query';
 import { toast } from 'sonner';
-import type { BatchUpdateHighlightsDto, HighlightItem, TextHighlight } from '@/types/highlight';
+import type { BatchUpdateHighlightsDto, HighlightItem } from '@/types/highlight';
 import { HighlightColorKey } from '@/constants/highlights';
 import { useHighlightHistory } from './use-highlight-history';
 import { useCallback } from 'react';
@@ -81,35 +81,9 @@ export const useHighlightOperations = (topicId: string, lessonId: string) => {
 	const { mutate: batchUpdate, isPending: isUpdating } =
 		useBatchUpdateHighlights();
 
-	const batchAddHighlights = useCallback(
-		(
-			newHighlights: Omit<
-				HighlightItem,
-				'id' | 'createdAt' | 'updatedAt' | 'groupId'
-			>[]
-		) => {
-			const now = new Date().toISOString();
-			const groupId = crypto.randomUUID();
-
-			const highlightsToAdd = newHighlights.map((highlight) => ({
-				...highlight,
-				id: crypto.randomUUID(),
-				groupId,
-				createdAt: now,
-				updatedAt: now,
-			}));
-
-			batchUpdate({
-				topicId,
-				lessonId,
-				highlights: [...highlights, ...highlightsToAdd],
-			});
-		},
-		[highlights, batchUpdate, topicId, lessonId]
-	);
-
 	const {
 		addHighlight: addHighlightWithHistory,
+		batchAddHighlights: batchAddHighlightWithHistory,
 		removeHighlight: removeHighlightWithHistory,
 		updateHighlightColor: updateHighlightColorWithHistory,
 		undo,
@@ -138,9 +112,9 @@ export const useHighlightOperations = (topicId: string, lessonId: string) => {
 		highlights,
 		isLoading: isLoading || isUpdating,
 		addHighlight: addHighlightWithHistory,
+		batchAddHighlights: batchAddHighlightWithHistory,
 		removeHighlight: removeHighlightWithHistory,
 		updateHighlightColor: handleUpdateHighlightColor,
-		batchAddHighlights,
 		undo,
 		redo,
 		canUndo,
