@@ -17,6 +17,7 @@ import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useHighlightNavigation } from './HighlightNavigation';
 import { useKeyboardNavigation } from '@/hooks/use-keyboard-navigation';
+import { uuid } from '@supabase/gotrue-js/dist/module/lib/helpers';
 
 interface HighlightContainerProps {
 	topicId: string;
@@ -47,7 +48,7 @@ export const HighlightContainer = ({
 
 	// Highlighting state and operations
 	const state = useHighlightState();
-  const {
+	const {
 		highlights,
 		isLoading,
 		addHighlight,
@@ -58,7 +59,7 @@ export const HighlightContainer = ({
 		redo,
 		canUndo,
 		canRedo,
-  } = useHighlightOperations(topicId, lessonId);
+	} = useHighlightOperations(topicId, lessonId);
 
 	// Handle text selection for new highlights
 	const handleSelection = useHighlightSelection({
@@ -82,8 +83,8 @@ export const HighlightContainer = ({
 						startOffset: highlightInfo.startOffset,
 						endOffset: highlightInfo.endOffset,
 						color: state.activeColor,
-						id: '',
-						createdAt: ''
+						id: uuid(),
+						createdAt: '',
 					});
 				}
 			} catch (error) {
@@ -121,13 +122,12 @@ export const HighlightContainer = ({
 		[highlights, currentHighlightIndex, scrollToHighlight]
 	);
 
-	
-		useKeyboardNavigation({
-			scrollTargets: '.prose h1, .prose h2, .prose h3, .prose p',
-			scrollStep: 100,
-			smooth: true,
-			onHighlightNavigate: handleNavigate,
-		});
+	useKeyboardNavigation({
+		scrollTargets: '.prose h1, .prose h2, .prose h3, .prose p',
+		scrollStep: 100,
+		smooth: true,
+		onHighlightNavigate: handleNavigate,
+	});
 
 	// Show unauthorized toolbar if not authenticated
 	if (!isAuthenticated) {
@@ -161,7 +161,7 @@ export const HighlightContainer = ({
 				/>
 
 				{/* Content with highlights */}
-				<div className="pt-14">
+				<div className="pt-8">
 					<div
 						ref={containerRef}
 						onMouseUp={

@@ -1,7 +1,7 @@
 // components/highlight/CollapsibleToolbar.tsx
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useVideoSettings } from '@/stores/use-video-settings';
@@ -52,19 +52,7 @@ export const CollapsibleToolbar: React.FC<CollapsibleToolbarProps> = ({
 					className="h-8 w-8 p-0 shrink-0"
 					onClick={() => setIsCollapsed(!isCollapsed)}
 				>
-					{isPlacedBottom &&
-						(isCollapsed ? (
-							<ChevronDown className="h-4 w-4" />
-						) : (
-							<ChevronUp className="h-4 w-4" />
-						))}
-
-					{!isPlacedBottom &&
-						(isCollapsed ? (
-							<ChevronUp className="h-4 w-4" />
-						) : (
-							<ChevronDown className="h-4 w-4" />
-						))}
+					<X className="h-4 w-4" />
 				</Button>
 				{/* Toolbar Content */}
 				<div className="flex-1 flex items-center gap-3">{children}</div>

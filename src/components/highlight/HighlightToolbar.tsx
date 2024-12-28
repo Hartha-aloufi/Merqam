@@ -72,7 +72,7 @@ export const HighlightToolbar = React.memo(function HighlightToolbar({
 
 	return (
 		<CollapsibleToolbar pullTabContent={pullTabContent}>
-			<div className="flex w-full items-center justify-between">
+			<div className="flex w-full items-center justify-between ">
 				{/* Highlighting Tools Group */}
 				<div className="flex items-center gap-3">
 					{/* Highlight Toggle */}

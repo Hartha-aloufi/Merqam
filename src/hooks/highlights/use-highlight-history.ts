@@ -85,14 +85,13 @@ export const useHighlightHistory = (
 		(id: string) => {
 			const highlightToRemove = highlights.find((h) => h.id === id);
 			if (!highlightToRemove) return;
-
 			// Get all highlights in the same group
 			const highlightsToRemove = highlightToRemove.groupId
 				? highlights.filter(
 						(h) => h.groupId === highlightToRemove.groupId
 				  )
 				: [highlightToRemove];
-
+				
 			const command: HighlightCommand = {
 				execute: () => {
 					const remainingHighlights = highlights.filter(
