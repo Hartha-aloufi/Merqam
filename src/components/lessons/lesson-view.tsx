@@ -45,7 +45,7 @@ export function LessonView({
 
 	return (
 		<VideoProvider>
-			<div className={cn('max-w-3xl mx-auto py-8 pb-24', 'print:hidden')}>
+			<div className={cn('max-w-3xl mx-auto pt-14 pb-20', 'print:hidden')}>
 				<ReadingProgressBar />
 
 				<div className="flex items-center justify-between mb-8">
