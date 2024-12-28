@@ -29,7 +29,7 @@ export const CollapsibleToolbar: React.FC<CollapsibleToolbarProps> = ({
 	return (
 		<div
 			className={cn(
-				'fixed inset-x-0 z-40 transition-all duration-300',
+				'fixed inset-x-0 z-40 transition-all duration-300 print:hidden',
 				// Place it below the header (z-50)
 				isPlacedBottom ? 'top-[65px]' : 'bottom-0',
 				isCollapsed ? collapsedClass : expandedClass,

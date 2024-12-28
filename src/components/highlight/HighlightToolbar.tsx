@@ -47,7 +47,7 @@ export const HighlightToolbar = React.memo(function HighlightToolbar({
 	// Pull tab content shows highlight status
 	const pullTabContent = (
 		<>
-			<Highlighter className="mr-2 h-3 w-3" />
+			<Highlighter className="mr-2 h-3 w-3 print:hidden" />
 			{isEnabled ? (
 				<div className="flex items-center gap-2">
 					<span className="text-xs">التظليل مفعل</span>
