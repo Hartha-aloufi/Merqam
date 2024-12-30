@@ -1,5 +1,5 @@
 // src/components/highlight/HighlightContainer.tsx
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useHighlightState } from '@/hooks/highlights/use-highlights-state';
 import { useHighlightOperations } from '@/hooks/highlights/use-highlight-operations';
 import {
@@ -15,7 +15,7 @@ import { HighlightColorKey } from '@/constants/highlights';
 import { cn } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useHighlightNavigation } from './HighlightNavigation';
+import { useHighlightNavigation } from '@/hooks/highlights/use-highlight-navigation';
 import { useKeyboardNavigation } from '@/hooks/use-keyboard-navigation';
 import { uuid } from '@supabase/gotrue-js/dist/module/lib/helpers';
 
@@ -39,7 +39,8 @@ export const HighlightContainer = ({
 }: HighlightContainerProps) => {
 	// Reference to the container element for highlight positioning
 	const containerRef = useRef<HTMLDivElement>(null);
-	const { scrollToHighlight } = useHighlightNavigation();
+	const { scrollToHighlight, getNavigableHighlights } =
+		useHighlightNavigation();
 	const [currentHighlightIndex, setCurrentHighlightIndex] = useState(-1);
 
 	// Authentication state
@@ -102,25 +103,37 @@ export const HighlightContainer = ({
 		[updateHighlightColor]
 	);
 
+	// Get navigable highlights (groups counted as one)
+	const navigableHighlights = useMemo(
+		() => getNavigableHighlights(highlights),
+		[highlights, getNavigableHighlights]
+	);
+
 	// Navigation handler
 	const handleNavigate = useCallback(
 		(direction: 'prev' | 'next') => {
-			if (highlights.length === 0) return;
+			if (navigableHighlights.length === 0) return;
 
 			const newIndex =
 				direction === 'next'
-					? currentHighlightIndex >= highlights.length - 1
-						? 0
+					? currentHighlightIndex >= navigableHighlights.length - 1
+						? 0 // Loop back to start
 						: currentHighlightIndex + 1
 					: currentHighlightIndex <= 0
-					? highlights.length - 1
+					? navigableHighlights.length - 1 // Loop to end
 					: currentHighlightIndex - 1;
 
 			setCurrentHighlightIndex(newIndex);
-			scrollToHighlight(highlights[newIndex]);
+			scrollToHighlight(navigableHighlights[newIndex]);
 		},
-		[highlights, currentHighlightIndex, scrollToHighlight]
+		[navigableHighlights, currentHighlightIndex, scrollToHighlight]
 	);
+
+	// Get if current highlight is a group
+	const currentIsGroup = useMemo(() => {
+		if (currentHighlightIndex === -1) return false;
+		return !!navigableHighlights[currentHighlightIndex]?.groupId;
+	}, [navigableHighlights, currentHighlightIndex]);
 
 	useKeyboardNavigation({
 		scrollTargets: '.prose h1, .prose h2, .prose h3, .prose p',
@@ -153,6 +166,7 @@ export const HighlightContainer = ({
 					onColorChange={state.setActiveColor}
 					highlightsCount={highlights.length}
 					onNavigate={handleNavigate}
+					currentIsGroup={currentIsGroup}
 					currentHighlightIndex={currentHighlightIndex}
 					onUndo={undo}
 					onRedo={redo}
