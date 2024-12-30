@@ -349,7 +349,13 @@ export function YouTubeMusicPlayer({ youtubeUrl }: YouTubeMusicPlayerProps) {
 					position={position}
 					isCollapsed={isCollapsed}
 					isPlaying={isPlaying}
-					onToggle={() => setIsCollapsed(!isCollapsed)}
+					onToggle={() => setIsCollapsed((prev) => {
+						// minimize player when collapsing
+						if(!prev) {
+							setIsMinimized(true);
+						}
+						return !prev;
+					})}
 				/>
 
 				<div className="h-full">
@@ -378,7 +384,6 @@ export function YouTubeMusicPlayer({ youtubeUrl }: YouTubeMusicPlayerProps) {
 									onVolumeChange={handleVolumeChange}
 								/>
 								<VideoPositionControl />
-								<YouTubeButton url={youtubeUrl} />
 								<MinimizeButton
 									isMinimized={isMinimized}
 									onToggle={() =>
