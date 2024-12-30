@@ -40,58 +40,61 @@ export const CollapsibleToolbar: React.FC<CollapsibleToolbarProps> = ({
 			<div
 				className={cn(
 					'bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60',
-					'px-4 py-2 shadow-sm',
-					isPlacedBottom ? 'border-b' : 'border-t',
-					'flex items-center gap-3'
+					'py-2 shadow-sm',
+					isPlacedBottom ? 'border-b' : 'border-t'
 				)}
 			>
-				{/* Collapse Toggle */}
-				<Button
-					variant="ghost"
-					size="sm"
-					className="h-8 w-8 p-0 shrink-0"
-					onClick={() => setIsCollapsed(!isCollapsed)}
-				>
-					<X className="h-4 w-4" />
-				</Button>
-				{/* Toolbar Content */}
-				<div className="flex-1 flex items-center gap-3">{children}</div>
-			</div>
-
-			{/* Pull Tab (visible when collapsed) */}
-			<AnimatePresence>
-				{isCollapsed && (
-					<motion.div
-						initial={{
-							opacity: 0,
-							y: isPlacedBottom ? -10 : 10,
-						}}
-						animate={{ opacity: 1, y: 0 }}
-						exit={{
-							opacity: 0,
-							y: isPlacedBottom ? -10 : 10,
-						}}
-						className={cn(
-							'absolute left-1/2 -translate-x-1/2',
-							isPlacedBottom ? '-bottom-[29px]' : '-top-[29px]'
-						)}
+				<div className=" flex items-center gap-3 container">
+					{/* Collapse Toggle */}
+					<Button
+						variant="ghost"
+						size="sm"
+						className="h-8 w-8 p-0 shrink-0"
+						onClick={() => setIsCollapsed(!isCollapsed)}
 					>
-						<Button
-							variant="outline"
-							size="sm"
+						<X className="h-4 w-4" />
+					</Button>
+					{/* Toolbar Content */}
+					<div className="flex-1 flex items-center ">{children}</div>
+				</div>
+
+				{/* Pull Tab (visib	le when collapsed) */}
+				<AnimatePresence>
+					{isCollapsed && (
+						<motion.div
+							initial={{
+								opacity: 0,
+								y: isPlacedBottom ? -10 : 10,
+							}}
+							animate={{ opacity: 1, y: 0 }}
+							exit={{
+								opacity: 0,
+								y: isPlacedBottom ? -10 : 10,
+							}}
 							className={cn(
-								'h-6 px-2 py-0 bg-background/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/60',
+								'absolute left-1/2 -translate-x-1/2',
 								isPlacedBottom
-									? 'rounded-t-none rounded-b-lg border-t-0'
-									: 'rounded-b-none rounded-t-lg border-b-0'
+									? '-bottom-[29px]'
+									: '-top-[29px]'
 							)}
-							onClick={() => setIsCollapsed(false)}
 						>
-							{pullTabContent}
-						</Button>
-					</motion.div>
-				)}
-			</AnimatePresence>
+							<Button
+								variant="outline"
+								size="sm"
+								className={cn(
+									'h-6 px-2 py-0 bg-background/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/60',
+									isPlacedBottom
+										? 'rounded-t-none rounded-b-lg border-t-0'
+										: 'rounded-b-none rounded-t-lg border-b-0'
+								)}
+								onClick={() => setIsCollapsed(false)}
+							>
+								{pullTabContent}
+							</Button>
+						</motion.div>
+					)}
+				</AnimatePresence>
+			</div>
 		</div>
 	);
 };
