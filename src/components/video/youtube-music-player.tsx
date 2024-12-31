@@ -95,10 +95,12 @@ const PlayerControls = memo(function PlayerControls({
 			</div>
 
 			<TimeDisplay currentTime={currentTime} duration={duration} />
-			<SpeedControl
-				currentSpeed={playbackSpeed}
-				onSpeedChange={onSpeedChange}
-			/>
+			<div className="hidden sm:block">
+				<SpeedControl
+					currentSpeed={playbackSpeed}
+					onSpeedChange={onSpeedChange}
+				/>
+			</div>
 		</div>
 	);
 });
@@ -366,13 +368,15 @@ export function YouTubeMusicPlayer({ youtubeUrl }: YouTubeMusicPlayerProps) {
 					position={position}
 					isCollapsed={isCollapsed}
 					isPlaying={isPlaying}
-					onToggle={() => setIsCollapsed((prev) => {
-						// minimize player when collapsing
-						if(!prev) {
-							setIsMinimized(true);
-						}
-						return !prev;
-					})}
+					onToggle={() =>
+						setIsCollapsed((prev) => {
+							// minimize player when collapsing
+							if (!prev) {
+								setIsMinimized(true);
+							}
+							return !prev;
+						})
+					}
 				/>
 
 				<div className="h-full">
@@ -396,19 +400,23 @@ export function YouTubeMusicPlayer({ youtubeUrl }: YouTubeMusicPlayerProps) {
 							/>
 
 							<div className="flex items-center gap-3">
-								<VolumeControl
-									isMuted={isMuted}
-									volume={volume}
-									onMuteToggle={toggleMute}
-									onVolumeChange={handleVolumeChange}
-								/>
-								<VideoPositionControl />
-								<MinimizeButton
-									isMinimized={isMinimized}
-									onToggle={() =>
-										setIsMinimized(!isMinimized)
-									}
-								/>
+								<div className="hidden sm:block">
+									<VolumeControl
+										isMuted={isMuted}
+										volume={volume}
+										onMuteToggle={toggleMute}
+										onVolumeChange={handleVolumeChange}
+									/>
+								</div>
+								<div className="">
+									<VideoPositionControl />
+									<MinimizeButton
+										isMinimized={isMinimized}
+										onToggle={() =>
+											setIsMinimized(!isMinimized)
+										}
+									/>
+								</div>
 							</div>
 						</div>
 					</div>

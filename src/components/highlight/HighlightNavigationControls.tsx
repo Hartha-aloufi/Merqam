@@ -25,7 +25,7 @@ export const HighlightNavigationControls = React.memo(
 		if (navigableCount === 0) return null;
 
 		return (
-			<div className="flex items-center gap-2">
+			<div className="hidden sm:flex items-center gap-2">
 				{/* Current position indicator with group icon */}
 				<div className="flex items-center gap-1 text-sm text-muted-foreground">
 					<span>{currentIndex + 1}</span>
