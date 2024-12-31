@@ -126,7 +126,7 @@ export const HighlightToolbar = React.memo(function HighlightToolbar({
 				<HighlightNavigationControls
 					navigableCount={highlightsCount}
 					currentIndex={currentHighlightIndex}
-				onNavigate={onNavigate}
+					onNavigate={onNavigate}
 					currentIsGroup={currentIsGroup}
 				/>
 			</div>
