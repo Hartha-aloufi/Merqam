@@ -50,6 +50,7 @@
 		"class-variance-authority": "^0.7.0",
 		"clsx": "^2.1.1",
 		"cmdk": "^1.0.0",
+		"date-fns": "^4.1.0",
 		"framer-motion": "^11.11.17",
 		"jsonwebtoken": "^9.0.2",
 		"kysely": "^0.27.5",

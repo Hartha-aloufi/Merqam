@@ -18,5 +18,11 @@ export interface AuthResponse {
 		email: string;
 		name: string | null;
 	};
-	token: string;
+	accessToken: string; // Changed from token to accessToken
+	refreshToken: string; // Added refresh token
+}
+
+export interface TokenResponse {
+	accessToken: string;
+	refreshToken: string;
 }

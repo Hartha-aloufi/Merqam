@@ -2,10 +2,17 @@
 import { db } from '../config/db';
 import { hashPassword, verifyPassword } from '../lib/auth/password';
 import { signToken } from '../lib/auth/jwt';
-import type { CreateUserInput, AuthResponse } from '@/types/auth';
+import { TokenService } from './token.service';
 import { AuthError } from '../lib/errors';
+import type { AuthResponse, CreateUserInput } from '@/types/auth';
 
 export class UserService {
+	private tokenService: TokenService;
+
+	constructor() {
+		this.tokenService = new TokenService();
+	}
+
 	async createUser(input: CreateUserInput): Promise<AuthResponse> {
 		const existingUser = await db
 			.selectFrom('users')
@@ -28,12 +35,20 @@ export class UserService {
 			.returning(['id', 'email', 'name'])
 			.execute();
 
-		const token = signToken({
+		// Generate both tokens
+		const accessToken = signToken({
 			userId: user.id,
 			email: user.email,
 		});
+		const refreshToken = await this.tokenService.createRefreshToken(
+			user.id
+		);
 
-		return { user, token };
+		return {
+			user,
+			accessToken,
+			refreshToken,
+		};
 	}
 
 	async login(email: string, password: string): Promise<AuthResponse> {
@@ -55,10 +70,17 @@ export class UserService {
 			throw new AuthError('Invalid credentials');
 		}
 
-		const token = signToken({
+		// First revoke all existing refresh tokens for security
+		await this.tokenService.revokeAllUserTokens(user.id);
+
+		// Generate new tokens
+		const accessToken = signToken({
 			userId: user.id,
 			email: user.email,
 		});
+		const refreshToken = await this.tokenService.createRefreshToken(
+			user.id
+		);
 
 		return {
 			user: {
@@ -66,7 +88,8 @@ export class UserService {
 				email: user.email,
 				name: user.name,
 			},
-			token,
+			accessToken,
+			refreshToken,
 		};
 	}
 }

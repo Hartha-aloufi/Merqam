@@ -44,6 +44,14 @@ export interface ReadingProgress {
   user_id: string;
 }
 
+export interface RefreshTokens {
+  created_at: Generated<Timestamp>;
+  expires_at: Timestamp;
+  id: Generated<string>;
+  token: string;
+  user_id: string;
+}
+
 export interface Users {
   created_at: Generated<Timestamp>;
   email: string;
@@ -56,5 +64,6 @@ export interface Users {
 export interface DB {
   highlights: Highlights;
   reading_progress: ReadingProgress;
+  refresh_tokens: RefreshTokens;
   users: Users;
 }
