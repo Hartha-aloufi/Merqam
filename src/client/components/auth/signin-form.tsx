@@ -1,11 +1,12 @@
 // src/components/auth/signin-form.tsx
 'use client';
 
-import { useLogin, useGoogleLogin } from '@/client/hooks/use-auth-query';
+import { useGoogleLogin, useLogin } from '@/client/hooks/use-auth-query';
 import { Button } from '@/client/components/ui/button';
 import {
 	Card,
 	CardContent,
+	CardFooter,
 	CardHeader,
 	CardTitle,
 } from '@/client/components/ui/card';
@@ -21,15 +22,23 @@ import { Input } from '@/client/components/ui/input';
 import { Alert, AlertDescription } from '@/client/components/ui/alert';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import * as z from 'zod';
 import { Loader2, Mail } from 'lucide-react';
-import { loginSchema } from '@/server/lib/validation/auth';
-import type { z } from 'zod';
+import Link from 'next/link';
 
-type FormData = z.infer<typeof loginSchema>;
+const formSchema = z.object({
+	email: z
+		.string()
+		.min(1, 'البريد الإلكتروني مطلوب')
+		.email('البريد الإلكتروني غير صالح'),
+	password: z.string().min(1, 'كلمة المرور مطلوبة'),
+});
+
+type FormData = z.infer<typeof formSchema>;
 
 export function SignInForm() {
 	const form = useForm<FormData>({
-		resolver: zodResolver(loginSchema),
+		resolver: zodResolver(formSchema),
 		defaultValues: {
 			email: '',
 			password: '',
@@ -37,22 +46,8 @@ export function SignInForm() {
 	});
 
 	const { mutate: login, isPending, error } = useLogin();
-
-	const getErrorMessage = (error: unknown) => {
-		if (!error) return null;
-		if (error instanceof Error) {
-			// Map backend error messages to user-friendly Arabic messages
-			switch (error.message) {
-				case 'Invalid credentials':
-					return 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
-				case 'Too many requests':
-					return 'عدد محاولات تسجيل الدخول تجاوز الحد المسموح. الرجاء المحاولة لاحقاً';
-				default:
-					return 'عذراً، حدث خطأ. الرجاء المحاولة مرة أخرى';
-			}
-		}
-		return 'عذراً، حدث خطأ. الرجاء المحاولة مرة أخرى';
-	};
+	const { mutate: signInWithGoogle, isPending: isGooglePending } =
+		useGoogleLogin();
 
 	return (
 		<Card className="w-full">
@@ -64,7 +59,9 @@ export function SignInForm() {
 				{error && (
 					<Alert variant="destructive">
 						<AlertDescription>
-							{getErrorMessage(error)}
+							{error instanceof Error
+								? error.message
+								: 'حدث خطأ أثناء تسجيل الدخول'}
 						</AlertDescription>
 					</Alert>
 				)}
@@ -73,7 +70,6 @@ export function SignInForm() {
 					<form
 						onSubmit={form.handleSubmit((data) => login(data))}
 						className="space-y-4"
-						noValidate // Let Zod handle validation
 					>
 						<FormField
 							control={form.control}
@@ -83,11 +79,11 @@ export function SignInForm() {
 									<FormLabel>البريد الإلكتروني</FormLabel>
 									<FormControl>
 										<Input
-											{...field}
 											type="email"
-											autoComplete="email"
 											placeholder="example@domain.com"
+											autoComplete="email"
 											disabled={isPending}
+											{...field}
 										/>
 									</FormControl>
 									<FormMessage />
@@ -103,10 +99,10 @@ export function SignInForm() {
 									<FormLabel>كلمة المرور</FormLabel>
 									<FormControl>
 										<Input
-											{...field}
 											type="password"
 											autoComplete="current-password"
 											disabled={isPending}
+											{...field}
 										/>
 									</FormControl>
 									<FormMessage />
@@ -134,6 +130,16 @@ export function SignInForm() {
 					</form>
 				</Form>
 			</CardContent>
+
+			<CardFooter className="flex flex-col gap-2">
+				<Button
+					variant="link"
+					className="text-xs text-muted-foreground"
+					asChild
+				>
+					<Link href="/auth/register">ليس لديك حساب؟ سجل الآن</Link>
+				</Button>
+			</CardFooter>
 		</Card>
 	);
 }
