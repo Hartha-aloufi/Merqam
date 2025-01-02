@@ -1,11 +1,11 @@
 import './globals.css';
-import { ThemeProvider } from '@/components/providers/theme-provider';
-import Layout from '@/components/layout/Layout';
-import { TooltipProvider } from '@/components/ui/tooltip';
+import { ThemeProvider } from '@/client/components/providers/theme-provider';
+import Layout from '@/client/components/layout/Layout';
+import { TooltipProvider } from '@/client/components/ui/tooltip';
 import { Metadata, Viewport } from 'next';
 import { Analytics } from '@vercel/analytics/react';
-import { AuthProvider } from '@/providers/auth-provider';
-import { tajawal } from '@/lib/utils';
+import { AuthProvider } from '@/client/providers/auth-provider';
+import { tajawal } from '@/client/lib/utils';
 
 // Static metadata
 export const metadata: Metadata = {
