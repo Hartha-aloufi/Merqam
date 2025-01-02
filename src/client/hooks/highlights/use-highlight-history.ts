@@ -1,4 +1,4 @@
-// hooks/highlights/use-highlight-history.ts
+// src/client/hooks/highlights/use-highlight-history.ts
 import { useCallback, useRef } from 'react';
 import { HighlightItem } from '@/types/highlight';
 import { HighlightColorKey } from '@/constants/highlights';
@@ -21,7 +21,6 @@ export const useHighlightHistory = (
 		redoStack.current = [];
 	}, []);
 
-	// Single highlight
 	const addHighlight = useCallback(
 		(highlight: Omit<HighlightItem, 'updatedAt'>) => {
 			const now = new Date().toISOString();
@@ -45,7 +44,6 @@ export const useHighlightHistory = (
 		[highlights, batchUpdate, executeCommand]
 	);
 
-	// Batch highlights
 	const batchAddHighlights = useCallback(
 		(
 			newHighlights: Omit<
@@ -85,13 +83,13 @@ export const useHighlightHistory = (
 		(id: string) => {
 			const highlightToRemove = highlights.find((h) => h.id === id);
 			if (!highlightToRemove) return;
-			// Get all highlights in the same group
+
 			const highlightsToRemove = highlightToRemove.groupId
 				? highlights.filter(
 						(h) => h.groupId === highlightToRemove.groupId
 				  )
 				: [highlightToRemove];
-				
+
 			const command: HighlightCommand = {
 				execute: () => {
 					const remainingHighlights = highlights.filter(
@@ -175,7 +173,7 @@ export const useHighlightHistory = (
 
 	return {
 		addHighlight,
-		batchAddHighlights, // Added to return object
+		batchAddHighlights,
 		removeHighlight,
 		updateHighlightColor,
 		undo: useCallback(() => {

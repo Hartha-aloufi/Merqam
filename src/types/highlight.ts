@@ -1,10 +1,5 @@
-// types/highlight.ts
+// src/types/highlight.ts
 import { HighlightColorKey } from '@/constants/highlights';
-
-export interface HighlightGroup {
-	id: string;
-	color: HighlightColorKey;
-}
 
 export interface HighlightItem {
 	id: string;
@@ -12,16 +7,10 @@ export interface HighlightItem {
 	startOffset: number;
 	endOffset: number;
 	color: HighlightColorKey;
+	text?: string;
 	createdAt: string;
 	updatedAt: string;
 	groupId?: string;
-}
-
-export interface TextHighlight extends Omit<HighlightItem, 'updatedAt'> {
-	text?: string;
-	isGrouped?: boolean;
-	isFirstInGroup?: boolean;
-	isLastInGroup?: boolean;
 }
 
 export interface BatchUpdateHighlightsDto {
@@ -30,7 +19,6 @@ export interface BatchUpdateHighlightsDto {
 	highlights: HighlightItem[];
 }
 
-// Type for the stored data in Supabase
 export interface StoredHighlightData {
 	highlights: HighlightItem[];
 	groups?: {

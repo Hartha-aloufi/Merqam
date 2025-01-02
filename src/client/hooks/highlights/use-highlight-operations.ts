@@ -1,15 +1,13 @@
-// src/hooks/highlights/use-highlight-operations.ts
+// src/client/hooks/highlights/use-highlight-operations.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { highlightService } from '@/client/services/highlight.service';
+import { HighlightService } from '@/client/services/highlight.service';
 import { useSession } from '@/client/hooks/use-auth-query';
 import { toast } from 'sonner';
-import type {
-	BatchUpdateHighlightsDto,
-	HighlightItem,
-} from '@/types/highlight';
+import type { HighlightItem } from '@/types/highlight';
 import { HighlightColorKey } from '@/constants/highlights';
 import { useHighlightHistory } from './use-highlight-history';
-import { useCallback } from 'react';
+
+const highlightService = new HighlightService();
 
 const HIGHLIGHT_KEYS = {
 	all: ['highlights'] as const,
@@ -17,36 +15,50 @@ const HIGHLIGHT_KEYS = {
 		[...HIGHLIGHT_KEYS.all, topicId, lessonId] as const,
 };
 
-/**
- * Hook for managing batch updates to highlights
- */
-const useBatchUpdateHighlights = () => {
+export const useHighlightOperations = (topicId: string, lessonId: string) => {
+	const { data: session } = useSession();
 	const queryClient = useQueryClient();
 
-	return useMutation({
-		mutationFn: (data: BatchUpdateHighlightsDto) =>
-			highlightService.batchUpdateHighlights(data),
-		onMutate: async ({ topicId, lessonId, highlights }) => {
+	// Get highlights query
+	const { data: highlights = [], isLoading } = useQuery({
+		queryKey: HIGHLIGHT_KEYS.lesson(topicId, lessonId),
+		queryFn: () => highlightService.getHighlights(topicId, lessonId),
+		select: (data) => data?.highlights ?? [],
+		enabled: !!session?.user,
+	});
+
+	// Batch update mutation
+	const { mutate: batchUpdate, isPending: isUpdating } = useMutation({
+		mutationFn: (highlights: HighlightItem[]) =>
+			highlightService.batchUpdateHighlights({
+				topicId,
+				lessonId,
+				highlights,
+			}),
+		onMutate: async (newHighlights) => {
 			// Cancel outgoing refetches
-			const queryKey = HIGHLIGHT_KEYS.lesson(topicId, lessonId);
-			await queryClient.cancelQueries({ queryKey });
+			await queryClient.cancelQueries({
+				queryKey: HIGHLIGHT_KEYS.lesson(topicId, lessonId),
+			});
 
-			// Snapshot current state
-			const previousHighlights = queryClient.getQueryData(queryKey);
+			// Snapshot the previous value
+			const previousHighlights = queryClient.getQueryData<
+				HighlightItem[]
+			>(HIGHLIGHT_KEYS.lesson(topicId, lessonId));
 
-			// Optimistically update
-			queryClient.setQueryData(queryKey, { highlights });
+			// Optimistically update to the new value
+			queryClient.setQueryData<HighlightItem[]>(
+				HIGHLIGHT_KEYS.lesson(topicId, lessonId),
+				newHighlights
+			);
 
 			return { previousHighlights };
 		},
-		onError: (err, variables, context) => {
+		onError: (err, newHighlights, context) => {
+			// Rollback on error
 			if (context?.previousHighlights) {
-				// Revert on error
 				queryClient.setQueryData(
-					HIGHLIGHT_KEYS.lesson(
-						variables.topicId,
-						variables.lessonId
-					),
+					HIGHLIGHT_KEYS.lesson(topicId, lessonId),
 					context.previousHighlights
 				);
 			}
@@ -56,33 +68,6 @@ const useBatchUpdateHighlights = () => {
 			toast.success('تم حفظ التظليلات');
 		},
 	});
-};
-
-/**
- * Hook for retrieving highlights for a lesson
- */
-const useLessonHighlights = (topicId: string, lessonId: string) => {
-	const { data: session } = useSession();
-	const isAuthenticated = !!session?.data.session;
-
-	return useQuery({
-		queryKey: HIGHLIGHT_KEYS.lesson(topicId, lessonId),
-		queryFn: () => highlightService.getHighlights(topicId, lessonId),
-		enabled: isAuthenticated,
-		select: (data) => data?.highlights ?? [],
-	});
-};
-
-/**
- * Hook to manage highlights with batch operations
- */
-export const useHighlightOperations = (topicId: string, lessonId: string) => {
-	const { data: highlights = [], isLoading } = useLessonHighlights(
-		topicId,
-		lessonId
-	);
-	const { mutate: batchUpdate, isPending: isUpdating } =
-		useBatchUpdateHighlights();
 
 	const {
 		addHighlight: addHighlightWithHistory,
@@ -93,23 +78,17 @@ export const useHighlightOperations = (topicId: string, lessonId: string) => {
 		redo,
 		canUndo,
 		canRedo,
-	} = useHighlightHistory(highlights, (newHighlights) => {
-		batchUpdate({
-			topicId,
-			lessonId,
-			highlights: newHighlights,
-		});
-	});
+	} = useHighlightHistory(highlights, batchUpdate);
 
-	const handleUpdateHighlightColor = useCallback(
-		(id: string, newColor: HighlightColorKey) => {
-			const highlight = highlights.find((h) => h.id === id);
-			if (highlight) {
-				updateHighlightColorWithHistory(id, highlight.color, newColor);
-			}
-		},
-		[highlights, updateHighlightColorWithHistory]
-	);
+	const handleUpdateHighlightColor = async (
+		id: string,
+		newColor: HighlightColorKey
+	) => {
+		const highlight = highlights.find((h) => h.id === id);
+		if (highlight) {
+			updateHighlightColorWithHistory(id, highlight.color, newColor);
+		}
+	};
 
 	return {
 		highlights,

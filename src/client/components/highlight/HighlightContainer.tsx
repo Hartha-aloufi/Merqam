@@ -1,5 +1,5 @@
-// src/components/highlight/HighlightContainer.tsx
-import React, { useCallback, useRef, useState } from 'react';
+// src/client/components/highlight/HighlightContainer.tsx
+import React, { useCallback, useRef } from 'react';
 import { useHighlightState } from '@/client/hooks/highlights/use-highlights-state';
 import { useHighlightOperations } from '@/client/hooks/highlights/use-highlight-operations';
 import {
@@ -11,13 +11,11 @@ import { HighlightToolbar } from './HighlightToolbar';
 import { UnauthorizedToolbar } from './UnauthorizedToolbar';
 import { HighlightRenderer } from './HighlightRenderer';
 import { HighlightPopoverProvider } from './HighlightPopover';
-import { HighlightColorKey } from '@/constants/highlights';
 import { cn } from '@/client/lib/utils';
-import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useHighlightNavigation } from './HighlightNavigation';
 import { useKeyboardNavigation } from '@/client/hooks/use-keyboard-navigation';
-import { uuid } from '@supabase/gotrue-js/dist/module/lib/helpers';
+import { Loader2 } from 'lucide-react';
 
 interface HighlightContainerProps {
 	topicId: string;
@@ -29,22 +27,21 @@ interface HighlightContainerProps {
 /**
  * Container component that provides highlighting functionality.
  * Manages highlighting state, batch operations for storage, and UI components.
- * Supports both single and multi-paragraph highlights.
  */
-export const HighlightContainer = ({
+export function HighlightContainer({
 	topicId,
 	lessonId,
 	children,
 	className,
-}: HighlightContainerProps) => {
+}: HighlightContainerProps) {
 	// Reference to the container element for highlight positioning
 	const containerRef = useRef<HTMLDivElement>(null);
-	const { scrollToHighlight } = useHighlightNavigation();
-	const [currentHighlightIndex, setCurrentHighlightIndex] = useState(-1);
+	const [currentHighlightIndex, setCurrentHighlightIndex] =
+		React.useState(-1);
 
 	// Authentication state
 	const { data: session } = useSession();
-	const isAuthenticated = !!session?.data.session;
+	const isAuthenticated = !!session?.user;
 
 	// Highlighting state and operations
 	const state = useHighlightState();
@@ -60,6 +57,8 @@ export const HighlightContainer = ({
 		canUndo,
 		canRedo,
 	} = useHighlightOperations(topicId, lessonId);
+
+	const { scrollToHighlight } = useHighlightNavigation();
 
 	// Handle text selection for new highlights
 	const handleSelection = useHighlightSelection({
@@ -83,8 +82,9 @@ export const HighlightContainer = ({
 						startOffset: highlightInfo.startOffset,
 						endOffset: highlightInfo.endOffset,
 						color: state.activeColor,
-						id: uuid(),
-						createdAt: '',
+						text: highlightInfo.text,
+						id: crypto.randomUUID(),
+						createdAt: new Date().toISOString(),
 					});
 				}
 			} catch (error) {
@@ -93,14 +93,6 @@ export const HighlightContainer = ({
 			}
 		},
 	});
-
-	// Handle color updates for existing highlights
-	const handleUpdateHighlight = React.useCallback(
-		(id: string, { color }: { color: HighlightColorKey }) => {
-			updateHighlightColor(id, color);
-		},
-		[updateHighlightColor]
-	);
 
 	// Navigation handler
 	const handleNavigate = useCallback(
@@ -122,11 +114,14 @@ export const HighlightContainer = ({
 		[highlights, currentHighlightIndex, scrollToHighlight]
 	);
 
+	// Handle keyboard navigation
 	useKeyboardNavigation({
 		scrollTargets: '.prose h1, .prose h2, .prose h3, .prose p',
 		scrollStep: 100,
 		smooth: true,
 		onHighlightNavigate: handleNavigate,
+		onUndo: canUndo ? undo : undefined,
+		onRedo: canRedo ? redo : undefined,
 	});
 
 	// Show unauthorized toolbar if not authenticated
@@ -142,7 +137,9 @@ export const HighlightContainer = ({
 	return (
 		<HighlightPopoverProvider
 			onRemoveHighlight={removeHighlight}
-			onUpdateHighlight={handleUpdateHighlight}
+			onUpdateHighlight={(id, { color }) =>
+				updateHighlightColor(id, color)
+			}
 		>
 			<div className="relative">
 				{/* Toolbar */}
@@ -206,4 +203,4 @@ export const HighlightContainer = ({
 			</div>
 		</HighlightPopoverProvider>
 	);
-};
+}
