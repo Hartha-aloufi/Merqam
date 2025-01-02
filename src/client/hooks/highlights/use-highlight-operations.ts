@@ -20,20 +20,22 @@ export const useHighlightOperations = (topicId: string, lessonId: string) => {
 	const queryClient = useQueryClient();
 
 	// Get highlights query
-	const { data: highlights = [], isLoading } = useQuery({
+	const { data, isLoading } = useQuery({
 		queryKey: HIGHLIGHT_KEYS.lesson(topicId, lessonId),
 		queryFn: () => highlightService.getHighlights(topicId, lessonId),
-		select: (data) => data?.highlights ?? [],
 		enabled: !!session?.user,
 	});
 
+	// Extract highlights with default empty array
+	const highlights = data?.highlights ?? [];
+
 	// Batch update mutation
 	const { mutate: batchUpdate, isPending: isUpdating } = useMutation({
-		mutationFn: (highlights: HighlightItem[]) =>
+		mutationFn: (newHighlights: HighlightItem[]) =>
 			highlightService.batchUpdateHighlights({
 				topicId,
 				lessonId,
-				highlights,
+				highlights: newHighlights,
 			}),
 		onMutate: async (newHighlights) => {
 			// Cancel outgoing refetches
@@ -42,29 +44,32 @@ export const useHighlightOperations = (topicId: string, lessonId: string) => {
 			});
 
 			// Snapshot the previous value
-			const previousHighlights = queryClient.getQueryData<
-				HighlightItem[]
-			>(HIGHLIGHT_KEYS.lesson(topicId, lessonId));
+			const previousData = queryClient.getQueryData<{
+				highlights: HighlightItem[];
+			}>(HIGHLIGHT_KEYS.lesson(topicId, lessonId));
 
-			// Optimistically update to the new value
-			queryClient.setQueryData<HighlightItem[]>(
-				HIGHLIGHT_KEYS.lesson(topicId, lessonId),
-				newHighlights
-			);
+			// Optimistically update the cache
+			queryClient.setQueryData(HIGHLIGHT_KEYS.lesson(topicId, lessonId), {
+				highlights: newHighlights,
+			});
 
-			return { previousHighlights };
+			return { previousData };
 		},
-		onError: (err, newHighlights, context) => {
+		onError: (err, _, context) => {
 			// Rollback on error
-			if (context?.previousHighlights) {
+			if (context?.previousData) {
 				queryClient.setQueryData(
 					HIGHLIGHT_KEYS.lesson(topicId, lessonId),
-					context.previousHighlights
+					context.previousData
 				);
 			}
 			toast.error('فشل حفظ التظليلات');
 		},
 		onSuccess: () => {
+			// Invalidate to ensure cache is up to date
+			queryClient.invalidateQueries({
+				queryKey: HIGHLIGHT_KEYS.lesson(topicId, lessonId),
+			});
 			toast.success('تم حفظ التظليلات');
 		},
 	});
@@ -78,7 +83,10 @@ export const useHighlightOperations = (topicId: string, lessonId: string) => {
 		redo,
 		canUndo,
 		canRedo,
-	} = useHighlightHistory(highlights, batchUpdate);
+	} = useHighlightHistory(highlights, (updatedHighlights) => {
+		// Send all highlights in the batch update
+		batchUpdate(updatedHighlights);
+	});
 
 	const handleUpdateHighlightColor = async (
 		id: string,
