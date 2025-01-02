@@ -2,7 +2,7 @@
 
 import { useSettings } from '@/client/hooks/use-settings';
 import { cn } from '@/client/lib/utils';
-import { HighlightContainer } from '@/client/components/highlight/HighlightContainer';
+// import { HighlightContainer } from '@/client/components/highlight/HighlightContainer';
 import { useEffect } from 'react';
 
 interface MDXClientWrapperProps {
@@ -29,7 +29,7 @@ export function MDXClientWrapper({
 	}, []);
 
 	return (
-		<HighlightContainer
+		<div
 			topicId={topicId}
 			lessonId={lessonId}
 			className={cn(
@@ -39,6 +39,6 @@ export function MDXClientWrapper({
 			)}
 		>
 			{children}
-		</HighlightContainer>
+		</div>
 	);
 }

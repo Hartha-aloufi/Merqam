@@ -1,10 +1,9 @@
-// src/hooks/use-reading-progress-sync.ts
+// src/client/hooks/use-reading-progress-sync.ts
 import { useSession } from '@/client/hooks/use-auth-query';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { supabase } from '@/client/lib/supabase';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { httpClient } from '@/client/lib/http-client';
 import { ReadingProgressUpdate } from '@/types/reading-progress';
 import { getLessonProgress, setLessonProgress } from '@/client/lib/utils';
-import { authService } from '@/client/services/auth.service';
 import { debounce } from 'lodash';
 import { useCallback, useMemo } from 'react';
 
@@ -14,75 +13,77 @@ const READING_PROGRESS_KEYS = {
 		[...READING_PROGRESS_KEYS.all, topicId, lessonId] as const,
 };
 
-export const getLatestReadParagraph = (topicId: string, lessonId: string) => {
-	return authService.getUser().then((res) => {
-		const user = res.data.user;
-		if (!user) {
-			return getLessonProgress(topicId, lessonId);
-		}
+/**
+ * Fetches the latest read paragraph from either local storage or API
+ */
+export const getLatestReadParagraph = async (
+	topicId: string,
+	lessonId: string
+) => {
+	try {
+		// Debug log
+		console.log('Fetching progress for:', { topicId, lessonId });
 
-		return supabase
-			.from('reading_progress')
-			.select('latest_read_paragraph')
-			.eq('topic_id', topicId)
-			.eq('lesson_id', lessonId)
-			.eq('user_id', user.id)
-			.single()
-			.then(({ data, error }) => {
-				if (error) throw error;
-				return data.latest_read_paragraph;
-			});
-	});
+		const response = await httpClient.get('/reading-progress', {
+			params: {
+				topic_id: topicId,
+				lesson_id: lessonId,
+			},
+		});
+
+		// Debug log
+		console.log('API Response:', response.data);
+
+		return response.data.latest_read_paragraph ?? 0;
+	} catch (error) {
+		console.error('Error fetching progress:', error);
+		// Fallback to local storage if API fails
+		return getLessonProgress(topicId, lessonId);
+	}
 };
 
+/**
+ * Hook to sync reading progress between local storage and server
+ */
 export function useReadingProgressSync(topicId: string, lessonId: string) {
 	const { data: session } = useSession();
-	const isAuthenticated = !!session?.data.session?.user;
+	const queryClient = useQueryClient();
+	const isAuthenticated = !!session?.user;
 
-	// Fetch reading progress from Supabase
+	// Fetch reading progress
 	const progressQuery = useQuery({
 		queryKey: READING_PROGRESS_KEYS.lesson(topicId, lessonId),
 		queryFn: () => getLatestReadParagraph(topicId, lessonId),
+		enabled: isAuthenticated,
 	});
 
-	// Update reading progress mutation
+	// Update progress mutation
 	const progressMutation = useMutation({
 		mutationFn: (update: ReadingProgressUpdate) => {
 			if (!isAuthenticated) {
 				// Handle non-authenticated users with localStorage
-				return new Promise((resolve) => {
-					setLessonProgress(topicId, lessonId, {
-						paragraphIndex: update.latest_read_paragraph,
-						date: 'asdasd',
-					});
-					resolve(undefined);
+				setLessonProgress(topicId, lessonId, {
+					paragraphIndex: update.latest_read_paragraph,
+					date: new Date().toISOString(),
 				});
+				return Promise.resolve();
 			}
 
-			// Handle authenticated users with Supabase
-			return supabase
-				.from('reading_progress')
-				.upsert(
-					{
-						user_id: session?.data.session?.user.id as string,
-						topic_id: update.topic_id,
-						lesson_id: update.lesson_id,
-						last_read_paragraph: update.last_read_paragraph,
-						latest_read_paragraph: update.latest_read_paragraph,
-						updated_at: new Date().toISOString(),
-					},
-					{ onConflict: 'user_id,topic_id,lesson_id' }
-				)
-				.then(({ error }) => {
-					if (error) throw error;
-				});
+			// Handle authenticated users with API
+			return httpClient.post('/reading-progress', {
+				topic_id: update.topic_id,
+				lesson_id: update.lesson_id,
+				latest_read_paragraph: update.latest_read_paragraph,
+			});
 		},
-		onError: (error) => {
-			console.error('Failed to update reading progress:', error);
-			// Optionally show an error toast to the user
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: READING_PROGRESS_KEYS.lesson(topicId, lessonId),
+			});
 		},
 	});
 
+	// Debounced update function
 	const updateProgress = useCallback(
 		debounce((latestIdx: number) => {
 			progressMutation.mutate({
