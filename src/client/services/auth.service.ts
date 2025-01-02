@@ -1,36 +1,89 @@
 // src/client/services/auth.service.ts
+'use client';
+
+import { httpClient } from '../lib/http-client';
 import { AuthResponse, CreateUserInput } from '@/types/auth';
 
+/**
+ * Service for handling authentication-related API requests
+ */
 export class AuthService {
-	private baseUrl = '/api/auth';
-
+	/**
+	 * Authenticate user with email and password
+	 */
 	async login(email: string, password: string): Promise<AuthResponse> {
-		const res = await fetch(`${this.baseUrl}/login`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ email, password }),
+		const { data } = await httpClient.post<AuthResponse>('/auth/login', {
+			email,
+			password,
 		});
 
-		if (!res.ok) {
-			const error = await res.json();
-			throw new Error(error.error || 'Login failed');
-		}
+		// Store tokens
+		localStorage.setItem('access_token', data.accessToken);
+		localStorage.setItem('refresh_token', data.refreshToken);
 
-		return res.json();
+		return data;
 	}
 
+	/**
+	 * Register a new user
+	 */
 	async register(input: CreateUserInput): Promise<AuthResponse> {
-		const res = await fetch(`${this.baseUrl}/register`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(input),
-		});
+		const { data } = await httpClient.post<AuthResponse>(
+			'/auth/register',
+			input
+		);
 
-		if (!res.ok) {
-			const error = await res.json();
-			throw new Error(error.error || 'Registration failed');
+		// Store tokens
+		localStorage.setItem('access_token', data.accessToken);
+		localStorage.setItem('refresh_token', data.refreshToken);
+
+		return data;
+	}
+
+	/**
+	 * Logout user and revoke refresh token
+	 */
+	async logout(): Promise<void> {
+		const refreshToken = localStorage.getItem('refresh_token');
+
+		if (refreshToken) {
+			try {
+				await httpClient.post('/auth/logout', { refreshToken });
+			} catch (error) {
+				console.error('Logout error:', error);
+			}
 		}
 
-		return res.json();
+		localStorage.removeItem('access_token');
+		localStorage.removeItem('refresh_token');
+	}
+
+	/**
+	 * Get current user profile
+	 */
+	async getProfile() {
+		const { data } = await httpClient.get('/profile');
+		return data;
+	}
+
+	/**
+	 * Check if user is authenticated
+	 */
+	isAuthenticated(): boolean {
+		return !!localStorage.getItem('access_token');
+	}
+
+	/**
+	 * Get current access token
+	 */
+	getAccessToken(): string | null {
+		return localStorage.getItem('access_token');
+	}
+
+	/**
+	 * Get current refresh token
+	 */
+	getRefreshToken(): string | null {
+		return localStorage.getItem('refresh_token');
 	}
 }

@@ -1,16 +1,28 @@
-// src/providers/auth-provider.tsx
 'use client';
 
-import { ReactNode, useEffect } from 'react';
+// src/providers/auth-provider.tsx
+import { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { authService } from '@/client/services/auth.service';
+import { AuthService } from '@/client/services/auth.service';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { httpClient } from '@/client/lib/http-client';
 
+// Configure queryClient with default options
 const queryClient = new QueryClient({
 	defaultOptions: {
 		queries: {
 			refetchOnWindowFocus: false,
-			retry: false,
+			retry: (failureCount, error) => {
+				// Don't retry on 401/403 errors
+				if (
+					error instanceof Error &&
+					'statusCode' in error &&
+					[401, 403].includes((error as any).statusCode)
+				) {
+					return false;
+				}
+				return failureCount < 3;
+			},
 		},
 	},
 });
@@ -20,35 +32,26 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-	useEffect(() => {
-		const subscription = authService.onAuthStateChange((event, session) => {
-			// Update auth queries based on event
-			if (event === 'SIGNED_IN') {
-				queryClient.setQueryData(['auth', 'session'], {
-					data: { session },
-				});
-				queryClient.setQueryData(['auth', 'user'], {
-					data: { user: session?.user ?? null },
-				});
-			} else if (event === 'SIGNED_OUT') {
-				queryClient.setQueryData(['auth', 'session'], {
-					data: { session: null },
-				});
-				queryClient.setQueryData(['auth', 'user'], {
-					data: { user: null },
-				});
-			}
-		});
+	// Initialize auth service
+	const authService = new AuthService();
 
-		return () => {
-			subscription.unsubscribe();
-		};
-	}, []);
+	// Set up axios interceptor to handle auth state changes
+	httpClient.interceptors.response.use(
+		(response) => response,
+		async (error) => {
+			if (error.response?.status === 401) {
+				// Clear auth state on unauthorized
+				queryClient.setQueryData(['auth', 'user'], null);
+				queryClient.setQueryData(['auth', 'session'], null);
+			}
+			return Promise.reject(error);
+		}
+	);
 
 	return (
 		<QueryClientProvider client={queryClient}>
 			{children}
-			<ReactQueryDevtools />
+			{process.env.NODE_ENV !== 'production' && <ReactQueryDevtools />}
 		</QueryClientProvider>
 	);
 }

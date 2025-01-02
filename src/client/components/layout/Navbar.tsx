@@ -18,19 +18,17 @@ import { Avatar, AvatarFallback } from '@/client/components/ui/avatar';
 import { useSession, useLogout } from '@/client/hooks/use-auth-query';
 import { toast } from 'sonner';
 
-const Navbar = () => {
+export default function Navbar() {
 	const { data: session, isLoading } = useSession();
 	const { mutate: logout, isPending: isLoggingOut } = useLogout();
 
 	const handleSignOut = () => {
 		logout(undefined, {
-			onError: () => {
-				toast.error('حدث خطأ أثناء تسجيل الخروج');
-			},
+			onError: () => toast.error('فشل تسجيل الخروج. حاول مرة أخرى'),
 		});
 	};
 
-	const user = session?.data.session?.user;
+	const user = session?.user;
 
 	return (
 		<nav>
@@ -68,7 +66,7 @@ const Navbar = () => {
 											<Avatar className="h-8 w-8">
 												<AvatarFallback>
 													{user.email?.[0].toUpperCase() ||
-														'U'}
+														'مـ'}
 												</AvatarFallback>
 											</Avatar>
 										</Button>
@@ -122,6 +120,4 @@ const Navbar = () => {
 			</div>
 		</nav>
 	);
-};
-
-export default Navbar;
+}
