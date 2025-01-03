@@ -36,7 +36,7 @@ export default async function TopicsPage() {
 								<div className="p-2 w-fit rounded-full bg-primary/10 text-primary mb-4">
 									<GraduationCap className="h-6 w-6" />
 								</div>
-								<h2 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
+								<h2 className="text-md sm:text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
 									{topic.title}
 								</h2>
 								<p className="text-muted-foreground line-clamp-2">

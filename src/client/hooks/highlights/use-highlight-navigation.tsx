@@ -1,11 +1,11 @@
 // hooks/highlights/use-highlight-navigation.ts
 import React from 'react';
-import { HighlightItem } from '@/types/highlight';
+import { TextHighlight } from '@/types/highlight';
 import { groupBy } from 'lodash';
 
 interface GroupedHighlight {
 	groupId?: string;
-	highlights: HighlightItem[];
+	highlights: TextHighlight[];
 	firstPosition: number; // Used for sorting
 }
 
@@ -16,7 +16,7 @@ export const useHighlightNavigation = () => {
 	};
 
 	// Get the earliest position in a group of highlights
-	const getFirstPosition = (highlights: HighlightItem[]): number => {
+	const getFirstPosition = (highlights: TextHighlight[]): number => {
 		return Math.min(
 			...highlights.map((h) => getParagraphIndex(h.elementId))
 		);
@@ -24,8 +24,8 @@ export const useHighlightNavigation = () => {
 
 	// Sort highlights within a group by paragraph position
 	const sortHighlightsInGroup = (
-		highlights: HighlightItem[]
-	): HighlightItem[] => {
+		highlights: TextHighlight[]
+	): TextHighlight[] => {
 		return [...highlights].sort((a, b) => {
 			const aIndex = getParagraphIndex(a.elementId);
 			const bIndex = getParagraphIndex(b.elementId);
@@ -39,7 +39,7 @@ export const useHighlightNavigation = () => {
 
 	// Get unique groups and standalone highlights, sorted by position
 	const getNavigableHighlights = React.useCallback(
-		(highlights: HighlightItem[]): GroupedHighlight[] => {
+		(highlights: TextHighlight[]): GroupedHighlight[] => {
 			// Group highlights by groupId (null groupId means standalone highlight)
 			const grouped = groupBy(
 				highlights,

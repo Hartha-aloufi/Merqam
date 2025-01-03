@@ -12,6 +12,7 @@ import { CollapsibleToolbar } from './CollapsibleToolbar';
 import { ColorPicker } from './ColorPicker';
 import { HIGHLIGHT_COLORS, HighlightColorKey } from '@/constants/highlights';
 import { useVideoSettings } from '@/client/stores/use-video-settings';
+import { HighlightNavigationControls } from './HighlightNavigationControls';
 
 interface HighlightToolbarProps {
 	isEnabled: boolean;
@@ -25,6 +26,7 @@ interface HighlightToolbarProps {
 	onRedo: () => void;
 	canUndo: boolean;
 	canRedo: boolean;
+	currentIsGroup: boolean;
 }
 
 // components/highlight/HighlightToolbar.tsx
@@ -40,6 +42,7 @@ export const HighlightToolbar = React.memo(function HighlightToolbar({
 	onRedo,
 	canUndo,
 	canRedo,
+	currentIsGroup,
 }: HighlightToolbarProps) {
 	const { position } = useVideoSettings();
 	const isPlacedBottom = position === 'bottom';
@@ -120,33 +123,12 @@ export const HighlightToolbar = React.memo(function HighlightToolbar({
 				</div>
 
 				{/* Navigation Controls - Always visible if there are highlights */}
-				{highlightsCount > 0 && (
-					<div className="flex items-center gap-2">
-						<span className="text-sm text-muted-foreground">
-							{currentHighlightIndex + 1} / {highlightsCount}
-						</span>
-						<div className="flex gap-1">
-							<Button
-								variant="ghost"
-								size="icon"
-								onClick={() => onNavigate('prev')}
-								className="h-8 w-8"
-								title="Previous Highlight (Alt + P)"
-							>
-								<ChevronUp className="h-4 w-4" />
-							</Button>
-							<Button
-								variant="ghost"
-								size="icon"
-								onClick={() => onNavigate('next')}
-								className="h-8 w-8"
-								title="Next Highlight (Alt + N)"
-							>
-								<ChevronDown className="h-4 w-4" />
-							</Button>
-						</div>
-					</div>
-				)}
+				<HighlightNavigationControls
+					navigableCount={highlightsCount}
+					currentIndex={currentHighlightIndex}
+					onNavigate={onNavigate}
+					currentIsGroup={currentIsGroup}
+				/>
 			</div>
 		</CollapsibleToolbar>
 	);

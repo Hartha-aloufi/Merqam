@@ -29,10 +29,10 @@ import {
 	VolumeControlProps,
 	YouTubePlayerProps,
 } from '@/types/video';
-import { YouTubeButton } from './youtube-button';
 import { MinimizeButton } from './minimize-button';
 import { ProgressBar } from './progress-bar';
 import { CollapseButton } from './collapse-button';
+import { SpeedControl } from './speed-control';
 
 interface YouTubeMusicPlayerProps {
 	youtubeUrl: string;
@@ -51,6 +51,8 @@ const PlayerControls = memo(function PlayerControls({
 	onSkipBackward,
 	currentTime,
 	duration,
+	playbackSpeed,
+	onSpeedChange,
 }: PlayerControlsProps) {
 	return (
 		<div className="flex items-center gap-4">
@@ -96,6 +98,12 @@ const PlayerControls = memo(function PlayerControls({
 			</div>
 
 			<TimeDisplay currentTime={currentTime} duration={duration} />
+			<div className="hidden sm:block">
+				<SpeedControl
+					currentSpeed={playbackSpeed}
+					onSpeedChange={onSpeedChange}
+				/>
+			</div>
 		</div>
 	);
 });
@@ -187,6 +195,7 @@ export function YouTubeMusicPlayer({ youtubeUrl }: YouTubeMusicPlayerProps) {
 	const [isMinimized, setIsMinimized] = useState(true);
 	const [isCollapsed, setIsCollapsed] = useState(false);
 	const [volume, setVolume] = useState(100);
+	const [playbackSpeed, setPlaybackSpeed] = useState(1);
 	const [currentTime, setCurrentTime] = useState(0);
 	const [duration, setDuration] = useState(0);
 	const progressInterval = useRef<NodeJS.Timeout>();
@@ -296,6 +305,16 @@ export function YouTubeMusicPlayer({ youtubeUrl }: YouTubeMusicPlayerProps) {
 		setIsPlaying(event.data === 1);
 	};
 
+	const handleSpeedChange = useCallback(
+		(speed: number) => {
+			if (player) {
+				player.setPlaybackRate(speed);
+				setPlaybackSpeed(speed);
+			}
+		},
+		[player]
+	);
+
 	// Update progress bar
 	useEffect(() => {
 		if (player && isPlaying) {
@@ -352,7 +371,15 @@ export function YouTubeMusicPlayer({ youtubeUrl }: YouTubeMusicPlayerProps) {
 					position={position}
 					isCollapsed={isCollapsed}
 					isPlaying={isPlaying}
-					onToggle={() => setIsCollapsed(!isCollapsed)}
+					onToggle={() =>
+						setIsCollapsed((prev) => {
+							// minimize player when collapsing
+							if (!prev) {
+								setIsMinimized(true);
+							}
+							return !prev;
+						})
+					}
 				/>
 
 				<div className="h-full">
@@ -371,23 +398,28 @@ export function YouTubeMusicPlayer({ youtubeUrl }: YouTubeMusicPlayerProps) {
 								onSkipBackward={skipBackward}
 								currentTime={currentTime}
 								duration={duration}
+								playbackSpeed={playbackSpeed}
+								onSpeedChange={handleSpeedChange}
 							/>
 
 							<div className="flex items-center gap-3">
-								<VolumeControl
-									isMuted={isMuted}
-									volume={volume}
-									onMuteToggle={toggleMute}
-									onVolumeChange={handleVolumeChange}
-								/>
-								<VideoPositionControl />
-								<YouTubeButton url={youtubeUrl} />
-								<MinimizeButton
-									isMinimized={isMinimized}
-									onToggle={() =>
-										setIsMinimized(!isMinimized)
-									}
-								/>
+								<div className="hidden sm:block">
+									<VolumeControl
+										isMuted={isMuted}
+										volume={volume}
+										onMuteToggle={toggleMute}
+										onVolumeChange={handleVolumeChange}
+									/>
+								</div>
+								<div className="">
+									<VideoPositionControl />
+									<MinimizeButton
+										isMinimized={isMinimized}
+										onToggle={() =>
+											setIsMinimized(!isMinimized)
+										}
+									/>
+								</div>
 							</div>
 						</div>
 					</div>

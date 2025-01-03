@@ -1,7 +1,6 @@
 // src/app/topics/[topicId]/page.tsx
 import { getTopics, getLessons } from '@/client/utils/mdx';
 import Link from 'next/link';
-import { Button } from '@/client/components/ui/button';
 import { BookOpen, Video, ArrowLeft } from 'lucide-react';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
@@ -87,16 +86,16 @@ export default async function TopicPage({
 							key={lesson.id}
 							href={`/topics/${topicId}/${lesson.id}`}
 						>
-							<div className="group relative rounded-lg border bg-background p-6 hover:shadow-md transition-all duration-200">
+							<div className="group relative rounded-lg border bg-background px-3 sm:px-6 py-6 hover:shadow-md transition-all duration-200">
 								<div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-bl-full -z-10 transition-all duration-200 group-hover:scale-150" />
 
-								<div className="flex items-start gap-4">
+								<div className="flex items-start gap-2 sm:gap-4">
 									<div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
 										{index + 1}
 									</div>
 
 									<div className="flex-grow">
-										<h3 className="text-lg font-medium mb-2 group-hover:text-primary transition-colors">
+										<h3 className="text-sm md:text-lg font-medium mb-2 group-hover:text-primary transition-colors">
 											{lesson.title}
 										</h3>
 
@@ -113,14 +112,6 @@ export default async function TopicPage({
 											)}
 										</div>
 									</div>
-
-									<Button
-										variant="ghost"
-										size="sm"
-										className="opacity-0 group-hover:opacity-100 transition-opacity"
-									>
-										ابدأ القراءة
-									</Button>
 								</div>
 							</div>
 						</Link>
