@@ -53,7 +53,7 @@ export default function SpeakersPage() {
 	return (
 		<div className="container py-8 space-y-8">
 			{/* Header with Search and Filters */}
-			<div className="sticky top-16 z-30 -mx-4 px-4 py-4 backdrop-blur-xl bg-background/80 border-b">
+			<div className="sticky top-0 z-30 -mx-4 px-4 py-4 backdrop-blur-xl bg-background/80 border-b">
 				<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 					<h1 className="text-3xl font-bold">المحدثون</h1>
 

@@ -5,33 +5,38 @@ import { motion } from 'framer-motion';
 export function SpeakerListSkeleton() {
 	return (
 		<motion.div
-			className="relative bg-background rounded-xl overflow-hidden flex h-48"
+			className="relative bg-background rounded-xl overflow-hidden border shadow-lg"
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.3 }}
+			transition={{ duration: 0.2 }}
 		>
-			{/* Image Container */}
-			<div className="relative w-48 shrink-0 bg-muted">
-				<div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/20" />
-			</div>
-
-			{/* Content Container */}
-			<div className="relative flex-1 flex flex-col justify-between p-6 bg-gradient-to-l from-black/80 via-black/95 to-black">
-				{/* Title and Description */}
-				<div>
-					<Skeleton className="h-7 w-3/4 mb-4 bg-white/20" />
-					<div className="space-y-2">
-						<Skeleton className="h-4 w-full bg-white/10" />
-						<Skeleton className="h-4 w-2/3 bg-white/10" />
-					</div>
+			<div className="flex h-40">
+				{/* Image Container */}
+				<div className="relative w-56 shrink-0 bg-muted">
+					<div className="absolute inset-0 bg-gradient-to-l from-background via-transparent to-transparent" />
 				</div>
 
-				{/* Footer */}
-				<div className="flex items-center justify-between mt-4">
-					<Skeleton className="h-4 w-24 bg-white/10" />
-					<div className="flex gap-2">
-						<Skeleton className="h-8 w-8 bg-white/10 rounded-md" />
-						<Skeleton className="h-8 w-8 bg-white/10 rounded-md" />
+				{/* Content Container */}
+				<div className="flex-1 flex flex-col justify-between p-6">
+					{/* Header */}
+					<div className="flex justify-between items-start">
+						<div className="space-y-3 flex-1">
+							<Skeleton className="h-6 w-3/4" />
+							<div className="space-y-2">
+								<Skeleton className="h-4 w-full" />
+								<Skeleton className="h-4 w-2/3" />
+							</div>
+						</div>
+						<Skeleton className="h-5 w-5 rounded-full shrink-0 ml-4" />
+					</div>
+
+					{/* Footer */}
+					<div className="flex items-center justify-between mt-4 border-t pt-4">
+						<Skeleton className="h-4 w-24" />
+						<div className="flex gap-2">
+							<Skeleton className="h-9 w-28" />
+							<Skeleton className="h-9 w-24" />
+						</div>
 					</div>
 				</div>
 			</div>
