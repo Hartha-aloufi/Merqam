@@ -1,45 +1,49 @@
 // src/components/speakers/speaker-list-skeleton.tsx
 import { Skeleton } from '@/client/components/ui/skeleton';
-import { motion } from 'framer-motion';
 
 export function SpeakerListSkeleton() {
 	return (
-		<motion.div
-			className="relative bg-background rounded-xl overflow-hidden border shadow-lg"
-			initial={{ opacity: 0, y: 20 }}
-			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.2 }}
-		>
-			<div className="flex h-40">
-				{/* Image Container */}
-				<div className="relative w-56 shrink-0 bg-muted">
-					<div className="absolute inset-0 bg-gradient-to-l from-background via-transparent to-transparent" />
+		<div className="bg-card rounded-lg border shadow-sm p-4">
+			<div className="flex gap-6">
+				{/* Left Section - Image */}
+				<div className="shrink-0">
+					<Skeleton className="w-[200px] h-[140px] rounded-md" />
 				</div>
 
-				{/* Content Container */}
-				<div className="flex-1 flex flex-col justify-between p-6">
-					{/* Header */}
-					<div className="flex justify-between items-start">
-						<div className="space-y-3 flex-1">
-							<Skeleton className="h-6 w-3/4" />
+				{/* Middle Section - Content */}
+				<div className="flex-1 min-w-0">
+					<div className="flex items-start justify-between gap-4">
+						{/* Title and Description */}
+						<div className="space-y-2 flex-1">
+							<div className="flex items-center gap-2">
+								<Skeleton className="h-6 w-48" />
+								<Skeleton className="h-5 w-20" />
+							</div>
 							<div className="space-y-2">
 								<Skeleton className="h-4 w-full" />
-								<Skeleton className="h-4 w-2/3" />
+								<Skeleton className="h-4 w-3/4" />
 							</div>
 						</div>
-						<Skeleton className="h-5 w-5 rounded-full shrink-0 ml-4" />
+
+						{/* Action Menu */}
+						<Skeleton className="h-8 w-8 rounded-full shrink-0" />
 					</div>
 
-					{/* Footer */}
-					<div className="flex items-center justify-between mt-4 border-t pt-4">
-						<Skeleton className="h-4 w-24" />
-						<div className="flex gap-2">
-							<Skeleton className="h-9 w-28" />
-							<Skeleton className="h-9 w-24" />
+					{/* Stats and Actions */}
+					<div className="mt-auto pt-4 flex items-center justify-between">
+						<div className="flex items-center gap-4">
+							<Skeleton className="h-4 w-24" />
+							<Skeleton className="h-4 w-2 rounded-full" />
+							<Skeleton className="h-4 w-32" />
+						</div>
+
+						<div className="flex items-center gap-2">
+							<Skeleton className="h-10 w-10 rounded-full" />
+							<Skeleton className="h-10 w-32 rounded-lg" />
 						</div>
 					</div>
 				</div>
 			</div>
-		</motion.div>
+		</div>
 	);
 }

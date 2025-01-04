@@ -12,6 +12,7 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SpeakerListCard } from '@/client/components/speakers/speaker-list-card';
 import { SpeakerListSkeleton } from '@/client/components/speakers/speaker-list-skeleton';
+import { useLayoutPreference } from '@/client/hooks/use-layout-preference';
 
 
 const layouts = {
@@ -24,7 +25,8 @@ type LayoutType = keyof typeof layouts;
 
 export default function SpeakersPage() {
 	const [searchQuery, setSearchQuery] = useState('');
-	const [layout, setLayout] = useState<LayoutType>('featured');
+	// Use the layout preference hook
+	const { layout, updateLayout } = useLayoutPreference('list');
 	const debouncedQuery = useDebounce(searchQuery, 300);
 
 	const {
@@ -78,7 +80,7 @@ export default function SpeakersPage() {
 										: 'ghost'
 								}
 								size="icon"
-								onClick={() => setLayout('featured')}
+								onClick={() => updateLayout('featured')}
 								className="rounded-none rounded-r-md"
 							>
 								<LayoutGrid className="h-4 w-4" />
@@ -88,7 +90,7 @@ export default function SpeakersPage() {
 									layout === 'list' ? 'secondary' : 'ghost'
 								}
 								size="icon"
-								onClick={() => setLayout('list')}
+								onClick={() => updateLayout('list')}
 								className="rounded-none rounded-l-md"
 							>
 								<List className="h-4 w-4" />
