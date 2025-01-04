@@ -19,8 +19,16 @@ export class BahethService {
 			token: this.token,
 		});
 
+		// delete empty values
+		for (const key in params) {
+			if (!params[key]) {
+				searchParams.delete(key);
+			}
+		}
+
 		const response = await fetch(
-			`${BAHETH_API_URL}${endpoint}?${searchParams}`
+			`${BAHETH_API_URL}${endpoint}?${searchParams}`,
+			{ headers: { Accept: 'application/json' } }
 		);
 
 		if (!response.ok) {
