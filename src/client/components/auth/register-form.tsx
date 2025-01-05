@@ -17,7 +17,6 @@ import {
 	FormItem,
 	FormLabel,
 	FormMessage,
-	FormDescription,
 } from '@/client/components/ui/form';
 import { Input } from '@/client/components/ui/input';
 import { Alert, AlertDescription } from '@/client/components/ui/alert';
@@ -145,7 +144,7 @@ export function RegisterForm() {
 										/>
 									</FormControl>
 									<FormMessage />
-									<FormDescription className="space-y-2">
+									<div className="space-y-2 text-[0.8rem] text-muted-foreground">
 										<div className="text-sm">
 											متطلبات كلمة المرور:
 										</div>
@@ -169,7 +168,7 @@ export function RegisterForm() {
 												)
 											)}
 										</ul>
-									</FormDescription>
+									</div>
 								</FormItem>
 							)}
 						/>

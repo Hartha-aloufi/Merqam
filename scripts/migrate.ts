@@ -3,12 +3,13 @@ import { Kysely, Migrator, PostgresDialect, MigrationResult } from 'kysely';
 import { config } from 'dotenv';
 import pg from 'pg';
 import { TypeScriptFileMigrationProvider } from '@/server/db/migrator';
+import { DB } from '@/types/db';
 
 async function migrateToLatest() {
 	// Load environment variables
 	config();
 
-	const db = new Kysely({
+	const db = new Kysely<DB>({
 		dialect: new PostgresDialect({
 			pool: new pg.Pool({
 				host: process.env.POSTGRES_HOST,
