@@ -7,6 +7,7 @@ const envSchema = z.object({
 	POSTGRES_DB: z.string(),
 	POSTGRES_HOST: z.string(),
 	POSTGRES_PORT: z.coerce.number().default(5432),
+	BAHETH_API_TOKEN: z.string(),
 	JWT_SECRET: z.string(),
 });
 

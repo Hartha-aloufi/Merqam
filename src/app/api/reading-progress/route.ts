@@ -55,13 +55,6 @@ async function handler(req: AuthenticatedRequest) {
 				);
 			}
 
-			// Debug log
-			console.log('Fetching progress for:', {
-				user_id: req.user.id,
-				topic_id,
-				lesson_id,
-			});
-
 			const progress = await db
 				.selectFrom('reading_progress')
 				.where('user_id', '=', req.user.id)
@@ -73,9 +66,6 @@ async function handler(req: AuthenticatedRequest) {
 					'updated_at',
 				])
 				.executeTakeFirst();
-
-			// Debug log
-			console.log('Found progress:', progress);
 
 			return NextResponse.json(
 				progress || {
