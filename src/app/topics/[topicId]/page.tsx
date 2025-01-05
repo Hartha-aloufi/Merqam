@@ -1,7 +1,6 @@
 // src/app/topics/[topicId]/page.tsx
-import { getTopics, getLessons } from '@/utils/mdx';
+import { getTopics, getLessons } from '@/client/utils/mdx';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
 import { BookOpen, Video, ArrowLeft } from 'lucide-react';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';

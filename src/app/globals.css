@@ -2,8 +2,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import '../styles/mdx.css';
-@import '../styles/mdx-editor.css';
+@import '../client/styles/mdx.css';
+@import '../client/styles/mdx-editor.css';
 
 /* Force scrollbar to always show to prevent layout shift */
 html {
