@@ -18,3 +18,8 @@ const dialect = new PostgresDialect({
 export const db = new Kysely<DB>({
 	dialect,
 });
+
+console.log('Database connected', process.env.POSTGRES_HOST);
+
+// Type-safe query builder helper
+export type Database = typeof db;
