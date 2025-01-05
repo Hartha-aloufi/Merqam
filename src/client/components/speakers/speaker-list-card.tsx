@@ -2,7 +2,6 @@
 import { Speaker } from '@/client/services/baheth.service';
 import {
 	BookOpen,
-	ExternalLink,
 	Heart,
 	Share2,
 	MoreVertical,
@@ -49,15 +48,11 @@ export function SpeakerListCard({ speaker }: SpeakerListCardProps) {
 							fill
 							className="object-cover transition-transform duration-500 group-hover:scale-105"
 						/>
-						{speaker.playlists_count > 10 && (
-							<div className="absolute top-2 right-2">
-								<BadgeCheck className="h-5 w-5 text-primary drop-shadow-md" />
-							</div>
-						)}
+
 						<div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
 						<div className="absolute bottom-2 right-2 flex items-center gap-1.5 text-xs text-white font-medium">
 							<BookOpen className="h-3.5 w-3.5" />
-							<span>{speaker.playlists_count} درس</span>
+							<span>{speaker.playlists_count} قائمة تشغيل</span>
 						</div>
 					</div>
 				</div>
@@ -71,45 +66,10 @@ export function SpeakerListCard({ speaker }: SpeakerListCardProps) {
 								<h3 className="text-lg font-semibold truncate">
 									{speaker.name}
 								</h3>
-								<span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
-									مُحدّث علمي
-								</span>
 							</div>
 							<p className="text-sm text-muted-foreground line-clamp-2">
 								{speaker.description}
 							</p>
-						</div>
-
-						{/* Action Menu */}
-						<div className="shrink-0">
-							<DropdownMenu>
-								<DropdownMenuTrigger asChild>
-									<Button
-										variant="ghost"
-										size="icon"
-										className="h-8 w-8"
-									>
-										<MoreVertical className="h-4 w-4" />
-									</Button>
-								</DropdownMenuTrigger>
-								<DropdownMenuContent
-									align="end"
-									className="w-52"
-								>
-									<DropdownMenuItem>
-										<Share2 className="h-4 w-4 mr-2" />
-										مشاركة الصفحة
-									</DropdownMenuItem>
-									<DropdownMenuItem>
-										<FolderOpen className="h-4 w-4 mr-2" />
-										إضافة إلى قائمة
-									</DropdownMenuItem>
-									<DropdownMenuItem>
-										<BookMarked className="h-4 w-4 mr-2" />
-										حفظ للمشاهدة لاحقاً
-									</DropdownMenuItem>
-								</DropdownMenuContent>
-							</DropdownMenu>
 						</div>
 					</div>
 
@@ -147,7 +107,7 @@ export function SpeakerListCard({ speaker }: SpeakerListCardProps) {
 
 							<Link href={speaker.baheth_link} target="_blank">
 								<Button className="gap-2">
-									تصفح المحتوى
+									تصفح الدروس
 									<ChevronLeft className="h-4 w-4" />
 								</Button>
 							</Link>

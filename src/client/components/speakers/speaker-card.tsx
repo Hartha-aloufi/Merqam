@@ -96,7 +96,7 @@ export function SpeakerCard({ speaker }: SpeakerCardProps) {
 						>
 							<PlayCircle className="h-4 w-4" />
 							<span className="text-sm font-medium">
-								{speaker.playlists_count} playlist
+								{speaker.playlists_count} قائمة تشغيل
 							</span>
 						</motion.div>
 
@@ -116,15 +116,6 @@ export function SpeakerCard({ speaker }: SpeakerCardProps) {
 									className="bg-white/10 hover:bg-white/20 backdrop-blur-sm"
 								>
 									<List className="h-4 w-4 text-white" />
-								</Button>
-							</Link>
-							<Link href={speaker.external_link} target="_blank">
-								<Button
-									size="sm"
-									variant="secondary"
-									className="bg-white/10 hover:bg-white/20 backdrop-blur-sm"
-								>
-									<ExternalLink className="h-4 w-4 text-white" />
 								</Button>
 							</Link>
 						</motion.div>

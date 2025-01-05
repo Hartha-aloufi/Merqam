@@ -14,7 +14,6 @@ import { SpeakerListCard } from '@/client/components/speakers/speaker-list-card'
 import { SpeakerListSkeleton } from '@/client/components/speakers/speaker-list-skeleton';
 import { useLayoutPreference } from '@/client/hooks/use-layout-preference';
 
-
 const layouts = {
 	list: 'grid grid-cols-1 gap-6 max-w-4xl mx-auto',
 	featured:
@@ -57,14 +56,14 @@ export default function SpeakersPage() {
 			{/* Header with Search and Filters */}
 			<div className="sticky top-0 z-30 -mx-4 px-4 py-4 backdrop-blur-xl bg-background/80 border-b">
 				<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-					<h1 className="text-3xl font-bold">المحدثون</h1>
+					<h1 className="text-3xl font-bold">المتحدثون</h1>
 
 					<div className="flex items-center gap-4 flex-wrap sm:flex-nowrap">
 						{/* Search */}
 						<div className="relative w-full sm:w-auto min-w-[240px]">
 							<Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 							<Input
-								placeholder="ابحث عن محدث..."
+								placeholder="ابحث عن متحدث..."
 								value={searchQuery}
 								onChange={(e) => setSearchQuery(e.target.value)}
 								className="pl-4 pr-10"

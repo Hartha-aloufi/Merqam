@@ -57,7 +57,7 @@ export default function Navbar() {
 					{!isLoading && (
 						<>
 							{user ? (
-								<DropdownMenu>
+								<DropdownMenu modal={false}>
 									<DropdownMenuTrigger asChild>
 										<Button
 											variant="ghost"
