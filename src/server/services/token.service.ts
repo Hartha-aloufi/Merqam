@@ -3,9 +3,14 @@ import { db } from '../config/db';
 import { randomBytes } from 'crypto';
 import { add } from 'date-fns';
 import { AuthError } from '../lib/errors';
+import { signToken } from '../lib/auth/jwt';
 
 const REFRESH_TOKEN_EXPIRES_IN_DAYS = 30;
-const ACCESS_TOKEN_EXPIRES_IN_MINUTES = 15;
+
+interface RefreshTokensResponse {
+	accessToken: string;
+	refreshToken: string;
+}
 
 export class TokenService {
 	async createRefreshToken(userId: string): Promise<string> {
@@ -42,31 +47,67 @@ export class TokenService {
 		return result;
 	}
 
+	async refreshTokens(
+		currentRefreshToken: string
+	): Promise<RefreshTokensResponse> {
+		try {
+			// Validate current refresh token
+			const user = await this.validateRefreshToken(currentRefreshToken);
+
+			// Revoke the current refresh token
+			await this.revokeRefreshToken(currentRefreshToken);
+
+			// Generate new tokens
+			const accessToken = signToken({
+				userId: user.id,
+				email: user.email,
+			});
+
+			// Create new refresh token
+			const refreshToken = await this.createRefreshToken(user.id);
+
+			return {
+				accessToken,
+				refreshToken,
+			};
+		} catch (error) {
+			console.error('Token refresh error:', error);
+			throw new AuthError('Failed to refresh tokens');
+		}
+	}
+
 	async revokeRefreshToken(token: string): Promise<void> {
-		await db
-			.deleteFrom('refresh_tokens')
-			.where('token', '=', token)
-			.execute();
+		try {
+			await db
+				.deleteFrom('refresh_tokens')
+				.where('token', '=', token)
+				.execute();
+		} catch (error) {
+			console.error('Error revoking refresh token:', error);
+			// Don't throw error to prevent blocking logout
+		}
 	}
 
 	async revokeAllUserTokens(userId: string): Promise<void> {
-		await db
-			.deleteFrom('refresh_tokens')
-			.where('user_id', '=', userId)
-			.execute();
+		try {
+			await db
+				.deleteFrom('refresh_tokens')
+				.where('user_id', '=', userId)
+				.execute();
+		} catch (error) {
+			console.error('Error revoking user tokens:', error);
+			// Don't throw error to prevent blocking logout
+		}
 	}
 
 	async cleanupExpiredTokens(): Promise<void> {
-		await db
-			.deleteFrom('refresh_tokens')
-			.where('expires_at', '<=', new Date())
-			.execute();
-	}
-
-	getTokenExpirations() {
-		return {
-			accessToken: ACCESS_TOKEN_EXPIRES_IN_MINUTES,
-			refreshToken: REFRESH_TOKEN_EXPIRES_IN_DAYS,
-		};
+		try {
+			await db
+				.deleteFrom('refresh_tokens')
+				.where('expires_at', '<=', new Date())
+				.execute();
+		} catch (error) {
+			console.error('Error cleaning up expired tokens:', error);
+		}
 	}
 }

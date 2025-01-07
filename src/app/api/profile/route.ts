@@ -1,14 +1,15 @@
 // src/app/api/profile/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth, AuthenticatedRequest } from '@/server/middleware/auth';
+import { withAuth, type AuthenticatedRequest } from '@/server/middleware/auth';
 import { db } from '@/server/config/db';
 
 async function handler(req: AuthenticatedRequest) {
 	try {
+		// Get user data from database
 		const user = await db
 			.selectFrom('users')
 			.where('id', '=', req.user.id)
-			.select(['id', 'email', 'name', 'created_at'])
+			.select(['id', 'email', 'name'])
 			.executeTakeFirst();
 
 		if (!user) {
@@ -22,12 +23,12 @@ async function handler(req: AuthenticatedRequest) {
 	} catch (error) {
 		console.error('Profile fetch error:', error);
 		return NextResponse.json(
-			{ error: 'Failed to fetch profile' },
+			{ error: 'Internal server error' },
 			{ status: 500 }
 		);
 	}
 }
 
-export async function GET(req: NextRequest) {
+export function GET(req: NextRequest) {
 	return withAuth(handler, req);
 }

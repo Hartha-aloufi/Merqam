@@ -1,89 +1,63 @@
 // src/client/services/auth.service.ts
-'use client';
-
 import { httpClient } from '../lib/http-client';
 import { AuthResponse, CreateUserInput } from '@/types/auth';
+import { ApiError } from '../lib/api-error';
 
-/**
- * Service for handling authentication-related API requests
- */
 export class AuthService {
-	/**
-	 * Authenticate user with email and password
-	 */
 	async login(email: string, password: string): Promise<AuthResponse> {
-		const { data } = await httpClient.post<AuthResponse>('/auth/login', {
-			email,
-			password,
-		});
-
-		// Store tokens
-		localStorage.setItem('access_token', data.accessToken);
-		localStorage.setItem('refresh_token', data.refreshToken);
-
-		return data;
-	}
-
-	/**
-	 * Register a new user
-	 */
-	async register(input: CreateUserInput): Promise<AuthResponse> {
-		const { data } = await httpClient.post<AuthResponse>(
-			'/auth/register',
-			input
-		);
-
-		// Store tokens
-		localStorage.setItem('access_token', data.accessToken);
-		localStorage.setItem('refresh_token', data.refreshToken);
-
-		return data;
-	}
-
-	/**
-	 * Logout user and revoke refresh token
-	 */
-	async logout(): Promise<void> {
-		const refreshToken = localStorage.getItem('refresh_token');
-
-		if (refreshToken) {
-			try {
-				await httpClient.post('/auth/logout', { refreshToken });
-			} catch (error) {
-				console.error('Logout error:', error);
-			}
+		try {
+			const { data } = await httpClient.post<AuthResponse>(
+				'/auth/login',
+				{
+					email,
+					password,
+				}
+			);
+			return data;
+		} catch (error: any) {
+			console.error('Login error:', error.response?.data || error);
+			throw new ApiError(error);
 		}
-
-		localStorage.removeItem('access_token');
-		localStorage.removeItem('refresh_token');
 	}
 
-	/**
-	 * Get current user profile
-	 */
 	async getProfile() {
-		const { data } = await httpClient.get('/profile');
-		return data;
+		try {
+			const { data } = await httpClient.get('/profile');
+			return data;
+		} catch (error) {
+			throw error;
+		}
 	}
 
-	/**
-	 * Check if user is authenticated
-	 */
-	isAuthenticated(): boolean {
-		return !!localStorage.getItem('access_token');
+	async register(input: CreateUserInput): Promise<AuthResponse> {
+		try {
+			const { data } = await httpClient.post<AuthResponse>(
+				'/auth/register',
+				input
+			);
+			return data;
+		} catch (error: any) {
+			console.error('Register error:', error.response?.data || error);
+			throw new ApiError(error);
+		}
 	}
 
-	/**
-	 * Get current access token
-	 */
-	getAccessToken(): string | null {
-		return localStorage.getItem('access_token');
+	async logout(): Promise<void> {
+		try {
+			await httpClient.post('/auth/logout');
+		} catch (error: any) {
+			// Log the error but don't throw it
+			console.error('Logout error:', error);
+			// We still want to handle the logout cleanup even if the API call fails
+		}
 	}
 
-	/**
-	 * Get current refresh token
-	 */
-	getRefreshToken(): string | null {
-		return localStorage.getItem('refresh_token');
+	async isAuthenticated(): Promise<boolean> {
+		try {
+			await this.getProfile();
+			return true;
+		} catch {
+			return false;
+		}
 	}
 }

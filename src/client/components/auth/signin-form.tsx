@@ -1,7 +1,7 @@
 // src/components/auth/signin-form.tsx
 'use client';
 
-import { useGoogleLogin, useLogin } from '@/client/hooks/use-auth-query';
+import { useLogin } from '@/client/hooks/use-auth-query';
 import { Button } from '@/client/components/ui/button';
 import {
 	Card,
@@ -25,6 +25,7 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { Loader2, Mail } from 'lucide-react';
 import Link from 'next/link';
+import { GoogleAuthButton } from './google-auth-button';
 
 const formSchema = z.object({
 	email: z
@@ -46,8 +47,22 @@ export function SignInForm() {
 	});
 
 	const { mutate: login, isPending, error } = useLogin();
-	const { mutate: signInWithGoogle, isPending: isGooglePending } =
-		useGoogleLogin();
+
+	const getErrorMessage = (error: unknown) => {
+		if (!error) return null;
+		if (error instanceof Error) {
+			// Map backend error messages to user-friendly Arabic messages
+			switch (error.message) {
+				case 'Invalid credentials':
+					return 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+				case 'Too many requests':
+					return 'عدد محاولات تسجيل الدخول تجاوز الحد المسموح. الرجاء المحاولة لاحقاً';
+				default:
+					return 'عذراً، حدث خطأ. الرجاء المحاولة مرة أخرى';
+			}
+		}
+		return 'عذراً، حدث خطأ. الرجاء المحاولة مرة أخرى';
+	};
 
 	return (
 		<Card className="w-full">
@@ -59,9 +74,7 @@ export function SignInForm() {
 				{error && (
 					<Alert variant="destructive">
 						<AlertDescription>
-							{error instanceof Error
-								? error.message
-								: 'حدث خطأ أثناء تسجيل الدخول'}
+							{getErrorMessage(error)}
 						</AlertDescription>
 					</Alert>
 				)}
@@ -129,6 +142,18 @@ export function SignInForm() {
 						</Button>
 					</form>
 				</Form>
+
+				<div className="relative my-6">
+					<div className="absolute inset-0 flex items-center">
+						<span className="w-full border-t" />
+					</div>
+					<div className="relative flex justify-center text-xs uppercase">
+						<span className="bg-background px-2 text-muted-foreground">
+							أو
+						</span>
+					</div>
+				</div>
+				<GoogleAuthButton />
 			</CardContent>
 
 			<CardFooter className="flex flex-col gap-2">
