@@ -1,34 +1,36 @@
 // src/app/api/profile/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth, type AuthenticatedRequest } from '@/server/middleware/auth';
 import { db } from '@/server/config/db';
+import { verifyToken } from '@/server/lib/auth/jwt';
 
-async function handler(req: AuthenticatedRequest) {
+export async function GET(request: NextRequest) {
 	try {
-		// Get user data from database
-		const user = await db
-			.selectFrom('users')
-			.where('id', '=', req.user.id)
-			.select(['id', 'email', 'name'])
-			.executeTakeFirst();
+		// Get access token from cookies
+		const accessToken = request.cookies.get('access_token')?.value;
 
-		if (!user) {
-			return NextResponse.json(
-				{ error: 'User not found' },
-				{ status: 404 }
-			);
+		// If no token, return null instead of error
+		if (!accessToken) {
+			return NextResponse.json(null);
 		}
 
-		return NextResponse.json(user);
+		// Verify token and get user data
+		try {
+			const payload = verifyToken(accessToken);
+
+			const user = await db
+				.selectFrom('users')
+				.where('id', '=', payload.userId)
+				.select(['id', 'email', 'name'])
+				.executeTakeFirst();
+
+			return NextResponse.json(user);
+		} catch {
+			// Token verification failed or user not found - return null
+			return NextResponse.json(null);
+		}
 	} catch (error) {
 		console.error('Profile fetch error:', error);
-		return NextResponse.json(
-			{ error: 'Internal server error' },
-			{ status: 500 }
-		);
+		// For any other errors, return null as well
+		return NextResponse.json(null);
 	}
-}
-
-export function GET(req: NextRequest) {
-	return withAuth(handler, req);
 }

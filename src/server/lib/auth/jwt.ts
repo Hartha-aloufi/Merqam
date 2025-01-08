@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { env } from '@/server/config/env';
 import { AuthTokenPayload } from '@/types/auth';
 
-const JWT_EXPIRES_IN = '7d';
+const JWT_EXPIRES_IN = '1d';
 
 export function signToken(
 	payload: Omit<AuthTokenPayload, 'iat' | 'exp'>

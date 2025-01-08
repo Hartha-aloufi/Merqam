@@ -105,9 +105,11 @@ export function useLogout() {
 	return useMutation({
 		mutationFn: () => authService.logout(),
 		onSuccess: () => {
+			// Clear auth state
 			queryClient.setQueryData(AUTH_KEYS.session, { user: null });
 			queryClient.clear(); // Clear all queries
-			router.push('/');
+
+			// Just refresh the page data without navigation
 			router.refresh();
 		},
 		onError: () => {
