@@ -9,6 +9,9 @@ const envSchema = z.object({
 	POSTGRES_PORT: z.coerce.number().default(5432),
 	BAHETH_API_TOKEN: z.string(),
 	JWT_SECRET: z.string(),
+	GOOGLE_CLIENT_ID: z.string(),
+	GOOGLE_CLIENT_SECRET: z.string(),
+	NEXT_PUBLIC_APP_URL: z.string().url(),
 });
 
 export const env = envSchema.parse(process.env);

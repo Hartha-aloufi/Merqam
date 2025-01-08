@@ -4,6 +4,7 @@ import { UserService } from '@/server/services/user.service';
 import { AppError } from '@/server/lib/errors';
 import { loginSchema } from '@/server/lib/validation/auth';
 import { z } from 'zod';
+import { AUTH_COOKIE_CONFIG } from '@/server/config/auth';
 
 const userService = new UserService();
 
@@ -20,8 +21,25 @@ export async function POST(request: Request) {
 			validatedData.password
 		);
 
-		return NextResponse.json(result);
+		// Create response
+		const response = NextResponse.json({ user: result.user });
+
+		// Set cookies in the response
+		response.cookies.set(
+			'access_token',
+			result.accessToken,
+			AUTH_COOKIE_CONFIG
+		);
+		response.cookies.set(
+			'refresh_token',
+			result.refreshToken,
+			AUTH_COOKIE_CONFIG
+		);
+
+		return response;
 	} catch (error) {
+		console.error('Login error:', error);
+
 		if (error instanceof AppError) {
 			return NextResponse.json(
 				{ error: error.message },
@@ -36,7 +54,6 @@ export async function POST(request: Request) {
 			);
 		}
 
-		console.error('Login error:', error);
 		return NextResponse.json(
 			{ error: 'Invalid credentials' },
 			{ status: 401 }

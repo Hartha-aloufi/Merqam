@@ -26,18 +26,16 @@ export function useSession() {
 	return useQuery<SessionData>({
 		queryKey: AUTH_KEYS.session,
 		queryFn: async () => {
-			if (!authService.isAuthenticated()) {
-				return { user: null };
-			}
 			try {
-				const profile = await authService.getProfile();
-				return { user: profile };
-			} catch {
-				authService.logout();
+				const user = await authService.getProfile();
+				return { user };
+			} catch (error) {
 				return { user: null };
 			}
 		},
 		staleTime: 1000 * 60 * 5, // 5 minutes
+		refetchOnWindowFocus: true,
+		refetchOnMount: true,
 	});
 }
 
@@ -58,6 +56,7 @@ export function useLogin() {
 
 			const returnUrl = sessionStorage.getItem('authReturnUrl') || '/';
 			sessionStorage.removeItem('authReturnUrl');
+
 			router.push(returnUrl);
 			router.refresh();
 		},
@@ -71,6 +70,50 @@ export function useLogin() {
 					toast.error(error.message || 'فشل تسجيل الدخول');
 				}
 			}
+		},
+	});
+}
+
+export function useGoogleLogin() {
+	const returnUrl =
+		typeof window !== 'undefined' ? window.location.pathname : '/';
+
+	return useMutation({
+		mutationFn: async () => {
+			if (typeof window !== 'undefined') {
+				sessionStorage.setItem('authReturnUrl', returnUrl);
+			}
+			const response = await fetch('/api/auth/google');
+			const data = await response.json();
+			if (data.url) {
+				window.location.href = data.url;
+			} else {
+				throw new Error('Failed to get Google auth URL');
+			}
+		},
+		onError: (error) => {
+			console.error('Google login error:', error);
+			toast.error('فشل تسجيل الدخول باستخدام Google');
+		},
+	});
+}
+
+export function useLogout() {
+	const queryClient = useQueryClient();
+	const router = useRouter();
+
+	return useMutation({
+		mutationFn: () => authService.logout(),
+		onSuccess: () => {
+			// Clear auth state
+			queryClient.setQueryData(AUTH_KEYS.session, { user: null });
+			queryClient.clear(); // Clear all queries
+
+			// Just refresh the page data without navigation
+			router.refresh();
+		},
+		onError: () => {
+			toast.error('فشل تسجيل الخروج');
 		},
 	});
 }
@@ -101,41 +144,6 @@ export function useRegister() {
 					toast.error(error.message || 'فشل إنشاء الحساب');
 				}
 			}
-		},
-	});
-}
-
-export function useLogout() {
-	const queryClient = useQueryClient();
-	const router = useRouter();
-
-	return useMutation({
-		mutationFn: () => authService.logout(),
-		onSuccess: () => {
-			queryClient.setQueryData(AUTH_KEYS.session, { user: null });
-			router.push('/');
-			router.refresh();
-		},
-		onError: () => {
-			toast.error('فشل تسجيل الخروج');
-		},
-	});
-}
-
-export function useGoogleLogin() {
-	const returnUrl =
-		typeof window !== 'undefined' ? window.location.pathname : '/';
-
-	return useMutation({
-		mutationFn: () => {
-			sessionStorage.setItem('authReturnUrl', returnUrl);
-			return authService.loginWithGoogle({
-				redirectTo: `${window.location.origin}/auth/callback`,
-			});
-		},
-		onError: (error) => {
-			console.error('Login error:', error);
-			toast.error('فشل تسجيل الدخول باستخدام Google');
 		},
 	});
 }
