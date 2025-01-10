@@ -3,6 +3,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { AIProcessingOptions } from './types';
 import { SYSTEM_PROMPT_GEMINI } from './prompts';
 import { BaseAIService } from './base-ai.service';
+import { logger } from '@/client/lib/txt-to-mdx/scrapers/logger';
 
 export class GeminiService extends BaseAIService {
 	private genAI: GoogleGenerativeAI;
@@ -14,6 +15,8 @@ export class GeminiService extends BaseAIService {
 	}
 
 	async initializeChat(options?: AIProcessingOptions) {
+		logger.info(`Initialized Gemini chat with model ${options?.model || this.defaultModel}`);
+
 		const model = this.genAI.getGenerativeModel({
 			model: options?.model || this.defaultModel,
 			systemInstruction: SYSTEM_PROMPT_GEMINI,
@@ -28,6 +31,7 @@ export class GeminiService extends BaseAIService {
 				topK: 40,
 			},
 		});
+
 	}
 
 	async processChunk(

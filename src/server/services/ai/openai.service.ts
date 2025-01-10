@@ -3,6 +3,7 @@ import OpenAI from 'openai';
 import { AIProcessingOptions } from './types';
 import { SYSTEM_PROMPT_OPEN_AI } from './prompts';
 import { BaseAIService } from './base-ai.service';
+import { logger } from '@/client/lib/txt-to-mdx/scrapers/logger';
 
 export class OpenAIService extends BaseAIService {
 	private openai: OpenAI;
@@ -14,6 +15,8 @@ export class OpenAIService extends BaseAIService {
 	}
 
 	async initializeChat(options?: AIProcessingOptions) {
+		logger.info(`Initialized OpenAI chat with model ${options?.model || this.defaultModel}`);
+		
 		return {
 			model: options?.model || this.defaultModel,
 			messages: [

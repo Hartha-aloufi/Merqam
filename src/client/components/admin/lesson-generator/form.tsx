@@ -40,6 +40,7 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from '@/client/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
 
 const urlSchema = z.string().refine((url) => {
 	try {
@@ -61,6 +62,7 @@ const formSchema = z
 		topicId: z.string().optional(),
 		newTopicId: z.string().optional(),
 		newTopicTitle: z.string().optional(),
+		aiService: z.enum(['gemini', 'openai']).default('gemini'),
 	})
 	.refine(
 		(data) => {
@@ -119,6 +121,7 @@ export function LessonGeneratorForm({
 				url: data.url,
 				topicId: topicId!,
 				topicTitle: topicTitle!,
+				aiService: data.aiService, 
 			});
 		},
 		onSuccess: (data) => {
@@ -182,25 +185,6 @@ export function LessonGeneratorForm({
 								</FormItem>
 							)}
 						/>
-
-						{/* Title Field */}
-						{/* <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>عنوان الدرس</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="أدخل عنوان الدرس"
-                      disabled={isPending}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            /> */}
 
 						{/* Topic Selection */}
 						<FormField
@@ -407,6 +391,54 @@ export function LessonGeneratorForm({
 											</FormItem>
 										</RadioGroup>
 									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+
+						{/* AI service */}
+						<FormField
+							control={form.control}
+							name="aiService"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>خدمة الذكاء الاصطناعي</FormLabel>
+									<FormControl>
+										<Select
+											value={field.value}
+											onValueChange={field.onChange}
+										>
+											<SelectTrigger className="w-full">
+												<SelectValue placeholder="اختر خدمة الذكاء الاصطناعي" />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="gemini">
+													<div className="flex flex-col">
+														<span>
+															Google Gemini
+														</span>
+														<span className="text-sm text-muted-foreground">
+															نسخة مجانية
+														</span>
+													</div>
+												</SelectItem>
+												<SelectItem value="openai">
+													<div className="flex flex-col">
+														<span>
+															OpenAI GPT-4
+														</span>
+														<span className="text-sm text-muted-foreground">
+															نسخة مدفوعة
+														</span>
+													</div>
+												</SelectItem>
+											</SelectContent>
+										</Select>
+									</FormControl>
+									<FormDescription>
+										اختر خدمة الذكاء الاصطناعي التي تريد
+										استخدامها لمعالجة النص
+									</FormDescription>
 									<FormMessage />
 								</FormItem>
 							)}

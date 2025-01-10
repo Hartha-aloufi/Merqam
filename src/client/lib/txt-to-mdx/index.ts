@@ -6,6 +6,7 @@ import { createDir } from '@/client/lib/utils/fs';
 import { ScraperFactory } from './scrapers';
 import { logger } from './scrapers/logger';
 import { AIServiceFactory } from '@/server/services/ai/ai-service.factory';
+import { AIServiceType } from '@/server/services/ai/types';
 
 /**
  * Result interface for the conversion process
@@ -26,9 +27,10 @@ export class TxtToMdxConverter {
 
 	constructor(
 		dataPath: string = path.join(process.cwd(), 'src/data'),
-		tempDir: string = path.join(process.cwd(), 'temp')
+		tempDir: string = path.join(process.cwd(), 'temp'),
+		aiServiceType?: AIServiceType
 	) {
-		this.aiService = AIServiceFactory.getService();
+    this.aiService = AIServiceFactory.getService(aiServiceType);
 		this.dataPath = dataPath;
 		this.tempDir = tempDir;
 	}

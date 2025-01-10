@@ -3,8 +3,8 @@ import { NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs/promises';
 import { TxtToMdxConverter } from '@/client/lib/txt-to-mdx';
-import { env } from '@/server/config/env';
 import { logger } from '@/client/lib/txt-to-mdx/scrapers/logger';
+import { AIServiceType } from '@/server/services/ai/types';
 
 // Constants
 const DATA_PATH = path.join(process.cwd(), 'src/data');
@@ -25,6 +25,7 @@ interface GenerateRequestBody {
 	url: string;
 	topicId: string;
 	topicTitle: string;
+	aiService?: AIServiceType;
 }
 
 /**
@@ -36,7 +37,11 @@ export async function POST(request: Request) {
 		const body = await validateRequest(request);
 
 		// Initialize converter
-		const converter = new TxtToMdxConverter(DATA_PATH, TEMP_PATH);
+		const converter = new TxtToMdxConverter(
+			DATA_PATH,
+			TEMP_PATH,
+			body.aiService
+		);
 
 		// Process content and generate MDX
 		logger.info('Starting lesson generation:', {
@@ -70,7 +75,7 @@ async function validateRequest(request: Request): Promise<GenerateRequestBody> {
 		}
 
 		return body as GenerateRequestBody;
-	} catch (error) {
+	} catch {
 		throw new ValidationError('Invalid request body');
 	}
 }
@@ -96,7 +101,7 @@ async function updateTopicMetadata(
 		const metaContent = await fs.readFile(metaPath, 'utf8');
 		meta = JSON.parse(metaContent);
 		logger.info('Existing meta loaded');
-	} catch (error) {
+	} catch {
 		logger.info('No existing meta, using default');
 	}
 
@@ -116,6 +121,19 @@ async function updateTopicMetadata(
  */
 function handleError(error: unknown): NextResponse {
 	logger.error('[ADMIN API] Error generating lesson:', error);
+
+	// Update error handling for AI service specific errors
+	if (error instanceof Error) {
+		if (error.message.includes('API key not configured')) {
+			return new NextResponse(error.message, { status: 400 });
+		}
+		if (error.message.includes('QUOTA_EXCEEDED')) {
+			return new NextResponse(
+				'AI service quota exceeded. Please try a different service or try again later.',
+				{ status: 429 }
+			);
+		}
+	}
 
 	if (error instanceof ValidationError) {
 		return new NextResponse(error.message, { status: 400 });

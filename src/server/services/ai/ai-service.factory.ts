@@ -1,36 +1,36 @@
 // src/server/services/ai/ai-service.factory.ts
 import { OpenAIService } from './openai.service';
 import { GeminiService } from './gemini.service';
-import { AIService } from './types';
+import { AIService, AIServiceType } from './types';
 import { env } from '@/server/config/env';
 
 export class AIServiceFactory {
-	private static instance: AIService;
-
-	static getService(): AIService {
-		if (!this.instance) {
-			// Try Gemini first as it's free
+	static getService(serviceType?: AIServiceType): AIService {
+		// If no service type specified, try Gemini first as it's free
+		if (!serviceType) {
 			if (env.GEMINI_API_KEY) {
-				try {
-					this.instance = new GeminiService(env.GEMINI_API_KEY);
-				} catch (error) {
-					console.warn(
-						'Failed to initialize Gemini, falling back to OpenAI:',
-						error
-					);
-				}
+				return new GeminiService(env.GEMINI_API_KEY);
 			}
-
-			// Fallback to OpenAI if Gemini fails or isn't configured
-			if (!this.instance && env.OPENAI_API_KEY) {
-				this.instance = new OpenAIService(env.OPENAI_API_KEY);
+			if (env.OPENAI_API_KEY) {
+				return new OpenAIService(env.OPENAI_API_KEY);
 			}
-
-			if (!this.instance) {
-				throw new Error('No AI service configuration found');
-			}
+			throw new Error('No AI service configuration found');
 		}
 
-		return this.instance;
+		// Return specifically requested service
+		switch (serviceType) {
+			case 'gemini':
+				if (!env.GEMINI_API_KEY)
+					throw new Error('Gemini API key not configured');
+				return new GeminiService(env.GEMINI_API_KEY);
+
+			case 'openai':
+				if (!env.OPENAI_API_KEY)
+					throw new Error('OpenAI API key not configured');
+				return new OpenAIService(env.OPENAI_API_KEY);
+
+			default:
+				throw new Error(`Unsupported AI service: ${serviceType}`);
+		}
 	}
 }
