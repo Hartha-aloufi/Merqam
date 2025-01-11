@@ -5,32 +5,48 @@ import { AIService, AIServiceType } from './types';
 import { env } from '@/server/config/env';
 
 export class AIServiceFactory {
+	private static instances: Map<AIServiceType, AIService> = new Map();
+
 	static getService(serviceType?: AIServiceType): AIService {
 		// If no service type specified, try Gemini first as it's free
 		if (!serviceType) {
-			if (env.GEMINI_API_KEY) {
-				return new GeminiService(env.GEMINI_API_KEY);
+			if (env.GEMINI_API_KEYS.length > 0) {
+				return this.getOrCreateService('gemini');
 			}
 			if (env.OPENAI_API_KEY) {
-				return new OpenAIService(env.OPENAI_API_KEY);
+				return this.getOrCreateService('openai');
 			}
 			throw new Error('No AI service configuration found');
 		}
 
-		// Return specifically requested service
-		switch (serviceType) {
-			case 'gemini':
-				if (!env.GEMINI_API_KEY)
-					throw new Error('Gemini API key not configured');
-				return new GeminiService(env.GEMINI_API_KEY);
+		return this.getOrCreateService(serviceType);
+	}
 
-			case 'openai':
-				if (!env.OPENAI_API_KEY)
-					throw new Error('OpenAI API key not configured');
-				return new OpenAIService(env.OPENAI_API_KEY);
+	private static getOrCreateService(type: AIServiceType): AIService {
+		if (!this.instances.has(type)) {
+			switch (type) {
+				case 'gemini':
+					if (env.GEMINI_API_KEYS.length === 0) {
+						throw new Error('No Gemini API keys configured');
+					}
+					this.instances.set(type, new GeminiService());
+					break;
 
-			default:
-				throw new Error(`Unsupported AI service: ${serviceType}`);
+				case 'openai':
+					if (!env.OPENAI_API_KEY) {
+						throw new Error('OpenAI API key not configured');
+					}
+					this.instances.set(
+						type,
+						new OpenAIService(env.OPENAI_API_KEY)
+					);
+					break;
+
+				default:
+					throw new Error(`Unsupported AI service: ${type}`);
+			}
 		}
+
+		return this.instances.get(type)!;
 	}
 }

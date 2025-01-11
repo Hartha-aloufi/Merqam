@@ -4,25 +4,43 @@ import { AIProcessingOptions } from './types';
 import { SYSTEM_PROMPT_GEMINI } from './prompts';
 import { BaseAIService } from './base-ai.service';
 import { logger } from '@/client/lib/txt-to-mdx/scrapers/logger';
+import { GeminiKeyManager } from './gemini-key-manager';
+import { env } from '@/server/config/env';
 
 export class GeminiService extends BaseAIService {
+	private keyManager: GeminiKeyManager;
 	private genAI: GoogleGenerativeAI;
 	private defaultModel = 'gemini-2.0-flash-exp';
 
-	constructor(apiKey: string) {
+	constructor() {
 		super({ maxChunkLength: 15000 });
-		this.genAI = new GoogleGenerativeAI(apiKey);
+		this.keyManager = new GeminiKeyManager(env.GEMINI_API_KEYS);
+		this.initializeClient();
+	}
+
+	private initializeClient() {
+		this.genAI = new GoogleGenerativeAI(this.keyManager.getCurrentKey());
+	}
+
+	private async handleQuotaError(): Promise<boolean> {
+		const hasMoreKeys = this.keyManager.markCurrentKeyFailed();
+		if (hasMoreKeys) {
+			logger.info(
+				`Switching to next Gemini API key. ${this.keyManager.remainingKeys} keys remaining`
+			);
+			this.initializeClient();
+			return true;
+		}
+		throw new Error('QUOTA_EXCEEDED');
 	}
 
 	async initializeChat(options?: AIProcessingOptions) {
-		logger.info(`Initialized Gemini chat with model ${options?.model || this.defaultModel}`);
-
 		const model = this.genAI.getGenerativeModel({
 			model: options?.model || this.defaultModel,
 			systemInstruction: SYSTEM_PROMPT_GEMINI,
 		});
 
-		return model.startChat({
+		const chat = model.startChat({
 			history: [],
 			generationConfig: {
 				temperature: options?.temperature || 1,
@@ -31,7 +49,14 @@ export class GeminiService extends BaseAIService {
 				topK: 40,
 			},
 		});
+		return chat;
+	}
 
+	private isQuotaError(error: any): boolean {
+		return (
+			error?.message?.includes('QUOTA_EXCEEDED') ||
+			error?.message?.includes('RATE_LIMIT_EXCEEDED')
+		);
 	}
 
 	async processChunk(
@@ -39,13 +64,33 @@ export class GeminiService extends BaseAIService {
 		chunk: string,
 		index: number
 	): Promise<string> {
-		const contextMessage =
-			index === 0
-				? 'Process this text according to the provided rules:'
-				: 'Continue processing the following part, maintaining consistency:';
+		let retryCount = 0;
+		const maxRetries = this.keyManager.totalKeys;
 
-		const result = await chat.sendMessage(`${contextMessage}\n\n${chunk}`);
+		while (retryCount < maxRetries) {
+			try {
+				const contextMessage =
+					index === 0
+						? 'Process this text according to the provided rules, make sure to sustain a small paragraph sizes:'
+						: 'Continue processing the following part, maintaining consistency:';
 
-		return result.response.text();
+				const newChat = await this.initializeChat();
+
+				const result = await newChat.sendMessage(
+					`${contextMessage}\n\n${chunk}`
+				);
+
+				return result.response.text();
+			} catch (error) {
+				if (this.isQuotaError(error)) {
+					retryCount++;
+					const canRetry = await this.handleQuotaError();
+					if (!canRetry) break;
+					continue;
+				}
+				throw error;
+			}
+		}
+		throw new Error('All Gemini API keys have exceeded their quota');
 	}
 }

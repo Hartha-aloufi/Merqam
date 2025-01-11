@@ -18,7 +18,12 @@ export class BahethScraper extends BaseScraper {
       if (!videoFrame) return { videoId: null, title: "" };
 
       const srcUrl = (videoFrame as HTMLIFrameElement).src;
-      const title = (videoFrame as HTMLIFrameElement).title || "";
+      let title = (videoFrame as HTMLIFrameElement).title || "";
+
+      if(!title) {
+        title = document.querySelector('a[href*="youtube.com"]')?.previousSibling?.textContent || "";
+      }
+
       const match = srcUrl.match(/(?:embed|v|vi|youtu\.be)\/([^?&"'>]+)/);
 
       return {
