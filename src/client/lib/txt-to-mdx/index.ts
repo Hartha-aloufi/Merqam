@@ -1,139 +1,235 @@
-// src/lib/txt-to-mdx/index.ts
-import OpenAI from 'openai';
-import { syncWithVideo } from './sync-with-video';
+// src/client/lib/txt-to-mdx/index.ts
 import path from 'path';
 import fs from 'fs/promises';
+import { syncWithVideo } from './sync-with-video';
 import { createDir } from '@/client/lib/utils/fs';
 import { ScraperFactory } from './scrapers';
 import { logger } from './scrapers/logger';
+import { AIServiceFactory } from '@/server/services/ai/ai-service.factory';
+import { AIServiceType } from '@/server/services/ai/types';
 
+/**
+ * Result interface for the conversion process
+ */
 export interface ConversionResult {
-	mdxPath: string;
-	videoId: string;
-	title: string;
+	mdxPath: string; // Path to the generated MDX file
+	videoId: string; // YouTube video ID
+	title: string; // Video title
 }
 
+/**
+ * Main converter class for transforming YouTube transcripts to MDX format
+ */
 export class TxtToMdxConverter {
-	private openai: OpenAI;
+	private aiService;
 	private dataPath: string;
+	private tempDir: string;
 
 	constructor(
-		apiKey: string,
-		dataPath: string = path.join(process.cwd(), 'src/data')
+		dataPath: string = path.join(process.cwd(), 'src/data'),
+		tempDir: string = path.join(process.cwd(), 'temp'),
+		aiServiceType?: AIServiceType
 	) {
-		this.openai = new OpenAI({
-			apiKey: apiKey,
-		});
+    this.aiService = AIServiceFactory.getService(aiServiceType);
 		this.dataPath = dataPath;
+		this.tempDir = tempDir;
 	}
 
+	/**
+	 * Processes a YouTube URL and converts its transcript to MDX format
+	 * @param url - YouTube video URL
+	 * @param topicId - Topic identifier for organizing content
+	 * @returns Promise<ConversionResult>
+	 */
 	async processContent(
 		url: string,
 		topicId: string
 	): Promise<ConversionResult> {
+		let tempMdxPath: string | undefined;
+		let txtPath: string | undefined;
+		let srtPath: string | undefined;
+
 		try {
-			// Get appropriate scraper based on URL
-			const scraper = ScraperFactory.getScraper(url);
+			await this.validateInputs(url, topicId);
 
-			// Create directories
-			const topicPath = path.join(this.dataPath, topicId);
-			await createDir(topicPath);
-			const tempDir = path.join(process.cwd(), 'temp');
-			await createDir(tempDir);
+			// Set up directories
+			const { topicPath } = await this.setupDirectories(topicId);
 
-			// Download transcripts and get video info
-			logger.info('Starting transcript download...');
-			const {
+			// Download and extract content
+			const { videoId, title, files } = await this.downloadContent(url);
+			txtPath = files.txt;
+			srtPath = files.srt;
+
+			// Process the content
+			const processedContent = await this.processWithAI(txtPath, title);
+
+			// Create and process MDX
+			const { finalPath } = await this.createMDX(
+				processedContent,
 				videoId,
-				title,
-				files: { txt: txtPath, srt: srtPath },
-			} = await scraper.scrape(url, tempDir);
-			logger.info('Transcript download complete', {
-				txtPath,
-				srtPath,
-				title,
-			});
-
-			// Verify files exist
-			try {
-				await fs.access(txtPath);
-				await fs.access(srtPath);
-				logger.info('Verified files exist', { txtPath, srtPath });
-			} catch (error) {
-				throw new Error(`Downloaded files not found: ${error.message}`);
-			}
-
-			// Read and process content with OpenAI
-			logger.info('Reading TXT file...');
-			const txtContent = await fs.readFile(txtPath, 'utf-8');
-			logger.info('Processing with OpenAI...');
-			const processedContent = await this.processWithOpenAI(
-				txtContent,
-				title
+				topicPath,
+				srtPath
 			);
 
-			// Create temporary MDX
-			const tempMdxPath = path.join(tempDir, `${videoId}_temp.mdx`);
-			await fs.writeFile(tempMdxPath, processedContent);
-			logger.info('Created temp MDX file', { tempMdxPath });
-
-			// Sync with video timestamps
-			const finalMdxPath = path.join(topicPath, `${videoId}.mdx`);
-			await syncWithVideo(tempMdxPath, srtPath, finalMdxPath);
-			logger.info('Created final MDX with timestamps', { finalMdxPath });
-
-			// Cleanup temp files
-			try {
-				await fs.unlink(tempMdxPath);
-				await fs.unlink(txtPath);
-				await fs.unlink(srtPath);
-				logger.info('Cleaned up temp files');
-			} catch (error) {
-				logger.warn('Error cleaning up temp files:', error);
-			}
+			logger.info('Conversion completed successfully', {
+				videoId,
+				title,
+				finalPath,
+			});
 
 			return {
-				mdxPath: finalMdxPath,
+				mdxPath: finalPath,
 				videoId,
 				title,
 			};
 		} catch (error) {
-			const errorMessage =
-				error instanceof Error ? error.message : String(error);
-			logger.error('Process content error', { error: errorMessage });
-			throw new Error(`Failed to process content: ${errorMessage}`);
+			logger.error('Error in conversion process:', error);
+			throw this.handleError(error);
+		} finally {
+			// Cleanup temporary files
+			await this.cleanup(
+				[tempMdxPath, txtPath, srtPath].filter(Boolean) as string[]
+			);
 		}
 	}
 
-	private async processWithOpenAI(
-		content: string,
-		title: string
-	): Promise<string> {
-		const completion = await this.openai.chat.completions.create({
-			model: 'gpt-4o-mini',
-			messages: [
-				{
-					role: 'system',
-					content: [
-						{
-							type: 'text',
-							text: 'قم بتدقيق النص العربي المأخوذ من مقاطع اليوتيوب وذلك بإصلاح الأخطاء الإملائية، إضافة الحركات على الأحرف عند اللزوم فقط، وإضافة علامات الترقيم. وتقسيم النص الى فقرات حتى يسهل قرائته. من المهم جدًا الحفاظ على النص الأصلي دون تغيير في المحتوى أو الأسلوب.\n\n# خطوات التدقيق اللغوي\n\n- **إصلاح الأخطاء الإملائية**: راجع جميع الكلمات لضمان صحتها الإملائية وقم بتصحيح أي أخطاء موجودة.\n- **إضافة الحركات**: أضف الحركات فقط حيث يكون من الضروري لتوضيح النطق الصحيح للكلمات أو تفادي الالتباس.\n- **إضافة علامات الترقيم**: تأكد من وضع علامات الترقيم الصحيحة مثل الفواصل والنقاط وعلامات الاستفهام في أماكنها المناسبة لتحسين وضوح وفهم النص.\n- **الحفاظ على النص الأصلي**: التزم بمضمون النص ولا تقم بتغيير صيغه أو إعادة صياغته بأي شكل.\n- قسم النص الى فقرات\n\n# صيغة الإخراج\n\nقدم النص المدقق مع جميع التصحيحات المطلوبة بوضوح ودون تغيير للمحتوى الأصلي.\n\n# أمثلة\n\n**النص الأصلي:** \nفي هذا المقطع انا كنت بتكلم عن كيف نقدر نشتغل شوي احسن وفعاليه اكثر مع اشغالنا \n\n**النص المدقق:** \nفي هذا المقطع، كنت أتكلم عن كيف نستطيع أن نشتغلَ بشكلٍ أفضل وفعاليةٍ أكثر مع أعمالنا.\n\n# ملاحظات\n\n- لا تتدخل في اللهجات أو التعبيرات المحلية الخاصة إلا عند وجود أخطاء إملائية جلية طالب تغييرها.\n- يجب ان لا يحتوي الرد على اي شيء زائد, مثل : "النص المدقق" او غيرها.\n- استبدل جميع انواع الاقواس المعقوفة "{}" بالاقواس الهلالية "()"\n- لا تقم ابدا بجعل اي يبدو غامقا, يعني لا تستخدم "**"\n',
-						},
-					],
-				},
-				{
-					role: 'user',
-					content: content,
-				},
-			],
-			temperature: 0.84,
-			max_tokens: 16383,
-			top_p: 1,
-			frequency_penalty: 0,
-			presence_penalty: 0,
+	/**
+	 * Validates input parameters
+	 */
+	private async validateInputs(url: string, topicId: string): Promise<void> {
+		if (!url || !topicId) {
+			throw new Error('URL and topicId are required');
+		}
+
+		try {
+			new URL(url);
+		} catch {
+			throw new Error('Invalid URL provided');
+		}
+	}
+
+	/**
+	 * Sets up necessary directories
+	 */
+	private async setupDirectories(topicId: string) {
+		const topicPath = path.join(this.dataPath, topicId);
+		await createDir(topicPath);
+		await createDir(this.tempDir);
+
+		return { topicPath };
+	}
+
+	/**
+	 * Downloads and extracts content using appropriate scraper
+	 */
+	private async downloadContent(url: string) {
+		const scraper = ScraperFactory.getScraper(url);
+
+		logger.info('Starting transcript download...');
+		const result = await scraper.scrape(url, this.tempDir);
+
+		logger.info('Transcript download complete', {
+			videoId: result.videoId,
+			title: result.title,
 		});
 
-		const processedContent = completion.choices[0].message.content;
-		return `# ${title}\n\n${processedContent}`;
+		await this.verifyDownloadedFiles(result.files);
+
+		return result;
+	}
+
+	/**
+	 * Verifies that downloaded files exist
+	 */
+	private async verifyDownloadedFiles(files: { txt: string; srt: string }) {
+		try {
+			await fs.access(files.txt);
+			await fs.access(files.srt);
+			logger.info('Verified files exist', files);
+		} catch (error) {
+			throw new Error(
+				`Downloaded files not found: ${(error as Error).message}`
+			);
+		}
+	}
+
+	/**
+	 * Processes content with AI service with fallback handling
+	 */
+	private async processWithAI(
+		txtPath: string,
+		title: string
+	): Promise<string> {
+		const txtContent = await fs.readFile(txtPath, 'utf-8');
+
+		try {
+			let processedContent = await this.aiService.processContent(
+				txtContent,
+				title
+			);
+			// replace {} with ()
+			processedContent = processedContent
+				.replace(/{/g, '(')
+				.replace(/}/g, ')');
+			return processedContent;
+		} catch (error) {
+			logger.error('AI service error:', error);
+			if (error instanceof Error && error.message === 'QUOTA_EXCEEDED') {
+				logger.warn(
+					'Primary AI service quota exceeded, attempting fallback...'
+				);
+				this.aiService = AIServiceFactory.getService(); // Get fallback service
+				return await this.aiService.processContent(txtContent, title);
+			}
+			throw error;
+		}
+	}
+
+	/**
+	 * Creates and processes MDX file
+	 */
+	private async createMDX(
+		content: string,
+		videoId: string,
+		topicPath: string,
+		srtPath: string
+	) {
+		// Create temporary MDX
+		const tempMdxPath = path.join(this.tempDir, `${videoId}_temp.mdx`);
+		await fs.writeFile(tempMdxPath, content);
+		logger.info('Created temp MDX file', { tempMdxPath });
+
+		// Create final MDX with timestamps
+		const finalPath = path.join(topicPath, `${videoId}.mdx`);
+		await syncWithVideo(tempMdxPath, srtPath, finalPath);
+		logger.info('Created final MDX with timestamps', { finalPath });
+
+		return { tempMdxPath, finalPath };
+	}
+
+	/**
+	 * Cleans up temporary files
+	 */
+	private async cleanup(filePaths: string[]) {
+		for (const filePath of filePaths) {
+			try {
+				await fs.unlink(filePath);
+			} catch (error) {
+				logger.warn(
+					`Failed to delete temporary file: ${filePath}`,
+					error
+				);
+			}
+		}
+	}
+
+	/**
+	 * Handles and transforms errors
+	 */
+	private handleError(error: unknown): Error {
+		if (error instanceof Error) {
+			return new Error(`Conversion failed: ${error.message}`);
+		}
+		return new Error('An unknown error occurred during conversion');
 	}
 }

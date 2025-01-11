@@ -17,6 +17,7 @@
 	},
 	"dependencies": {
 		"@floating-ui/react": "^0.26.28",
+		"@google/generative-ai": "^0.21.0",
 		"@hookform/resolvers": "^3.9.1",
 		"@mdxeditor/editor": "^3.17.1",
 		"@prisma/client": "^5.21.1",
