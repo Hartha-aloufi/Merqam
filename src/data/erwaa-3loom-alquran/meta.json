@@ -1,10 +1,38 @@
 {
-	"title": "إرواء - علوم القرآن",
-	"description": "",
-	"lessons": {
-		"ZEx3F-cnisM": {
-			"title": "علوم القرآن | المجلس الثامن | برنامج إرواء",
-			"youtubeUrl": "https://www.youtube.com/watch?v=ZEx3F-cnisM"
-		}
-	}
+  "title": "إرواء - علوم القرآن",
+  "description": "",
+  "lessons": {
+    "ZEx3F-cnisM": {
+      "title": "علوم القرآن | المجلس الثامن | برنامج إرواء",
+      "youtubeUrl": "https://www.youtube.com/watch?v=ZEx3F-cnisM"
+    },
+    "BWVoxxCCw64": {
+      "title": "علوم القرآن | المجلس الأول | برنامج إرواء",
+      "youtubeUrl": "https://www.youtube.com/watch?v=BWVoxxCCw64"
+    },
+    "0z4p5shuZaw": {
+      "title": "علوم القرآن | المجلس الثاني | برنامج إرواء",
+      "youtubeUrl": "https://www.youtube.com/watch?v=0z4p5shuZaw"
+    },
+    "c72EdGfv4u0": {
+      "title": "علوم القرآن | المجلس الثالث | برنامج إرواء",
+      "youtubeUrl": "https://www.youtube.com/watch?v=c72EdGfv4u0"
+    },
+    "nXdVPPPkZME": {
+      "title": "علوم القرآن | المجلس الرابع | برنامج إرواء",
+      "youtubeUrl": "https://www.youtube.com/watch?v=nXdVPPPkZME"
+    },
+    "dKH8VVaAUqQ": {
+      "title": "علوم القرآن | المجلس الخامس | برنامج إرواء",
+      "youtubeUrl": "https://www.youtube.com/watch?v=dKH8VVaAUqQ"
+    },
+    "fdgTM4L5Jig": {
+      "title": "علوم القرآن | المجلس السادس | برنامج إرواء",
+      "youtubeUrl": "https://www.youtube.com/watch?v=fdgTM4L5Jig"
+    },
+    "47daChYOkvY": {
+      "title": "علوم القرآن | المجلس السابع | برنامج إرواء",
+      "youtubeUrl": "https://www.youtube.com/watch?v=47daChYOkvY"
+    }
+  }
 }

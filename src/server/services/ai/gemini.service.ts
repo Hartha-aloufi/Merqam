@@ -13,7 +13,7 @@ export class GeminiService extends BaseAIService {
 	private defaultModel = 'gemini-2.0-flash-exp';
 
 	constructor() {
-		super({ maxChunkLength: 15000 });
+		super({ maxChunkLength: 20000 });
 		this.keyManager = new GeminiKeyManager(env.GEMINI_API_KEYS);
 		this.initializeClient();
 	}
@@ -74,9 +74,7 @@ export class GeminiService extends BaseAIService {
 						? 'Process this text according to the provided rules, make sure to sustain a small paragraph sizes:'
 						: 'Continue processing the following part, maintaining consistency:';
 
-				const newChat = await this.initializeChat();
-
-				const result = await newChat.sendMessage(
+				const result = await chat.sendMessage(
 					`${contextMessage}\n\n${chunk}`
 				);
 
