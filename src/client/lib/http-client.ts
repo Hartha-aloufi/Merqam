@@ -62,11 +62,13 @@ httpClient.interceptors.response.use(
 			} catch (refreshError) {
 				processQueue(refreshError as Error);
 				// Only redirect if we're not already on the auth pages
-				if (!window.location.pathname.startsWith('/auth/')) {
-					window.location.href = `/auth/signin?returnUrl=${encodeURIComponent(
-						window.location.pathname
-					)}`;
-				}
+
+				// we don't have any auth routes, so comment out this block
+				// if (!window.location.pathname.startsWith('/auth/')) {
+				// 	window.location.href = `/auth/signin?returnUrl=${encodeURIComponent(
+				// 		window.location.pathname
+				// 	)}`;
+				// }
 				return Promise.reject(refreshError);
 			} finally {
 				isRefreshing = false;

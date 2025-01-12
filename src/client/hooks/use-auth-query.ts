@@ -5,6 +5,7 @@ import { AuthService } from '../services/auth.service';
 import { ApiError } from '../lib/api-error';
 import type { AuthResponse, CreateUserInput } from '@/types/auth';
 import { toast } from 'sonner';
+import { queryClient } from '../lib/queryClient';
 
 const authService = new AuthService();
 
@@ -146,4 +147,9 @@ export function useRegister() {
 			}
 		},
 	});
+}
+
+// check if the query cache has a user session imperatively
+export function hasSession() {
+	return queryClient.getQueryData<SessionData>(AUTH_KEYS.session)?.user != null;
 }

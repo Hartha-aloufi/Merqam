@@ -1,5 +1,5 @@
 // src/client/hooks/use-reading-progress-sync.ts
-import { useSession } from '@/client/hooks/use-auth-query';
+import { hasSession, useSession } from '@/client/hooks/use-auth-query';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { httpClient } from '@/client/lib/http-client';
 import { ReadingProgressUpdate } from '@/types/reading-progress';
@@ -20,10 +20,7 @@ export const getLatestReadParagraph = async (
 	topicId: string,
 	lessonId: string
 ) => {
-	try {
-		// Debug log
-		console.log('Fetching progress for:', { topicId, lessonId });
-
+	if (hasSession()) {
 		const response = await httpClient.get('/reading-progress', {
 			params: {
 				topic_id: topicId,
@@ -31,12 +28,8 @@ export const getLatestReadParagraph = async (
 			},
 		});
 
-		// Debug log
-		console.log('API Response:', response.data);
-
 		return response.data.latest_read_paragraph ?? 0;
-	} catch (error) {
-		console.error('Error fetching progress:', error);
+	} else {
 		// Fallback to local storage if API fails
 		return getLessonProgress(topicId, lessonId);
 	}
