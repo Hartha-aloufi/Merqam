@@ -7,12 +7,14 @@ import {
 	ChevronUp,
 	Undo2,
 	Redo2,
+	MessageSquare,
 } from 'lucide-react';
 import { CollapsibleToolbar } from './CollapsibleToolbar';
 import { ColorPicker } from './ColorPicker';
 import { HIGHLIGHT_COLORS, HighlightColorKey } from '@/constants/highlights';
 import { useVideoSettings } from '@/client/stores/use-video-settings';
 import { HighlightNavigationControls } from './HighlightNavigationControls';
+import { useNotes } from '@/client/contexts/notes-context';
 
 interface HighlightToolbarProps {
 	isEnabled: boolean;
@@ -46,6 +48,7 @@ export const HighlightToolbar = React.memo(function HighlightToolbar({
 }: HighlightToolbarProps) {
 	const { position } = useVideoSettings();
 	const isPlacedBottom = position === 'bottom';
+  const { actions: noteActions, state: noteState } = useNotes();
 
 	// Pull tab content shows highlight status
 	const pullTabContent = (
@@ -86,6 +89,22 @@ export const HighlightToolbar = React.memo(function HighlightToolbar({
 						className="h-9 w-9"
 					>
 						<Highlighter className="h-4 w-4" />
+					</Button>
+
+					{/* Notes Button */}
+					<Button
+						variant="ghost"
+						size="icon"
+						onClick={() => noteActions.openAllNotes()}
+						className="h-9 w-9 relative"
+						title="الملاحظات"
+					>
+						<MessageSquare className="h-4 w-4" />
+						{noteState.notes.length > 0 && (
+							<span className="absolute -top-1 -right-1 h-4 w-4 text-xs bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+								{noteState.notes.length}
+							</span>
+						)}
 					</Button>
 
 					{/* Tools visible only when highlighting is enabled */}

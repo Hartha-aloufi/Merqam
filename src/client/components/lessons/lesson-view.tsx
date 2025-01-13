@@ -1,17 +1,21 @@
-'use client';
-import { useEffect } from 'react';
-import { YouTubeMusicPlayer } from '@/client/components/video/youtube-music-player';
-import { ShortcutsToast } from '@/client/components/reading/ShortcutsToast';
-import { VideoProvider } from '@/client/contexts/video-context';
-import { useParagraphTracking } from '@/client/hooks/use-paragraph-tracking';
-import { usePrintLesson } from '@/client/hooks/use-print-lesson';
-import type { Lesson } from '@/types';
-import { LessonHeader } from './lesson-header';
-import { ReadingProgressBar } from '../reading/ReadingProgressBar';
-import PrintButton from './print/print-button';
+"use client"
+
+// src/client/components/lessons/lesson-view.tsx
+import { NotesProvider } from '@/client/contexts/notes-context';
+import { NotesSheet } from '@/client/components/notes/NotesSheet';
+import { ShortcutsToast } from '../reading/ShortcutsToast';
 import PrintableLesson from './print/printable-lesson';
-import { cn } from '@/client/lib/utils';
+import { VideoProvider } from '@/client/contexts/video-context';
+import { useEffect } from 'react';
+import { useParagraphTracking } from '@/client/hooks/use-paragraph-tracking';
 import { useVideoSettings } from '@/client/stores/use-video-settings';
+import { usePrintLesson } from '@/client/hooks/use-print-lesson';
+import { cn } from '@/client/lib/utils';
+import { ReadingProgressBar } from '../reading/ReadingProgressBar';
+import { YouTubeMusicPlayer } from '../video/youtube-music-player';
+import { LessonHeader } from './lesson-header';
+import PrintButton from './print/print-button';
+import { Lesson } from '@/types';
 
 interface LessonViewProps {
 	lesson: Lesson;
@@ -20,6 +24,7 @@ interface LessonViewProps {
 	readingTime: number;
 	children: React.ReactNode;
 }
+
 export function LessonView({
 	lesson,
 	topicId,
@@ -43,49 +48,62 @@ export function LessonView({
 	}, [lesson.content, pTracker]);
 
 	return (
-		<VideoProvider>
-			<div
-				className={cn('max-w-3xl mx-auto pt-14 pb-20', 'print:hidden')}
-			>
-				<ReadingProgressBar />
+		<NotesProvider>
+			<VideoProvider>
+				<div
+					className={cn(
+						'max-w-3xl mx-auto pt-14 pb-20',
+						'print:hidden'
+					)}
+				>
+					<ReadingProgressBar />
 
-				<div className="flex items-center justify-between mb-8">
-					<LessonHeader
-						title={lesson.title}
-						readingTime={readingTime}
-						youtubeUrl={lesson.youtubeUrl}
-						topicId={topicId}
-						lessonId={lessonId}
-					/>
-					<PrintButton onClick={handlePrint} className="ml-4" />
-				</div>
-
-				{/* YouTube Player for top position */}
-				{lesson.youtubeUrl && (
-					<div
-						className={
-							position === 'bottom' ? 'order-1' : 'order-0'
-						}
-					>
-						<YouTubeMusicPlayer youtubeUrl={lesson.youtubeUrl} />
+					<div className="flex items-center justify-between mb-8">
+						<LessonHeader
+							title={lesson.title}
+							readingTime={readingTime}
+							youtubeUrl={lesson.youtubeUrl}
+							topicId={topicId}
+							lessonId={lessonId}
+						/>
+						<PrintButton onClick={handlePrint} className="ml-4" />
 					</div>
-				)}
 
-				<div className="prose prose-lg dark:prose-invert max-w-none">
-					{children}
+					{/* YouTube Player for top position */}
+					{lesson.youtubeUrl && position === 'top' && (
+						<div className="mb-8">
+							<YouTubeMusicPlayer
+								youtubeUrl={lesson.youtubeUrl}
+							/>
+						</div>
+					)}
+
+					<div className="prose prose-lg dark:prose-invert max-w-none">
+						{children}
+					</div>
+
+					{/* YouTube Player for bottom position */}
+					{lesson.youtubeUrl && position === 'bottom' && (
+						<div className="mt-8">
+							<YouTubeMusicPlayer
+								youtubeUrl={lesson.youtubeUrl}
+							/>
+						</div>
+					)}
 				</div>
-			</div>
 
-			<PrintableLesson
-				title={lesson.title}
-				content={children}
-				topicId={topicId}
-				lessonId={lessonId}
-			/>
+				<PrintableLesson
+					title={lesson.title}
+					content={children}
+					topicId={topicId}
+					lessonId={lessonId}
+				/>
 
-			<div className="print:hidden">
-				<ShortcutsToast />
-			</div>
-		</VideoProvider>
+				<div className="print:hidden">
+					<ShortcutsToast />
+					<NotesSheet />
+				</div>
+			</VideoProvider>
+		</NotesProvider>
 	);
 }
