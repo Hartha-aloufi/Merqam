@@ -71,6 +71,13 @@ interface NotesContextValue {
 export function NotesProvider({ children }: { children: React.ReactNode }) {
 	const [state, dispatch] = useReducer(notesReducer, initialState);
 
+	const getHighlightedText = (highlightId: string): string => {
+		const element = document.querySelector(
+			`mark[data-highlight="${highlightId}"]`
+		);
+		return element?.textContent || '';
+	};
+
 	const actions = {
 		addNote: (content: string) => {
 			if (!state.activeHighlightId) return;
@@ -79,12 +86,14 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
 				id: crypto.randomUUID(),
 				highlightId: state.activeHighlightId,
 				content,
+				highlightText: getHighlightedText(state.activeHighlightId),
 				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString(),
 			};
 
 			dispatch({ type: 'SET_NOTE', payload: newNote });
 		},
+
 		updateNote: (id: string, content: string) => {
 			const note = state.notes.find((n) => n.id === id);
 			if (!note) return;
@@ -98,23 +107,29 @@ export function NotesProvider({ children }: { children: React.ReactNode }) {
 				},
 			});
 		},
+
 		deleteNote: (id: string) => {
 			dispatch({ type: 'DELETE_NOTE', payload: id });
 		},
-		setActiveHighlight: (highlightId: string | null) => {
-			dispatch({ type: 'SET_ACTIVE_HIGHLIGHT', payload: highlightId });
-		},
-		setView: (view: 'all' | 'single') => {
-			dispatch({ type: 'SET_VIEW', payload: view });
-		},
+
 		openEditor: (highlightId: string) => {
 			dispatch({ type: 'SET_ACTIVE_HIGHLIGHT', payload: highlightId });
 			dispatch({ type: 'SET_VIEW', payload: 'single' });
 			dispatch({ type: 'OPEN_SHEET' });
 		},
+
 		closeEditor: () => {
 			dispatch({ type: 'CLOSE_SHEET' });
 		},
+
+		setActiveHighlight: (highlightId: string | null) => {
+			dispatch({ type: 'SET_ACTIVE_HIGHLIGHT', payload: highlightId });
+		},
+
+		setView: (view: 'all' | 'single') => {
+			dispatch({ type: 'SET_VIEW', payload: view });
+		},
+
 		openAllNotes: () => {
 			dispatch({ type: 'SET_VIEW', payload: 'all' });
 			dispatch({ type: 'OPEN_SHEET' });

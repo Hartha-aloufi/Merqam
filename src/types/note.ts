@@ -4,6 +4,7 @@ export interface Note {
 	id: string;
 	highlightId: string;
 	content: string;
+	highlightText: string; // Add highlighted text
 	createdAt: string;
 	updatedAt: string;
 }

@@ -10,11 +10,12 @@ import { NoteEditor } from './NoteEditor';
 import { NoteCard } from './NoteCard';
 import { ScrollArea } from '@/client/components/ui/scroll-area';
 import { Button } from '@/client/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { cn } from '@/client/lib/utils';
 
 export function NotesSheet() {
 	const { state, actions } = useNotes();
+	const isRTL = document.dir === 'rtl';
 	const isAllView = state.view === 'all';
 
 	// Get notes based on view
@@ -24,7 +25,6 @@ export function NotesSheet() {
 				(note) => note.highlightId === state.activeHighlightId
 		  );
 
-	// Get active note for single view
 	const activeNote = state.activeHighlightId
 		? state.notes.find(
 				(note) => note.highlightId === state.activeHighlightId
@@ -37,8 +37,13 @@ export function NotesSheet() {
 		<Sheet
 			open={state.isOpen}
 			onOpenChange={(open) => !open && actions.closeEditor()}
+			modal={false}
+      
 		>
-			<SheetContent className="w-full sm:max-w-md" side="left">
+			<SheetContent
+				className="w-full sm:max-w-md border-l dark:border-l-slate-700"
+				side={isRTL ? 'right' : 'left'}
+			>
 				<SheetHeader className="space-y-0">
 					{!isAllView && (
 						<Button
@@ -47,7 +52,11 @@ export function NotesSheet() {
 							className="w-fit mb-2"
 							onClick={() => actions.setView('all')}
 						>
-							<ArrowRight className="h-4 w-4 ml-2" />
+							{isRTL ? (
+								<ArrowLeft  className="h-4 w-4 ml-2" />
+							) : (
+								<ArrowRight className="h-4 w-4 mr-2" />
+							)}
 							جميع الملاحظات
 						</Button>
 					)}
@@ -81,6 +90,7 @@ export function NotesSheet() {
 												  }
 												: undefined
 										}
+										highlightedText={note.highlightText} // Add this to Note type
 									/>
 								))}
 							</div>

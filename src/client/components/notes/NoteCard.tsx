@@ -13,24 +13,36 @@ interface NoteCardProps {
 	note: Note;
 	variant: 'preview' | 'full';
 	onClick?: () => void;
+	highlightedText?: string;
 }
 
-export function NoteCard({ note, variant, onClick }: NoteCardProps) {
-	  const [isEditing, setIsEditing] = React.useState(false);
-		const [editedContent, setEditedContent] = React.useState(note.content);
-		const { actions } = useNotes();
+export function NoteCard({
+	note,
+	variant,
+	onClick,
+	highlightedText,
+}: NoteCardProps) {
+	const [isEditing, setIsEditing] = React.useState(false);
+	const [editedContent, setEditedContent] = React.useState(note.content);
+	const { actions } = useNotes();
 
-		const handleUpdate = () => {
-			if (editedContent.trim() && editedContent !== note.content) {
-				actions.updateNote(note.id, editedContent.trim());
-			}
-			setIsEditing(false);
-		};
+	const truncateText = (text: string) => {
+		const words = text.split(' ');
+		if (words.length <= 10) return text;
+		return words.slice(0, 10).join(' ') + '...';
+	};
 
-		const handleCancel = () => {
-			setEditedContent(note.content);
-			setIsEditing(false);
-		};
+	const handleUpdate = () => {
+		if (editedContent.trim() && editedContent !== note.content) {
+			actions.updateNote(note.id, editedContent.trim());
+		}
+		setIsEditing(false);
+	};
+
+	const handleCancel = () => {
+		setEditedContent(note.content);
+		setIsEditing(false);
+	};
 
 	const isPreview = variant === 'preview';
 
@@ -44,7 +56,12 @@ export function NoteCard({ note, variant, onClick }: NoteCardProps) {
 			)}
 			onClick={onClick}
 		>
-			<CardContent className="pt-4">
+			<CardContent className="pt-4 space-y-3">
+				{highlightedText && (
+					<blockquote className="text-sm text-muted-foreground border-r-2 pr-3 italic">
+						{truncateText(highlightedText)}
+					</blockquote>
+				)}
 				{isEditing ? (
 					<Textarea
 						value={editedContent}
