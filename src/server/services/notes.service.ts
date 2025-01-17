@@ -113,7 +113,7 @@ export class NotesService {
 					highlight_id: data.highlightId,
 					content: data.content,
 				})
-				.returning('*')
+				.returningAll()
 				.execute();
 
 			// If tags provided, create note-tag associations

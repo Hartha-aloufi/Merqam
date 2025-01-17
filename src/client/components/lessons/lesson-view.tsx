@@ -12,6 +12,7 @@ import PrintButton from './print/print-button';
 import PrintableLesson from './print/printable-lesson';
 import { cn } from '@/client/lib/utils';
 import { useVideoSettings } from '@/client/stores/use-video-settings';
+import { NotesSheet } from '../notes/NotesSheet';
 
 interface LessonViewProps {
 	lesson: Lesson;
@@ -86,6 +87,10 @@ export function LessonView({
 			<div className="print:hidden">
 				<ShortcutsToast />
 			</div>
+
+			{/* Notes Sheet */}
+			<NotesSheet topicId={topicId} lessonId={lessonId} />
+
 		</VideoProvider>
 	);
 }

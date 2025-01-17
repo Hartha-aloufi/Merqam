@@ -7,12 +7,14 @@ import {
 	ChevronUp,
 	Undo2,
 	Redo2,
+	FileText,
 } from 'lucide-react';
 import { CollapsibleToolbar } from './CollapsibleToolbar';
 import { ColorPicker } from './ColorPicker';
 import { HIGHLIGHT_COLORS, HighlightColorKey } from '@/constants/highlights';
 import { useVideoSettings } from '@/client/stores/use-video-settings';
 import { HighlightNavigationControls } from './HighlightNavigationControls';
+import { useNotesSheet } from '@/client/stores/use-notes-sheet';
 
 interface HighlightToolbarProps {
 	isEnabled: boolean;
@@ -46,6 +48,7 @@ export const HighlightToolbar = React.memo(function HighlightToolbar({
 }: HighlightToolbarProps) {
 	const { position } = useVideoSettings();
 	const isPlacedBottom = position === 'bottom';
+	const { open: openNotes } = useNotesSheet();
 
 	// Pull tab content shows highlight status
 	const pullTabContent = (
@@ -120,6 +123,21 @@ export const HighlightToolbar = React.memo(function HighlightToolbar({
 							</div>
 						</>
 					)}
+
+					{/* Separator */}
+					<div className="h-6 w-px bg-border" />
+
+					{/* Notes Button */}
+					<Button
+						variant="ghost"
+						size="icon"
+						className="h-8 w-8"
+						onClick={() => openNotes()}
+						title="الملاحظات"
+					>
+						<FileText className="h-4 w-4" />
+					</Button>
+
 				</div>
 
 				{/* Navigation Controls - Always visible if there are highlights */}

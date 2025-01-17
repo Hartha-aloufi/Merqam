@@ -6,7 +6,7 @@ import React, {
 	useCallback,
 	useRef,
 } from 'react';
-import { Trash2 } from 'lucide-react';
+import { FileText, Trash2 } from 'lucide-react';
 import { TextHighlight } from '@/types/highlight';
 import {
 	FloatingPortal,
@@ -21,6 +21,7 @@ import {
 } from '@floating-ui/react';
 import { cn } from '@/client/lib/utils';
 import { HIGHLIGHT_COLORS, HighlightColorKey } from '@/constants/highlights';
+import { useNotesSheet } from '@/client/stores/use-notes-sheet';
 
 interface PopoverState {
 	highlight: TextHighlight | null;
@@ -177,6 +178,26 @@ export function HighlightPopoverProvider({
 
 						{/* Divider */}
 						<div className="w-px h-6 bg-border/50" />
+
+						{/* Note Button */}
+						<button
+							onClick={() => {
+								useNotesSheet
+									.getState()
+									.open(popoverState.highlight!.id);
+								hidePopover();
+							}}
+							className={cn(
+								'h-7 w-7 flex items-center justify-center',
+								'rounded-full transition-colors duration-150',
+								'hover:bg-primary hover:text-primary-foreground',
+								'focus:outline-none focus:ring-2 focus:ring-primary',
+								'active:scale-95'
+							)}
+							title="إضافة ملاحظة"
+						>
+							<FileText className="h-4 w-4" />
+						</button>
 
 						{/* Delete Button */}
 						<button
