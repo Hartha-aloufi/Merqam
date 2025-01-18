@@ -13,7 +13,6 @@ export const notesKeys = {
 	tags: () => [...notesKeys.all, 'tags'] as const,
 } as const;
 
-// Custom hooks
 export function useNotes(lessonId: string) {
 	return useQuery({
 		queryKey: notesKeys.list(lessonId),
@@ -27,7 +26,7 @@ export function useNote(noteId: string, enabled = true) {
 		queryKey: notesKeys.note(noteId),
 		queryFn: () => notesService.getNote(noteId),
 		staleTime: 1000 * 60, // 1 minute
-    enabled,
+    enabled
 	});
 }
 
@@ -37,13 +36,32 @@ export function useCreateNote() {
 	return useMutation({
 		mutationFn: (data: CreateNoteDTO) => notesService.createNote(data),
 		onSuccess: (note) => {
+			// Show success message
+			toast.success('تم إنشاء الملاحظة بنجاح');
+
+			// Invalidate both the list and specific note queries
 			queryClient.invalidateQueries({
 				queryKey: notesKeys.list(note.lessonId),
 			});
-			toast.success('تم إنشاء الملاحظة بنجاح');
+			queryClient.invalidateQueries({
+				queryKey: notesKeys.note(note.id),
+			});
+
+			// Optional: Add to cache immediately for faster UI updates
+			queryClient.setQueryData(
+				notesKeys.list(note.lessonId),
+				(oldData: any[] = []) => [note, ...oldData]
+			);
 		},
 		onError: (error: Error) => {
-			toast.error(error.message || 'حدث خطأ أثناء إنشاء الملاحظة');
+			// Handle specific error cases
+			if (error.message.includes('Maximum number of notes')) {
+				toast.error(
+					'لقد وصلت للحد الأقصى من الملاحظات لهذا الدرس (200)'
+				);
+			} else {
+				toast.error(error.message || 'حدث خطأ أثناء إنشاء الملاحظة');
+			}
 		},
 	});
 }
@@ -60,13 +78,24 @@ export function useUpdateNote() {
 			data: UpdateNoteDTO;
 		}) => notesService.updateNote(noteId, data),
 		onSuccess: (note) => {
+			// Show success message
+			toast.success('تم تحديث الملاحظة بنجاح');
+
+			// Invalidate relevant queries
 			queryClient.invalidateQueries({
 				queryKey: notesKeys.note(note.id),
 			});
 			queryClient.invalidateQueries({
 				queryKey: notesKeys.list(note.lessonId),
 			});
-			toast.success('تم تحديث الملاحظة بنجاح');
+
+			// Optional: Update cache immediately
+			queryClient.setQueryData(notesKeys.note(note.id), note);
+			queryClient.setQueryData(
+				notesKeys.list(note.lessonId),
+				(oldData: any[] = []) =>
+					oldData.map((item) => (item.id === note.id ? note : item))
+			);
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || 'حدث خطأ أثناء تحديث الملاحظة');
@@ -80,11 +109,16 @@ export function useDeleteNote() {
 	return useMutation({
 		mutationFn: (noteId: string) => notesService.deleteNote(noteId),
 		onSuccess: (_, noteId) => {
-			// Invalidate and refetch
+			// Show success message
+			toast.success('تم حذف الملاحظة بنجاح');
+
+			// Remove from cache and invalidate lists
+			queryClient.removeQueries({
+				queryKey: notesKeys.note(noteId),
+			});
 			queryClient.invalidateQueries({
 				queryKey: notesKeys.lists(),
 			});
-			toast.success('تم حذف الملاحظة بنجاح');
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || 'حدث خطأ أثناء حذف الملاحظة');
@@ -105,14 +139,28 @@ export function useCreateTag() {
 
 	return useMutation({
 		mutationFn: (data: CreateTagDTO) => notesService.createTag(data),
-		onSuccess: () => {
+		onSuccess: (tag) => {
+			// Show success message
+			toast.success('تم إنشاء التصنيف بنجاح');
+
+			// Update cache immediately
+			queryClient.setQueryData(
+				notesKeys.tags(),
+				(oldData: any[] = []) => [...oldData, tag]
+			);
+
+			// Invalidate to ensure consistency
 			queryClient.invalidateQueries({
 				queryKey: notesKeys.tags(),
 			});
-			toast.success('تم إنشاء التصنيف بنجاح');
 		},
 		onError: (error: Error) => {
-			toast.error(error.message || 'حدث خطأ أثناء إنشاء التصنيف');
+			// Handle specific error cases
+			if (error.message.includes('unique constraint')) {
+				toast.error('هذا التصنيف موجود مسبقاً');
+			} else {
+				toast.error(error.message || 'حدث خطأ أثناء إنشاء التصنيف');
+			}
 		},
 	});
 }

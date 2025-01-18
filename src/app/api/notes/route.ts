@@ -34,8 +34,8 @@ async function handler(req: AuthenticatedRequest) {
 			const url = new URL(req.url);
 			const queryResult = getNotesQuerySchema.safeParse({
 				lessonId: url.searchParams.get('lessonId'),
-				page: url.searchParams.get('page'),
-				limit: url.searchParams.get('limit'),
+				page: url.searchParams.get('page') || undefined,
+				limit: url.searchParams.get('limit') || undefined,
 			});
 
 			if (!queryResult.success) {
@@ -46,7 +46,6 @@ async function handler(req: AuthenticatedRequest) {
 			}
 
 			const { lessonId, page, limit } = queryResult.data;
-
 			const notes = await notesService.getNotes(req.user.id, lessonId);
 			return NextResponse.json({
 				notes,

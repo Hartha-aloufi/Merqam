@@ -31,7 +31,6 @@ export function NotesSheet({ topicId, lessonId }: NotesSheetProps) {
 			<SheetContent
 				side="left"
 				className="w-full sm:max-w-lg"
-				closeButtonClassName="right-4 left-auto"
 			>
 				<SheetHeader>
 					<SheetTitle>

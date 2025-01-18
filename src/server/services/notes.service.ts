@@ -2,9 +2,21 @@ import { db } from '../config/db';
 import { CreateNoteDTO, UpdateNoteDTO, CreateTagDTO } from '@/types/note';
 import { sql } from 'kysely';
 
+// Define an interface for the raw query result
+interface RawNote {
+	id: string;
+	content: string;
+	highlightId: string | null;
+	topicId: string;
+	lessonId: string;
+	createdAt: Date;
+	updatedAt: Date;
+	tags: string | null; // SQL array_agg returns a string
+}
+
 export class NotesService {
 	async getNotes(userId: string, lessonId: string) {
-		const notes = await db
+		const notes = (await db
 			.selectFrom('notes')
 			.where('notes.user_id', '=', userId)
 			.where('notes.lesson_id', '=', lessonId)
@@ -13,12 +25,12 @@ export class NotesService {
 			.select([
 				'notes.id',
 				'notes.content',
-				'notes.highlight_id',
-				'notes.created_at',
-				'notes.updated_at',
-				'notes.topic_id',
-				'notes.lesson_id',
-				sql<string[]>`
+				'notes.highlight_id as highlightId',
+				'notes.topic_id as topicId',
+				'notes.lesson_id as lessonId',
+				'notes.created_at as createdAt',
+				'notes.updated_at as updatedAt',
+				sql<string>`
                     array_agg(
                         CASE 
                             WHEN note_tags.id IS NOT NULL 
@@ -43,7 +55,7 @@ export class NotesService {
 				'notes.lesson_id',
 			])
 			.orderBy('notes.created_at', 'desc')
-			.execute();
+			.execute()) as unknown as RawNote[];
 
 		return notes.map((note) => ({
 			...note,
@@ -52,7 +64,7 @@ export class NotesService {
 	}
 
 	async getNoteById(userId: string, noteId: string) {
-		const note = await db
+		const note = (await db
 			.selectFrom('notes')
 			.where('notes.id', '=', noteId)
 			.where('notes.user_id', '=', userId)
@@ -61,12 +73,12 @@ export class NotesService {
 			.select([
 				'notes.id',
 				'notes.content',
-				'notes.highlight_id',
-				'notes.created_at',
-				'notes.updated_at',
-				'notes.topic_id',
-				'notes.lesson_id',
-				sql<string[]>`
+				'notes.highlight_id as highlightId',
+				'notes.topic_id as topicId',
+				'notes.lesson_id as lessonId',
+				'notes.created_at as createdAt',
+				'notes.updated_at as updatedAt',
+				sql<string>`
                     array_agg(
                         CASE 
                             WHEN note_tags.id IS NOT NULL 
@@ -90,7 +102,7 @@ export class NotesService {
 				'notes.topic_id',
 				'notes.lesson_id',
 			])
-			.executeTakeFirst();
+			.executeTakeFirst()) as unknown as RawNote | undefined;
 
 		if (!note) return null;
 
@@ -113,7 +125,15 @@ export class NotesService {
 					highlight_id: data.highlightId,
 					content: data.content,
 				})
-				.returningAll()
+				.returning([
+					'id',
+					'content',
+					'highlight_id as highlightId',
+					'topic_id as topicId',
+					'lesson_id as lessonId',
+					'created_at as createdAt',
+					'updated_at as updatedAt',
+				])
 				.execute();
 
 			// If tags provided, create note-tag associations
@@ -191,7 +211,12 @@ export class NotesService {
 				user_id: userId,
 				name: data.name,
 			})
-			.returning('*')
+			.returning([
+				'id',
+				'name',
+				'user_id as userId',
+				'created_at as createdAt',
+			])
 			.execute();
 
 		return tag;

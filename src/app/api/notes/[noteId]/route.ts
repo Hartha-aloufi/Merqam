@@ -5,7 +5,6 @@ import { z } from 'zod';
 
 const notesService = new NotesService();
 
-// Validation schema for updates
 const updateNoteSchema = z.object({
 	content: z
 		.string()
@@ -17,97 +16,69 @@ const updateNoteSchema = z.object({
 
 async function handler(
 	req: AuthenticatedRequest,
-	{ params }: { params: { noteId: string } }
+	context: { params: { noteId: string } }
 ) {
-	// GET specific note
 	if (req.method === 'GET') {
-		try {
-			const note = await notesService.getNoteById(
-				req.user.id,
-				params.noteId
-			);
+		const note = await notesService.getNoteById(
+			req.user.id,
+			context.params.noteId
+		);
 
-			if (!note) {
-				return NextResponse.json(
-					{ error: 'الملاحظة غير موجودة' },
-					{ status: 404 }
-				);
-			}
-
-			return NextResponse.json({ note });
-		} catch (error) {
-			console.error('Failed to fetch note:', error);
+		if (!note) {
 			return NextResponse.json(
-				{ error: 'حدث خطأ أثناء جلب الملاحظة' },
-				{ status: 500 }
+				{ error: 'الملاحظة غير موجودة' },
+				{ status: 404 }
 			);
 		}
+
+		return NextResponse.json({ note });
 	}
 
-	// PATCH/Update note
 	if (req.method === 'PATCH') {
-		try {
-			const body = await req.json();
-			const validatedData = updateNoteSchema.parse(body);
+		const body = await req.json();
+		const validationResult = updateNoteSchema.safeParse(body);
 
-			const note = await notesService.getNoteById(
-				req.user.id,
-				params.noteId
-			);
-			if (!note) {
-				return NextResponse.json(
-					{ error: 'الملاحظة غير موجودة' },
-					{ status: 404 }
-				);
-			}
-
-			const updatedNote = await notesService.updateNote(
-				req.user.id,
-				params.noteId,
-				validatedData
-			);
-
-			return NextResponse.json({ note: updatedNote });
-		} catch (error) {
-			if (error instanceof z.ZodError) {
-				return NextResponse.json(
-					{ error: error.errors[0].message },
-					{ status: 400 }
-				);
-			}
-
-			console.error('Failed to update note:', error);
+		if (!validationResult.success) {
 			return NextResponse.json(
-				{ error: 'حدث خطأ أثناء تحديث الملاحظة' },
-				{ status: 500 }
+				{ error: validationResult.error.issues[0].message },
+				{ status: 400 }
 			);
 		}
+
+		const note = await notesService.getNoteById(
+			req.user.id,
+			context.params.noteId
+		);
+		if (!note) {
+			return NextResponse.json(
+				{ error: 'الملاحظة غير موجودة' },
+				{ status: 404 }
+			);
+		}
+
+		const updatedNote = await notesService.updateNote(
+			req.user.id,
+			context.params.noteId,
+			validationResult.data
+		);
+
+		return NextResponse.json({ note: updatedNote });
 	}
 
-	// DELETE note
 	if (req.method === 'DELETE') {
-		try {
-			// Verify note exists and belongs to user
-			const note = await notesService.getNoteById(
-				req.user.id,
-				params.noteId
-			);
-			if (!note) {
-				return NextResponse.json(
-					{ error: 'الملاحظة غير موجودة' },
-					{ status: 404 }
-				);
-			}
-
-			await notesService.deleteNote(req.user.id, params.noteId);
-			return NextResponse.json({ success: true });
-		} catch (error) {
-			console.error('Failed to delete note:', error);
+		const note = await notesService.getNoteById(
+			req.user.id,
+			context.params.noteId
+		);
+		if (!note) {
 			return NextResponse.json(
-				{ error: 'حدث خطأ أثناء حذف الملاحظة' },
-				{ status: 500 }
+				{ error: 'الملاحظة غير موجودة' },
+				{ status: 404 }
 			);
 		}
+
+		await notesService.deleteNote(req.user.id, context.params.noteId);
+		return NextResponse.json({ success: true });
 	}
 
 	return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });

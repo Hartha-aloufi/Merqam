@@ -22,6 +22,7 @@ import {
 	PopoverTrigger,
 } from '@/client/components/ui/popover';
 import { cn } from '@/client/lib/utils';
+import { NoteTag } from '@/types/note';
 
 interface NoteEditorProps {
 	topicId: string;
@@ -32,13 +33,12 @@ export function NoteEditor({ topicId, lessonId }: NoteEditorProps) {
 	const [content, setContent] = React.useState('');
 	const [selectedTags, setSelectedTags] = React.useState<string[]>([]);
 	const [isTagsOpen, setIsTagsOpen] = React.useState(false);
+	const [tagSearch, setTagSearch] = React.useState('');
 
 	const { selectedNoteId, highlightId, close, setView } = useNotesSheet();
-	const { data: tags = [] } = useTags();
-
-	const { data: existingNote, isLoading: isLoadingNote } = useNote(
-		selectedNoteId || '',
-		!!selectedNoteId
+	const { data: tags = [], isLoading: isLoadingTags } = useTags();
+	const { data: existingNote } = useNote(selectedNoteId || '', 
+	!!selectedNoteId,
 	);
 
 	const { mutate: createNote, isPending: isCreating } = useCreateNote();
@@ -58,9 +58,7 @@ export function NoteEditor({ topicId, lessonId }: NoteEditorProps) {
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 
-		if (!content.trim()) {
-			return;
-		}
+		if (!content.trim()) return;
 
 		if (selectedNoteId) {
 			updateNote(
@@ -84,7 +82,7 @@ export function NoteEditor({ topicId, lessonId }: NoteEditorProps) {
 					lessonId,
 					content: content.trim(),
 					tags: selectedTags,
-					highlightId,
+					highlightId: highlightId || undefined,
 				},
 				{
 					onSuccess: () => {
@@ -105,13 +103,30 @@ export function NoteEditor({ topicId, lessonId }: NoteEditorProps) {
 
 	const toggleTag = (tagId: string) => {
 		setSelectedTags((prev) =>
-			prev.includes(tagId)
+			prev?.includes(tagId)
 				? prev.filter((id) => id !== tagId)
 				: [...prev, tagId]
 		);
 	};
 
-	if (isLoadingNote) {
+	// Filter tags based on search
+	const filteredTags = React.useMemo(() => {
+		if (!tags) return [];
+		if (!tagSearch) return tags;
+
+		return tags.filter((tag) =>
+			tag.name.toLowerCase().includes(tagSearch.toLowerCase())
+		);
+	}, [tags, tagSearch]);
+
+	const getTagById = React.useCallback(
+		(id: string): NoteTag | undefined => {
+			return tags?.find((tag) => tag.id === id);
+		},
+		[tags]
+	);
+
+	if (isLoadingTags) {
 		return (
 			<div className="flex h-96 items-center justify-center">
 				<Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -152,8 +167,9 @@ export function NoteEditor({ topicId, lessonId }: NoteEditorProps) {
 			{/* Tags Section */}
 			<div className="space-y-2">
 				<div className="flex flex-wrap gap-1">
-					{selectedTags.map((tagId) => {
-						const tag = tags.find((t) => t.id === tagId);
+					{/* Selected Tags */}
+					{selectedTags?.map((tagId) => {
+						const tag = getTagById(tagId);
 						if (!tag) return null;
 
 						return (
@@ -175,6 +191,7 @@ export function NoteEditor({ topicId, lessonId }: NoteEditorProps) {
 						);
 					})}
 
+					{/* Tag Selector */}
 					<Popover open={isTagsOpen} onOpenChange={setIsTagsOpen}>
 						<PopoverTrigger asChild>
 							<Button
@@ -187,17 +204,23 @@ export function NoteEditor({ topicId, lessonId }: NoteEditorProps) {
 								<Plus className="h-3 w-3" />
 							</Button>
 						</PopoverTrigger>
-						<PopoverContent className="p-0" align="start">
+						<PopoverContent align="start" className="p-0 w-[200px]">
 							<Command>
-								<CommandInput placeholder="ابحث عن تصنيف..." />
-								<CommandEmpty>لا يوجد تصنيفات</CommandEmpty>
+								<CommandInput
+									placeholder="ابحث عن تصنيف..."
+									value={tagSearch || ''}
+									onValueChange={setTagSearch}
+									className="border-none focus:ring-0"
+								/>
+								<CommandEmpty>لا توجد تصنيفات</CommandEmpty>
 								<CommandGroup>
-									{tags.map((tag) => (
+									{filteredTags?.map((tag) => (
 										<CommandItem
 											key={tag.id}
+											value={tag.name}
 											onSelect={() => {
 												toggleTag(tag.id);
-												setIsTagsOpen(false);
+												setTagSearch('');
 											}}
 										>
 											<div
