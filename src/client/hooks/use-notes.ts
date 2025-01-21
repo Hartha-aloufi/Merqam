@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notesService } from '../services/notes.service';
 import type { CreateNoteDTO, UpdateNoteDTO, CreateTagDTO } from '@/types/note';
 import { toast } from 'sonner';
+import { queryClient } from '../lib/queryClient';
 
 // Query keys factory
 export const notesKeys = {
@@ -21,12 +22,27 @@ export function useNotes(lessonId: string) {
 	});
 }
 
-export function useNote(noteId: string, enabled = true) {
+type NoteList = Awaited<ReturnType<typeof notesService.getNotes>>;
+
+export function useNote(lessonId: string, noteId: string | null) {
 	return useQuery({
-		queryKey: notesKeys.note(noteId),
-		queryFn: () => notesService.getNote(noteId),
-		staleTime: 1000 * 60, // 1 minute
-    enabled
+		queryKey: notesKeys.note(noteId || ''),
+		queryFn: () =>
+			queryClient
+				.getQueryData<NoteList>(notesKeys.list(lessonId))
+				?.find((n) => n.id === noteId),
+		enabled: !!noteId,
+	});
+}
+
+export function useHighlightNote(lessonId: string, highlightId: string) {
+	return useQuery({
+		queryKey: notesKeys.note(highlightId),
+		queryFn: () =>
+			queryClient
+				.getQueryData<NoteList>(notesKeys.list(lessonId))
+				?.find((n) => n.highlightId === highlightId),
+		enabled: !!highlightId,
 	});
 }
 

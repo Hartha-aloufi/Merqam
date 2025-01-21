@@ -29,7 +29,7 @@ export function NotesSheet({ topicId, lessonId }: NotesSheetProps) {
 	return (
 		<Sheet open={isOpen} onOpenChange={(open) => !open && close()}>
 			<SheetContent
-				side="left"
+				side="right"
 				className="w-full sm:max-w-lg"
 			>
 				<SheetHeader>

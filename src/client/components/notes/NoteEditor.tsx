@@ -37,9 +37,7 @@ export function NoteEditor({ topicId, lessonId }: NoteEditorProps) {
 
 	const { selectedNoteId, highlightId, close, setView } = useNotesSheet();
 	const { data: tags = [], isLoading: isLoadingTags } = useTags();
-	const { data: existingNote } = useNote(selectedNoteId || '', 
-	!!selectedNoteId,
-	);
+	const { data: existingNote } = useNote(lessonId, selectedNoteId);
 
 	const { mutate: createNote, isPending: isCreating } = useCreateNote();
 	const { mutate: updateNote, isPending: isUpdating } = useUpdateNote();

@@ -160,6 +160,7 @@ export function HighlightContainer({
 		<HighlightPopoverProvider
 			onRemoveHighlight={removeHighlight}
 			onUpdateHighlight={handleUpdateHighlight}
+			lessonId={lessonId}
 		>
 			<div className="relative">
 				{/* Toolbar */}

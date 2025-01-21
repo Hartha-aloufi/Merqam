@@ -22,6 +22,18 @@ export class NotesClientService {
 		return data.note;
 	}
 
+	async getHighlightNote(highlightId: string): Promise<Note | null> {
+		try {
+			const { data } = await httpClient.get(`/notes`, {
+				params: { highlightId },
+			});
+			return data.notes[0] || null;
+		} catch (error) {
+			console.error('Error fetching highlight note:', error);
+			return null;
+		}
+	}
+
 	async createNote(noteData: CreateNoteDTO): Promise<Note> {
 		const { data } = await httpClient.post(`${this.baseUrl}`, noteData);
 		return data.note;

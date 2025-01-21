@@ -22,6 +22,7 @@ import {
 import { cn } from '@/client/lib/utils';
 import { HIGHLIGHT_COLORS, HighlightColorKey } from '@/constants/highlights';
 import { useNotesSheet } from '@/client/stores/use-notes-sheet';
+import { useHighlightNote } from '@/client/hooks/use-notes';
 
 interface PopoverState {
 	highlight: TextHighlight | null;
@@ -76,6 +77,7 @@ interface HighlightPopoverProviderProps {
 		id: string,
 		options: { color: HighlightColorKey }
 	) => void | Promise<void>;
+	lessonId: string;
 }
 
 /**
@@ -85,11 +87,18 @@ export function HighlightPopoverProvider({
 	children,
 	onRemoveHighlight,
 	onUpdateHighlight,
+	lessonId,
 }: HighlightPopoverProviderProps) {
 	const [popoverState, setPopoverState] = useState<PopoverState>({
 		highlight: null,
 		anchorElement: null,
 	});
+
+	// Get associated note info
+	const { data: noteData } = useHighlightNote(
+		lessonId,
+		popoverState.highlight?.id || ''
+	);
 
 	const arrowRef = useRef<HTMLDivElement>(null);
 
@@ -182,9 +191,16 @@ export function HighlightPopoverProvider({
 						{/* Note Button */}
 						<button
 							onClick={() => {
-								useNotesSheet
-									.getState()
-									.open(popoverState.highlight!.id);
+								const highlight = popoverState.highlight!;
+								useNotesSheet.getState().open(highlight.id);
+								console.log('noteData', noteData);
+								// If note exists, set the view to editor with that note
+								if (noteData?.id) {
+									useNotesSheet
+										.getState()
+										.setSelectedNoteId(noteData.id);
+									useNotesSheet.getState().setView('editor');
+								}
 								hidePopover();
 							}}
 							className={cn(
@@ -194,9 +210,18 @@ export function HighlightPopoverProvider({
 								'focus:outline-none focus:ring-2 focus:ring-primary',
 								'active:scale-95'
 							)}
-							title="إضافة ملاحظة"
+							title={
+								noteData
+									? 'عرض الملاحظة المرتبطة'
+									: 'إضافة ملاحظة'
+							}
 						>
-							<FileText className="h-4 w-4" />
+							<FileText
+								className={cn(
+									'h-4 w-4',
+									noteData && 'fill-current' // Fill icon if note exists
+								)}
+							/>
 						</button>
 
 						{/* Delete Button */}
