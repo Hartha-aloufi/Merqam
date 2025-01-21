@@ -45,6 +45,12 @@ export async function up(db: Kysely<any>): Promise<void> {
 		)
 		.execute();
 
+	// Add unique constraint for highlight_id
+	await db.schema
+		.alterTable('notes')
+		.addUniqueConstraint('notes_highlight_id_unique', ['highlight_id'])
+		.execute();
+
 	// Create notes_tags junction table
 	await db.schema
 		.createTable('notes_tags')
@@ -64,10 +70,10 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.alterTable('notes_tags')
 		.addUniqueConstraint('notes_tags_unique', ['note_id', 'tag_id'])
 		.execute();
-
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
+
 	await db.schema.dropTable('notes_tags').execute();
 	await db.schema.dropTable('notes').execute();
 	await db.schema.dropTable('note_tags').execute();

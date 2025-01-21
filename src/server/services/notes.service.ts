@@ -115,6 +115,18 @@ export class NotesService {
 	async createNote(userId: string, data: CreateNoteDTO) {
 		// Start transaction
 		const newNoteId = await db.transaction().execute(async (trx) => {
+			// Check if highlight already has a note
+			if (data.highlightId) {
+				const existingNote = await trx
+					.selectFrom('notes')
+					.where('highlight_id', '=', data.highlightId)
+					.executeTakeFirst();
+
+				if (existingNote) {
+					throw new Error('هذا التظليل مرتبط بملاحظة أخرى');
+				}
+			}
+			
 			// Create note
 			const [note] = await trx
 				.insertInto('notes')

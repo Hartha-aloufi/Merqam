@@ -103,6 +103,17 @@ async function handler(req: AuthenticatedRequest) {
 						{ status: 400 }
 					);
 				}
+
+				// Handle unique highlight constraint violation
+				if (
+					error.message.includes('هذا التظليل مرتبط بملاحظة أخرى') ||
+					error.message.includes('notes_highlight_id_unique')
+				) {
+					return NextResponse.json(
+						{ error: 'هذا التظليل مرتبط بملاحظة أخرى' },
+						{ status: 400 }
+					);
+				}
 			}
 
 			console.error('Failed to create note:', error);
