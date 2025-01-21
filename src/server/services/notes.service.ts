@@ -114,7 +114,7 @@ export class NotesService {
 
 	async createNote(userId: string, data: CreateNoteDTO) {
 		// Start transaction
-		return await db.transaction().execute(async (trx) => {
+		const newNoteId = await db.transaction().execute(async (trx) => {
 			// Create note
 			const [note] = await trx
 				.insertInto('notes')
@@ -150,8 +150,10 @@ export class NotesService {
 			}
 
 			// Return complete note with tags
-			return this.getNoteById(userId, note.id);
+			return note.id;
 		});
+
+		return this.getNoteById(userId, newNoteId);
 	}
 
 	async updateNote(userId: string, noteId: string, data: UpdateNoteDTO) {

@@ -2,21 +2,35 @@ import React from 'react';
 import { Note } from '@/types/note';
 import { Card, CardContent, CardHeader } from '@/client/components/ui/card';
 import { Button } from '@/client/components/ui/button';
-import { Pen, Trash2, Link } from 'lucide-react';
+import { Pen, Trash2, Link, ChevronDown } from 'lucide-react';
 import { cn } from '@/client/lib/utils';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { useNotesSheet } from '@/client/stores/use-notes-sheet';
 import { useDeleteNote } from '@/client/hooks/use-notes';
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from '@/client/components/ui/collapsible';
 
 interface NoteCardProps {
 	note: Note;
 	className?: string;
 }
 
+const PREVIEW_LENGTH = 150; // Characters to show in preview
+
 export function NoteCard({ note, className }: NoteCardProps) {
 	const { setView, setSelectedNoteId } = useNotesSheet();
 	const { mutate: deleteNote } = useDeleteNote();
+	const [isExpanded, setIsExpanded] = React.useState(false);
+
+	// Check if content needs expansion
+	const needsExpansion = note.content.length > PREVIEW_LENGTH;
+	const previewContent = needsExpansion
+		? note.content.slice(0, PREVIEW_LENGTH).trim() + '...'
+		: note.content;
 
 	const handleEdit = () => {
 		setSelectedNoteId(note.id);
@@ -33,6 +47,7 @@ export function NoteCard({ note, className }: NoteCardProps) {
 		<Card
 			className={cn(
 				'group transition-colors hover:bg-muted/50',
+				needsExpansion && 'cursor-pointer',
 				className
 			)}
 		>
@@ -95,8 +110,42 @@ export function NoteCard({ note, className }: NoteCardProps) {
 			</CardHeader>
 
 			<CardContent className="p-4 pt-0">
-				{/* Note Content - Show only first 3 lines */}
-				<p className="line-clamp-3 text-sm">{note.content}</p>
+				{needsExpansion ? (
+					<Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+						<CollapsibleContent className="text-sm">
+							{note.content}
+						</CollapsibleContent>
+
+						<div
+							className={cn(
+								'text-sm',
+								isExpanded ? 'hidden' : 'visible'
+							)}
+						>
+							{previewContent}
+						</div>
+
+						<CollapsibleTrigger asChild>
+							<Button
+								variant="ghost"
+								size="sm"
+								className="mt-2 w-full justify-center gap-1 hover:bg-muted"
+							>
+								<ChevronDown
+									className={cn(
+										'h-4 w-4 transition-transform duration-200',
+										isExpanded && 'rotate-180'
+									)}
+								/>
+								<span>
+									{isExpanded ? 'عرض أقل' : 'عرض المزيد'}
+								</span>
+							</Button>
+						</CollapsibleTrigger>
+					</Collapsible>
+				) : (
+					<p className="text-sm">{note.content}</p>
+				)}
 			</CardContent>
 		</Card>
 	);
