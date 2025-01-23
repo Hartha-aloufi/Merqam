@@ -8,13 +8,14 @@ import {
 	useUpdateNote,
 	useTags,
 } from '@/client/hooks/use-notes';
-import { Tag, Tags, Plus, X, Loader2, ArrowRight } from 'lucide-react';
+import { Tag, Tags, Plus, X, Loader2, ArrowRight, Send } from 'lucide-react';
 import {
 	Command,
 	CommandEmpty,
 	CommandGroup,
 	CommandInput,
 	CommandItem,
+	CommandList,
 } from '@/client/components/ui/command';
 import {
 	Popover,
@@ -23,6 +24,7 @@ import {
 } from '@/client/components/ui/popover';
 import { cn } from '@/client/lib/utils';
 import { NoteTag } from '@/types/note';
+import { Card, CardContent, CardFooter } from '../ui/card';
 
 interface NoteEditorProps {
 	topicId: string;
@@ -41,6 +43,9 @@ export function NoteEditor({ topicId, lessonId }: NoteEditorProps) {
 
 	const { mutate: createNote, isPending: isCreating } = useCreateNote();
 	const { mutate: updateNote, isPending: isUpdating } = useUpdateNote();
+
+	// temp
+	const initialContent = null;
 
 	// Initialize editor with existing note data
 	React.useEffect(() => {
@@ -133,7 +138,7 @@ export function NoteEditor({ topicId, lessonId }: NoteEditorProps) {
 	}
 
 	return (
-		<form onSubmit={handleSubmit} className="space-y-4">
+		<form onSubmit={handleSubmit} className="space-y-4 w-full">
 			{/* Header */}
 			<div className="flex items-center justify-between">
 				<Button
@@ -144,21 +149,6 @@ export function NoteEditor({ topicId, lessonId }: NoteEditorProps) {
 				>
 					<ArrowRight className="ml-2 h-4 w-4" />
 					رجوع
-				</Button>
-				<Button
-					type="submit"
-					disabled={!content.trim() || isCreating || isUpdating}
-				>
-					{isCreating || isUpdating ? (
-						<>
-							<Loader2 className="ml-2 h-4 w-4 animate-spin" />
-							جاري الحفظ...
-						</>
-					) : selectedNoteId ? (
-						'تحديث'
-					) : (
-						'إضافة'
-					)}
 				</Button>
 			</div>
 
@@ -210,33 +200,35 @@ export function NoteEditor({ topicId, lessonId }: NoteEditorProps) {
 									onValueChange={setTagSearch}
 									className="border-none focus:ring-0"
 								/>
-								<CommandEmpty>لا توجد تصنيفات</CommandEmpty>
-								<CommandGroup>
-									{filteredTags?.map((tag) => (
-										<CommandItem
-											key={tag.id}
-											value={tag.name}
-											onSelect={() => {
-												toggleTag(tag.id);
-												setTagSearch('');
-											}}
-										>
-											<div
-												className={cn(
-													'ml-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
-													selectedTags.includes(
-														tag.id
-													)
-														? 'bg-primary text-primary-foreground'
-														: 'opacity-50 [&_svg]:invisible'
-												)}
+								<CommandList>
+									<CommandEmpty>لا توجد تصنيفات</CommandEmpty>
+									<CommandGroup>
+										{filteredTags?.map((tag) => (
+											<CommandItem
+												key={tag.id}
+												value={tag.name}
+												onSelect={() => {
+													toggleTag(tag.id);
+													setTagSearch('');
+												}}
 											>
-												<Tags className="h-4 w-4" />
-											</div>
-											{tag.name}
-										</CommandItem>
-									))}
-								</CommandGroup>
+												<div
+													className={cn(
+														'ml-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
+														selectedTags.includes(
+															tag.id
+														)
+															? 'bg-primary text-primary-foreground'
+															: 'opacity-50 [&_svg]:invisible'
+													)}
+												>
+													<Tags className="h-4 w-4" />
+												</div>
+												{tag.name}
+											</CommandItem>
+										))}
+									</CommandGroup>
+								</CommandList>
 							</Command>
 						</PopoverContent>
 					</Popover>
@@ -244,13 +236,40 @@ export function NoteEditor({ topicId, lessonId }: NoteEditorProps) {
 			</div>
 
 			{/* Content Editor */}
-			<Textarea
-				value={content}
-				onChange={(e) => setContent(e.target.value)}
-				placeholder="اكتب ملاحظتك هنا..."
-				className="min-h-[300px] resize-none"
-				maxLength={1000}
-			/>
+			<Card className="border-2 hover:border-primary/50 shadow-sm hover:shadow-md transition-all duration-200">
+				<CardContent className="pt-4">
+					<div className="relative rounded-lg focus-within:bg-muted/50 transition-all duration-200">
+						<Textarea
+							// ref={textareaRef}
+							placeholder="اكتب ملاحظتك هنا..."
+							value={content}
+							onChange={(e) => setContent(e.target.value)}
+							className="min-h-[150px] resize-none border-none focus:ring-0 text-base bg-transparent"
+							dir="auto"
+						/>
+					</div>
+				</CardContent>
+
+				<CardFooter className="flex justify-end gap-2 py-3 px-4 bg-muted/30 border-t">
+					<Button
+						variant="ghost"
+						size="sm"
+						onClick={() => setContent('')}
+						disabled={!content}
+					>
+						<X className="h-4 w-4 ml-2" />
+						مسح
+					</Button>
+					<Button
+						type="submit"
+						size="sm"
+						disabled={!content.trim() || isCreating || isUpdating}
+					>
+						<Send className="h-4 w-4 ml-2" />
+						{initialContent ? 'حفظ التغييرات' : 'حفظ'}
+					</Button>
+				</CardFooter>
+			</Card>
 
 			{/* Character Count */}
 			<div className="text-xs text-muted-foreground">
