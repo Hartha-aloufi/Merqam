@@ -1,26 +1,30 @@
 {
-  "title": "إرواء - الأربعون النووية",
-  "description": "",
-  "lessons": {
-    "zqySetoMmNU": {
-      "title": "الأربعون النووية | المجلس الثالث | برنامج إرواء",
-      "youtubeUrl": "https://www.youtube.com/watch?v=zqySetoMmNU"
-    },
-    "HtTea-cWxDw": {
-      "title": "الأربعون النووية | المجلس الأول | برنامج إرواء",
-      "youtubeUrl": "https://www.youtube.com/watch?v=HtTea-cWxDw"
-    },
-    "4RZUI1xs71k": {
-      "title": "الأربعون النووية | المجلس الثاني | برنامج إرواء",
-      "youtubeUrl": "https://www.youtube.com/watch?v=4RZUI1xs71k"
-    },
-    "d3filAxFV-k": {
-      "title": "الأربعون النووية | المجلس الرابع | برنامج إرواء",
-      "youtubeUrl": "https://www.youtube.com/watch?v=d3filAxFV-k"
-    },
-    "iGlP3Qbi2wg": {
-      "title": "الأربعون النووية | المجلس الخامس | برنامج إرواء",
-      "youtubeUrl": "https://www.youtube.com/watch?v=iGlP3Qbi2wg"
-    }
-  }
+	"title": "إرواء - الأربعون النووية",
+	"description": "",
+	"lessons": {
+		"zqySetoMmNU": {
+			"title": "الأربعون النووية | المجلس الثالث | برنامج إرواء",
+			"youtubeUrl": "https://www.youtube.com/watch?v=zqySetoMmNU"
+		},
+		"HtTea-cWxDw": {
+			"title": "الأربعون النووية | المجلس الأول | برنامج إرواء",
+			"youtubeUrl": "https://www.youtube.com/watch?v=HtTea-cWxDw"
+		},
+		"4RZUI1xs71k": {
+			"title": "الأربعون النووية | المجلس الثاني | برنامج إرواء",
+			"youtubeUrl": "https://www.youtube.com/watch?v=4RZUI1xs71k"
+		},
+		"d3filAxFV-k": {
+			"title": "الأربعون النووية | المجلس الرابع | برنامج إرواء",
+			"youtubeUrl": "https://www.youtube.com/watch?v=d3filAxFV-k"
+		},
+		"iGlP3Qbi2wg": {
+			"title": "الأربعون النووية | المجلس الخامس | برنامج إرواء",
+			"youtubeUrl": "https://www.youtube.com/watch?v=iGlP3Qbi2wg"
+		},
+		"wAeAaO5dRxc": {
+			"title": "الأربعون النووية | المجلس السادس | برنامج إرواء",
+			"youtubeUrl": "https://www.youtube.com/watch?v=wAeAaO5dRxc"
+		}
+	}
 }
