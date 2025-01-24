@@ -18,8 +18,6 @@ export class NotesService {
 	async getNotes(userId: string, lessonId: string) {
 		const notes = (await db
 			.selectFrom('notes')
-			.where('notes.user_id', '=', userId)
-			.where('notes.lesson_id', '=', lessonId)
 			.leftJoin('notes_tags', 'notes.id', 'notes_tags.note_id')
 			.leftJoin('note_tags', 'notes_tags.tag_id', 'note_tags.id')
 			.select([
@@ -30,21 +28,17 @@ export class NotesService {
 				'notes.lesson_id as lessonId',
 				'notes.created_at as createdAt',
 				'notes.updated_at as updatedAt',
-				sql<string>`
-                    array_agg(
-                        CASE 
-                            WHEN note_tags.id IS NOT NULL 
-                            THEN jsonb_build_object(
-                                'id', note_tags.id,
-                                'name', note_tags.name,
-                                'userId', note_tags.user_id,
-                                'createdAt', note_tags.created_at
-                            )
-                            ELSE NULL 
-                        END
-                    ) FILTER (WHERE note_tags.id IS NOT NULL)
-                `.as('tags'),
+				sql<string>`jsonb_agg(
+                jsonb_build_object(
+                    'id', note_tags.id,
+                    'name', note_tags.name,
+                    'userId', note_tags.user_id,
+                    'createdAt', note_tags.created_at
+                )
+            ) FILTER (WHERE note_tags.id IS NOT NULL)`.as('tags'),
 			])
+			.where('notes.user_id', '=', userId)
+			.where('notes.lesson_id', '=', lessonId)
 			.groupBy([
 				'notes.id',
 				'notes.content',
@@ -59,7 +53,7 @@ export class NotesService {
 
 		return notes.map((note) => ({
 			...note,
-			tags: note.tags ? JSON.parse(note.tags) : [],
+			tags: note.tags ? note.tags : [], // jsonb_agg already produces an array
 		}));
 	}
 
@@ -126,7 +120,7 @@ export class NotesService {
 					throw new Error('هذا التظليل مرتبط بملاحظة أخرى');
 				}
 			}
-			
+
 			// Create note
 			const [note] = await trx
 				.insertInto('notes')
