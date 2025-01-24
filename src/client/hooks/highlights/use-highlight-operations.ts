@@ -70,7 +70,6 @@ export const useHighlightOperations = (topicId: string, lessonId: string) => {
 			queryClient.invalidateQueries({
 				queryKey: HIGHLIGHT_KEYS.lesson(topicId, lessonId),
 			});
-			toast.success('تم حفظ التظليلات');
 		},
 	});
 

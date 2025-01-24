@@ -1,4 +1,3 @@
-// src/server/middleware/auth.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '../lib/auth/jwt';
 
@@ -10,11 +9,14 @@ export type AuthenticatedRequest = NextRequest & {
 };
 
 export async function withAuth(
-	handler: (req: AuthenticatedRequest) => Promise<NextResponse>,
-	req: NextRequest
+	handler: (
+		req: AuthenticatedRequest,
+		context?: any
+	) => Promise<NextResponse>,
+	req: NextRequest,
+	context?: any
 ): Promise<NextResponse> {
 	try {
-		// Get token from cookies instead of Authorization header
 		const accessToken = req.cookies.get('access_token')?.value;
 
 		if (!accessToken) {
@@ -31,9 +33,8 @@ export async function withAuth(
 				email: payload.email,
 			};
 
-			return handler(req as AuthenticatedRequest);
+			return handler(req as AuthenticatedRequest, context);
 		} catch (error) {
-			// Token verification failed
 			console.error('Token verification failed:', error);
 			return NextResponse.json(
 				{ error: 'Invalid or expired token' },

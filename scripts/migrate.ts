@@ -7,7 +7,11 @@ import { DB } from '@/types/db';
 
 async function migrateToLatest() {
 	// Load environment variables
-	config();
+	if (process.env.NODE_ENV !== 'production') {
+		config({ path: './.env.local' });
+	} else {
+		config();
+	}
 
 	const db = new Kysely<DB>({
 		dialect: new PostgresDialect({
