@@ -9,6 +9,7 @@ import { ar } from 'date-fns/locale';
 import { useNotesSheet } from '@/client/stores/use-notes-sheet';
 import { useDeleteNote } from '@/client/hooks/use-notes';
 import { HIGHLIGHT_COLORS } from '@/constants/highlights';
+import { useScrollToHighlight } from '@/client/hooks/highlights/use-scroll-to-highlight';
 
 interface NoteCardProps {
 	note: Note;
@@ -22,11 +23,15 @@ export function NoteCard({ note, className }: NoteCardProps) {
 	const { mutate: deleteNote } = useDeleteNote();
 	const [isExpanded, setIsExpanded] = React.useState(false);
 
+	const scrollToHighlight = useScrollToHighlight();
+
+
 	// Check if content needs expansion
 	const needsExpansion = note.content.length > PREVIEW_LENGTH;
 	const previewContent = needsExpansion
 		? `${note.content.slice(0, PREVIEW_LENGTH).trim()}...`
 		: note.content;
+
 
 	const handleEdit = () => {
 		setSelectedNoteId(note.id);
@@ -37,6 +42,10 @@ export function NoteCard({ note, className }: NoteCardProps) {
 		if (confirm('هل أنت متأكد من حذف هذه الملاحظة؟')) {
 			deleteNote(note.id);
 		}
+	};
+
+	const handleJumpToHighlight = () => {
+		scrollToHighlight(note.highlightId!);
 	};
 
 	return (
@@ -79,6 +88,7 @@ export function NoteCard({ note, className }: NoteCardProps) {
 						{note.highlightId && (
 							<Button
 								variant="ghost"
+								onClick={handleJumpToHighlight}
 								size="icon"
 								className="h-8 w-8 opacity-0 group-hover:opacity-100"
 								title="الانتقال إلى التظليل"

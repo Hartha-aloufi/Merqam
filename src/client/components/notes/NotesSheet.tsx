@@ -90,6 +90,7 @@ export function NotesSheet({ topicId, lessonId }: NotesSheetProps) {
 			<SheetContent
 				side="right"
 				className="w-full sm:max-w-lg"
+				showOverlay={false}
 			>
 				<SheetHeader>
 					<SheetTitle>

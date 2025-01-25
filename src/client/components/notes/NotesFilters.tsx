@@ -59,23 +59,25 @@ export function NotesFilters({
 
 			{/* Filters Collapse */}
 			<Collapsible open={isOpen} onOpenChange={setIsOpen}>
-				<CollapsibleTrigger className="flex w-full items-center justify-between rounded-md border px-4 py-2 font-medium hover:bg-muted">
-					<div className="flex items-center gap-2">
-						<Filter className="h-4 w-4" />
-						<span>عوامل التصفية</span>
-						{hasActiveFilters && (
-							<Badge variant="secondary" className="font-normal">
-								{activeFiltersCount}
-							</Badge>
-						)}
-					</div>
+				<CollapsibleTrigger className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground">
 					<ChevronDown
 						className={cn(
-							'h-4 w-4 transition-transform duration-200',
+							'h-3 w-3 transition-transform duration-200',
 							isOpen && 'rotate-180'
 						)}
 					/>
+					<span>تصفية</span>
+					{hasActiveFilters && (
+						<Badge
+							variant="secondary"
+							className="h-4 px-1 text-xs font-normal"
+						>
+							{activeFiltersCount}
+						</Badge>
+					)}
+					<Filter className="h-3 w-3" />
 				</CollapsibleTrigger>
+
 				<CollapsibleContent className="space-y-4 pt-4">
 					{/* Color Filters */}
 					<div className="space-y-2">
