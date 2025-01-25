@@ -2,17 +2,13 @@ import React from 'react';
 import { Note } from '@/types/note';
 import { Card, CardContent, CardHeader } from '@/client/components/ui/card';
 import { Button } from '@/client/components/ui/button';
-import { Pen, Trash2, Link, ChevronDown } from 'lucide-react';
+import { Pen, Trash2, Link } from 'lucide-react';
 import { cn } from '@/client/lib/utils';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { useNotesSheet } from '@/client/stores/use-notes-sheet';
 import { useDeleteNote } from '@/client/hooks/use-notes';
-import {
-	Collapsible,
-	CollapsibleContent,
-	CollapsibleTrigger,
-} from '@/client/components/ui/collapsible';
+import { HIGHLIGHT_COLORS } from '@/constants/highlights';
 
 interface NoteCardProps {
 	note: Note;
@@ -29,7 +25,7 @@ export function NoteCard({ note, className }: NoteCardProps) {
 	// Check if content needs expansion
 	const needsExpansion = note.content.length > PREVIEW_LENGTH;
 	const previewContent = needsExpansion
-		? note.content.slice(0, PREVIEW_LENGTH).trim() + '...'
+		? `${note.content.slice(0, PREVIEW_LENGTH).trim()}...`
 		: note.content;
 
 	const handleEdit = () => {
@@ -48,18 +44,35 @@ export function NoteCard({ note, className }: NoteCardProps) {
 			className={cn(
 				'group transition-colors hover:bg-muted/50',
 				needsExpansion && 'cursor-pointer',
+				note.labelColor && `border-r-[3px]`,
+				note.labelColor &&
+					`border-r-[${
+						HIGHLIGHT_COLORS[note.labelColor].background
+					}]`,
 				className
 			)}
 		>
 			<CardHeader className="space-y-2 p-4">
 				{/* Note Header */}
 				<div className="flex items-start justify-between gap-4">
-					{/* Date */}
-					<span className="text-xs text-muted-foreground">
-						{format(new Date(note.createdAt), 'PPP', {
-							locale: ar,
-						})}
-					</span>
+					{/* Date and Label */}
+					<div className="flex items-center gap-2">
+						<span className="text-xs text-muted-foreground">
+							{format(new Date(note.createdAt), 'PPP', {
+								locale: ar,
+							})}
+						</span>
+						{note.labelColor && (
+							<div
+								className="h-2 w-2 rounded-sm"
+								style={{
+									backgroundColor:
+										HIGHLIGHT_COLORS[note.labelColor]
+											.background,
+								}}
+							/>
+						)}
+					</div>
 
 					{/* Actions */}
 					<div className="flex items-center gap-1">
@@ -111,38 +124,19 @@ export function NoteCard({ note, className }: NoteCardProps) {
 
 			<CardContent className="p-4 pt-0">
 				{needsExpansion ? (
-					<Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-						<CollapsibleContent className="text-sm">
-							{note.content}
-						</CollapsibleContent>
-
-						<div
-							className={cn(
-								'text-sm',
-								isExpanded ? 'hidden' : 'visible'
-							)}
+					<div
+						className="text-sm cursor-pointer"
+						onClick={() => setIsExpanded(!isExpanded)}
+					>
+						{isExpanded ? note.content : previewContent}
+						<Button
+							variant="ghost"
+							size="sm"
+							className="mt-2 w-full justify-center hover:bg-muted"
 						>
-							{previewContent}
-						</div>
-
-						<CollapsibleTrigger asChild>
-							<Button
-								variant="ghost"
-								size="sm"
-								className="mt-2 w-full justify-center gap-1 hover:bg-muted"
-							>
-								<ChevronDown
-									className={cn(
-										'h-4 w-4 transition-transform duration-200',
-										isExpanded && 'rotate-180'
-									)}
-								/>
-								<span>
-									{isExpanded ? 'عرض أقل' : 'عرض المزيد'}
-								</span>
-							</Button>
-						</CollapsibleTrigger>
-					</Collapsible>
+							{isExpanded ? 'عرض أقل' : 'عرض المزيد'}
+						</Button>
+					</div>
 				) : (
 					<p className="text-sm">{note.content}</p>
 				)}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/client/components/ui/button';
 import { Textarea } from '@/client/components/ui/textarea';
 import { useNotesSheet } from '@/client/stores/use-notes-sheet';
@@ -6,11 +6,12 @@ import {
 	useNote,
 	useCreateNote,
 	useUpdateNote,
-	useTags,
 } from '@/client/hooks/use-notes';
 import { X, ArrowRight, Send } from 'lucide-react';
 import { Card, CardContent, CardFooter } from '../ui/card';
 import { TagSelector } from './TagSelector';
+import { HighlightColorKey } from '@/constants/highlights';
+import { NoteLabel } from './NoteLabel';
 
 interface NoteEditorProps {
 	topicId: string;
@@ -18,8 +19,11 @@ interface NoteEditorProps {
 }
 
 export function NoteEditor({ topicId, lessonId }: NoteEditorProps) {
-	const [content, setContent] = React.useState('');
-	const [selectedTags, setSelectedTags] = React.useState<string[]>([]);
+	const [content, setContent] = useState('');
+	const [selectedTags, setSelectedTags] = useState<string[]>([]);
+	const [labelColor, setLabelColor] = useState<HighlightColorKey | null>(
+		null
+	);
 
 	const { selectedNoteId, highlightId, close, setView } = useNotesSheet();
 	const { data: existingNote } = useNote(lessonId, selectedNoteId);
@@ -35,9 +39,11 @@ export function NoteEditor({ topicId, lessonId }: NoteEditorProps) {
 		if (existingNote) {
 			setContent(existingNote.content);
 			setSelectedTags(existingNote.tags?.map((t) => t.id) || []);
+			setLabelColor(existingNote.labelColor || null);
 		} else {
 			setContent('');
 			setSelectedTags([]);
+			setLabelColor(null);
 		}
 	}, [existingNote]);
 
@@ -53,6 +59,7 @@ export function NoteEditor({ topicId, lessonId }: NoteEditorProps) {
 					data: {
 						content: content.trim(),
 						tags: selectedTags,
+						labelColor,
 					},
 				},
 				{
@@ -69,6 +76,7 @@ export function NoteEditor({ topicId, lessonId }: NoteEditorProps) {
 					content: content.trim(),
 					tags: selectedTags,
 					highlightId: highlightId || undefined,
+					labelColor: labelColor || undefined,
 				},
 				{
 					onSuccess: () => {
@@ -102,11 +110,16 @@ export function NoteEditor({ topicId, lessonId }: NoteEditorProps) {
 				</Button>
 			</div>
 
-			{/* Tags Section */}
-			<TagSelector
-				selectedTags={selectedTags}
-				onTagsChange={setSelectedTags}
-			/>
+			<div className="flex items-center gap-2">
+				{/* Label Selector */}
+				<NoteLabel value={labelColor} onChange={setLabelColor} />
+
+				{/* Tag Selector */}
+				<TagSelector
+					selectedTags={selectedTags}
+					onTagsChange={setSelectedTags}
+				/>
+			</div>
 
 			{/* Content Editor */}
 			<Card className="border-2 hover:border-primary/50 shadow-sm hover:shadow-md transition-all duration-200">

@@ -38,6 +38,7 @@ export interface Notes {
   created_at: Generated<Timestamp>;
   highlight_id: string | null;
   id: Generated<string>;
+  label_color: string | null;
   lesson_id: string;
   topic_id: string;
   updated_at: Generated<Timestamp>;

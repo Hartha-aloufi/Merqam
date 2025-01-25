@@ -15,6 +15,10 @@ const createNoteSchema = z.object({
 		.min(1, 'المحتوى مطلوب')
 		.max(1000, 'المحتوى يجب أن لا يتجاوز 1000 حرف'),
 	tags: z.array(z.string()).optional(),
+	labelColor: z
+		.enum(['yellow', 'green', 'blue', 'purple'])
+		.nullable()
+		.optional(),
 });
 
 // Query params schema
@@ -67,6 +71,7 @@ async function handler(req: AuthenticatedRequest) {
 	// POST: Create new note
 	if (req.method === 'POST') {
 		try {
+			console.log('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
 			const body = await req.json();
 			const validationResult = createNoteSchema.safeParse(body);
 
@@ -76,7 +81,7 @@ async function handler(req: AuthenticatedRequest) {
 					{ status: 400 }
 				);
 			}
-
+			console.log('ssssssssssssssssssssssssss', validationResult.data)
 			// Check if note limit is reached (moved to database trigger)
 			const note = await notesService.createNote(
 				req.user.id,

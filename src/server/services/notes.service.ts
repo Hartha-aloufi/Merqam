@@ -1,6 +1,7 @@
 import { db } from '../config/db';
 import { CreateNoteDTO, UpdateNoteDTO, CreateTagDTO } from '@/types/note';
 import { sql } from 'kysely';
+import { update } from 'lodash';
 
 // Define an interface for the raw query result
 interface RawNote {
@@ -26,6 +27,7 @@ export class NotesService {
 				'notes.highlight_id as highlightId',
 				'notes.topic_id as topicId',
 				'notes.lesson_id as lessonId',
+				'label_color as labelColor',
 				'notes.created_at as createdAt',
 				'notes.updated_at as updatedAt',
 				sql<string>`jsonb_agg(
@@ -72,6 +74,7 @@ export class NotesService {
 				'notes.lesson_id as lessonId',
 				'notes.created_at as createdAt',
 				'notes.updated_at as updatedAt',
+				'notes.label_color as labelColor',
 				sql<string>`
                     array_agg(
                         CASE 
@@ -107,7 +110,7 @@ export class NotesService {
 	}
 
 	async createNote(userId: string, data: CreateNoteDTO) {
-		// Start transaction
+		// Start transactions
 		const newNoteId = await db.transaction().execute(async (trx) => {
 			// Check if highlight already has a note
 			if (data.highlightId) {
@@ -130,12 +133,14 @@ export class NotesService {
 					lesson_id: data.lessonId,
 					highlight_id: data.highlightId,
 					content: data.content,
+					label_color: data.labelColor,
 				})
 				.returning([
 					'id',
 					'content',
 					'highlight_id as highlightId',
 					'topic_id as topicId',
+					'label_color as labelColor',
 					'lesson_id as lessonId',
 					'created_at as createdAt',
 					'updated_at as updatedAt',
@@ -163,15 +168,25 @@ export class NotesService {
 	}
 
 	async updateNote(userId: string, noteId: string, data: UpdateNoteDTO) {
+		// Prepare update data
+		const updateData: Record<string, any> = {
+			updated_at: new Date(),
+		};
+
+		if (data.content) {
+			updateData.content = data.content;
+		}
+
+		if (data.labelColor !== undefined) {
+			updateData.label_color = data.labelColor;
+		}
+
 		return await db.transaction().execute(async (trx) => {
 			// Update note content if provided
 			if (data.content) {
 				await trx
 					.updateTable('notes')
-					.set({
-						content: data.content,
-						updated_at: new Date(),
-					})
+					.set(updateData)
 					.where('id', '=', noteId)
 					.where('user_id', '=', userId)
 					.execute();

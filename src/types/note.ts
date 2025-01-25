@@ -1,3 +1,5 @@
+import { HighlightColorKey } from '@/constants/highlights';
+
 export interface NoteTag {
 	id: string;
 	name: string;
@@ -12,6 +14,7 @@ export interface Note {
 	lessonId: string;
 	highlightId?: string | null;
 	content: string;
+	labelColor?: HighlightColorKey;
 	createdAt: Date;
 	updatedAt: Date;
 	tags?: NoteTag[];
@@ -22,28 +25,16 @@ export interface CreateNoteDTO {
 	lessonId: string;
 	highlightId?: string;
 	content: string;
+	labelColor?: HighlightColorKey;
 	tags?: string[]; // Tag IDs
 }
 
 export interface UpdateNoteDTO {
 	content?: string;
+	labelColor?: HighlightColorKey | null;
 	tags?: string[]; // Tag IDs
 }
 
 export interface CreateTagDTO {
 	name: string;
-}
-
-// API Response types
-export interface NotesResponse {
-	notes: Note[];
-	total: number;
-}
-
-export interface NoteResponse {
-	note: Note;
-}
-
-export interface TagsResponse {
-	tags: NoteTag[];
 }

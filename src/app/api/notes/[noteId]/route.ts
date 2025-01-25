@@ -18,10 +18,12 @@ async function handler(
 	req: AuthenticatedRequest,
 	context: { params: { noteId: string } }
 ) {
+	const {noteId} = await context.params;
+
 	if (req.method === 'GET') {
 		const note = await notesService.getNoteById(
 			req.user.id,
-			context.params.noteId
+			noteId
 		);
 
 		if (!note) {
@@ -47,7 +49,7 @@ async function handler(
 
 		const note = await notesService.getNoteById(
 			req.user.id,
-			context.params.noteId
+			noteId
 		);
 		if (!note) {
 			return NextResponse.json(
@@ -58,7 +60,7 @@ async function handler(
 
 		const updatedNote = await notesService.updateNote(
 			req.user.id,
-			context.params.noteId,
+			noteId,
 			validationResult.data
 		);
 
@@ -68,7 +70,7 @@ async function handler(
 	if (req.method === 'DELETE') {
 		const note = await notesService.getNoteById(
 			req.user.id,
-			context.params.noteId
+			noteId
 		);
 		if (!note) {
 			return NextResponse.json(
@@ -77,7 +79,7 @@ async function handler(
 			);
 		}
 
-		await notesService.deleteNote(req.user.id, context.params.noteId);
+		await notesService.deleteNote(req.user.id, noteId);
 		return NextResponse.json({ success: true });
 	}
 
