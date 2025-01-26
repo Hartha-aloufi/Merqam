@@ -89,66 +89,76 @@ export function NotesSheet({ topicId, lessonId }: NotesSheetProps) {
 		<Sheet open={isOpen} onOpenChange={(open) => !open && close()}>
 			<SheetContent
 				side="right"
-				className="w-full sm:max-w-lg"
+				className="w-full sm:max-w-lg flex flex-col h-full p-0"
 				showOverlay={false}
 			>
-				<SheetHeader>
-					<SheetTitle>
-						{view === 'list' ? 'الملاحظات' : 'ملاحظة جديدة'}
-					</SheetTitle>
-				</SheetHeader>
+				{/* Fixed Header */}
+				<div className="p-6 pb-0">
+					<SheetHeader className="flex flex-row items-center justify-between">
+						<SheetTitle>
+							{view === 'list' ? 'الملاحظات' : 'ملاحظة جديدة'}
+						</SheetTitle>
 
-				<div className="mt-8">
-					{view === 'list' ? (
-						<div className="space-y-6">
-							{/* New Note Button */}
-							<Button
-								onClick={handleNewNote}
-								className="w-full gap-2"
-							>
-								<Plus className="h-4 w-4" />
-								كتابة ملاحظة جديدة
-							</Button>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={handleNewNote}
+							className="gap-1"
+						>
+							<Plus className="h-3 w-3" />
+							كتابة ملاحظة جديدة
+						</Button>
+					</SheetHeader>
+				</div>
 
-							{/* Filters */}
-							<NotesFilters
-								searchQuery={searchQuery}
-								onSearchChange={setSearchQuery}
-								selectedColor={selectedColor}
-								onColorChange={setSelectedColor}
-								selectedTags={selectedTags}
-								onTagsChange={setSelectedTags}
-								availableTags={tags}
-							/>
+				{/* Scrollable Content */}
+				<div className="flex-1 overflow-y-auto">
+					<div className="p-6">
+						{view === 'list' ? (
+							<div className="space-y-6">
+								{/* Filters */}
+								<NotesFilters
+									searchQuery={searchQuery}
+									onSearchChange={setSearchQuery}
+									selectedColor={selectedColor}
+									onColorChange={setSelectedColor}
+									selectedTags={selectedTags}
+									onTagsChange={setSelectedTags}
+									availableTags={tags}
+								/>
 
-							{/* Notes List */}
-							<div className="space-y-4">
-								{isLoading ? (
-									<div className="flex items-center justify-center py-8">
-										<Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-									</div>
-								) : filteredNotes.length === 0 ? (
-									<div className="flex flex-col items-center justify-center space-y-2 rounded-lg border-2 border-dashed p-8 text-center">
-										<FileText className="h-12 w-12 text-muted-foreground/50" />
-										<h3 className="text-lg font-semibold">
-											لا توجد ملاحظات
-										</h3>
-										<p className="text-sm text-muted-foreground">
-											{notes.length === 0
-												? 'قم بإضافة ملاحظة جديدة للبدء'
-												: 'لا توجد نتائج تطابق عوامل التصفية المحددة'}
-										</p>
-									</div>
-								) : (
-									filteredNotes.map((note) => (
-										<NoteCard key={note.id} note={note} />
-									))
-								)}
+								{/* Notes List */}
+								<div className="space-y-4">
+									{isLoading ? (
+										<div className="flex items-center justify-center py-8">
+											<Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+										</div>
+									) : filteredNotes.length === 0 ? (
+										<div className="flex flex-col items-center justify-center space-y-2 rounded-lg border-2 border-dashed p-8 text-center">
+											<FileText className="h-12 w-12 text-muted-foreground/50" />
+											<h3 className="text-lg font-semibold">
+												لا توجد ملاحظات
+											</h3>
+											<p className="text-sm text-muted-foreground">
+												{notes.length === 0
+													? 'قم بإضافة ملاحظة جديدة للبدء'
+													: 'لا توجد نتائج تطابق عوامل التصفية المحددة'}
+											</p>
+										</div>
+									) : (
+										filteredNotes.map((note) => (
+											<NoteCard
+												key={note.id}
+												note={note}
+											/>
+										))
+									)}
+								</div>
 							</div>
-						</div>
-					) : (
-						<NoteEditor topicId={topicId} lessonId={lessonId} />
-					)}
+						) : (
+							<NoteEditor topicId={topicId} lessonId={lessonId} />
+						)}
+					</div>
 				</div>
 			</SheetContent>
 		</Sheet>

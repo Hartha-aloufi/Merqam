@@ -1,6 +1,6 @@
 import React from 'react';
 import { Input } from '@/client/components/ui/input';
-import { Search, ChevronDown, Filter } from 'lucide-react';
+import { Search, ChevronDown, Filter, SquareX } from 'lucide-react';
 import { Badge } from '@/client/components/ui/badge';
 import { cn } from '@/client/lib/utils';
 import { HIGHLIGHT_COLORS, HighlightColorKey } from '@/constants/highlights';
@@ -56,6 +56,19 @@ export function NotesFilters({
 					className="pl-3 pr-9"
 				/>
 			</div>
+
+			{(searchQuery || hasActiveFilters) && (
+				<button
+					onClick={() => {
+						onSearchChange('');
+						onColorChange('all');
+						onTagsChange([]);
+					}}
+					className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+				>
+					<SquareX className='w-5 h-5'/> مسح التصفية
+				</button>
+			)}
 
 			{/* Filters Collapse */}
 			<Collapsible open={isOpen} onOpenChange={setIsOpen}>
