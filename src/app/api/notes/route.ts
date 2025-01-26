@@ -71,7 +71,6 @@ async function handler(req: AuthenticatedRequest) {
 	// POST: Create new note
 	if (req.method === 'POST') {
 		try {
-			console.log('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
 			const body = await req.json();
 			const validationResult = createNoteSchema.safeParse(body);
 
@@ -81,8 +80,7 @@ async function handler(req: AuthenticatedRequest) {
 					{ status: 400 }
 				);
 			}
-			console.log('ssssssssssssssssssssssssss', validationResult.data)
-			// Check if note limit is reached (moved to database trigger)
+ 			// Check if note limit is reached (moved to database trigger)
 			const note = await notesService.createNote(
 				req.user.id,
 				validationResult.data

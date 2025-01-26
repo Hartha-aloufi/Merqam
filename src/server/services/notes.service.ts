@@ -1,7 +1,6 @@
 import { db } from '../config/db';
 import { CreateNoteDTO, UpdateNoteDTO, CreateTagDTO } from '@/types/note';
 import { sql } from 'kysely';
-import { update } from 'lodash';
 
 // Define an interface for the raw query result
 interface RawNote {
@@ -75,20 +74,14 @@ export class NotesService {
 				'notes.created_at as createdAt',
 				'notes.updated_at as updatedAt',
 				'notes.label_color as labelColor',
-				sql<string>`
-                    array_agg(
-                        CASE 
-                            WHEN note_tags.id IS NOT NULL 
-                            THEN jsonb_build_object(
-                                'id', note_tags.id,
-                                'name', note_tags.name,
-                                'userId', note_tags.user_id,
-                                'createdAt', note_tags.created_at
-                            )
-                            ELSE NULL 
-                        END
-                    ) FILTER (WHERE note_tags.id IS NOT NULL)
-                `.as('tags'),
+				sql<string>`jsonb_agg(
+                jsonb_build_object(
+                    'id', note_tags.id,
+                    'name', note_tags.name,
+                    'userId', note_tags.user_id,
+                    'createdAt', note_tags.created_at
+                )
+            ) FILTER (WHERE note_tags.id IS NOT NULL)`.as('tags'),
 			])
 			.groupBy([
 				'notes.id',
@@ -105,7 +98,7 @@ export class NotesService {
 
 		return {
 			...note,
-			tags: note.tags ? JSON.parse(note.tags) : [],
+			tags: note.tags ? note.tags : [], // jsonb_agg already produces an array
 		};
 	}
 
