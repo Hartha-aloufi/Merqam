@@ -19,18 +19,18 @@ export function useScrollToHighlight() {
 		});
 
 		// Add visual feedback
-		const originalBackground = highlightElement.style.backgroundColor;
-		const originalTransition = highlightElement.style.transition;
+		const originalBackground = (highlightElement as HTMLElement).style.backgroundColor;
+		const originalTransition = (highlightElement as HTMLElement).style.transition;
 
 		// Add flash effect
-		highlightElement.style.transition = 'background-color 0.5s ease';
-		highlightElement.style.backgroundColor = 'var(--background)';
+		(highlightElement as HTMLElement).style.transition = 'background-color 0.5s ease';
+		(highlightElement as HTMLElement).style.backgroundColor = 'var(--background)';
 
 		// Reset after animation
 		setTimeout(() => {
-			highlightElement.style.backgroundColor = originalBackground;
+			(highlightElement as HTMLElement).style.backgroundColor = originalBackground;
 			setTimeout(() => {
-				highlightElement.style.transition = originalTransition;
+				(highlightElement as HTMLElement).style.transition = originalTransition;
 			}, 500);
 		}, 100);
 	}, []);
