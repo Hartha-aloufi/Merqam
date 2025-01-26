@@ -2,14 +2,14 @@ import React from 'react';
 import { Note } from '@/types/note';
 import { Card, CardContent, CardHeader } from '@/client/components/ui/card';
 import { Button } from '@/client/components/ui/button';
-import { Pen, Trash2, Link } from 'lucide-react';
+import { Pen, Trash2, Link, ChevronDown } from 'lucide-react';
 import { cn } from '@/client/lib/utils';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { useNotesSheet } from '@/client/stores/use-notes-sheet';
 import { useDeleteNote } from '@/client/hooks/use-notes';
-import { HIGHLIGHT_COLORS } from '@/constants/highlights';
 import { useScrollToHighlight } from '@/client/hooks/highlights/use-scroll-to-highlight';
+import { HIGHLIGHT_COLORS } from '@/constants/highlights';
 
 interface NoteCardProps {
 	note: Note;
@@ -21,17 +21,14 @@ const PREVIEW_LENGTH = 150; // Characters to show in preview
 export function NoteCard({ note, className }: NoteCardProps) {
 	const { setView, setSelectedNoteId } = useNotesSheet();
 	const { mutate: deleteNote } = useDeleteNote();
-	const [isExpanded, setIsExpanded] = React.useState(false);
-
 	const scrollToHighlight = useScrollToHighlight();
-
+	const [isExpanded, setIsExpanded] = React.useState(false);
 
 	// Check if content needs expansion
 	const needsExpansion = note.content.length > PREVIEW_LENGTH;
 	const previewContent = needsExpansion
 		? `${note.content.slice(0, PREVIEW_LENGTH).trim()}...`
 		: note.content;
-
 
 	const handleEdit = () => {
 		setSelectedNoteId(note.id);
@@ -45,35 +42,31 @@ export function NoteCard({ note, className }: NoteCardProps) {
 	};
 
 	const handleJumpToHighlight = () => {
-		scrollToHighlight(note.highlightId!);
+			scrollToHighlight(note.highlightId!);
 	};
 
 	return (
 		<Card
 			className={cn(
 				'group transition-colors hover:bg-muted/50',
-				needsExpansion && 'cursor-pointer',
-				note.labelColor && `border-r-[3px]`,
-				note.labelColor &&
-					`border-r-[${
-						HIGHLIGHT_COLORS[note.labelColor].background
-					}]`,
+				note.labelColor && 'border-r-[3px]',
+				note.labelColor && {
+					'border-r-yellow-200': note.labelColor === 'yellow',
+					'border-r-green-200': note.labelColor === 'green',
+					'border-r-blue-200': note.labelColor === 'blue',
+					'border-r-purple-200': note.labelColor === 'purple',
+				},
 				className
 			)}
 		>
-			<CardHeader className="space-y-2 p-4">
+			<CardHeader className="space-y-2 p-3 sm:p-4">
 				{/* Note Header */}
-				<div className="flex items-start justify-between gap-4">
+				<div className="flex items-start justify-between gap-2">
 					{/* Date and Label */}
-					<div className="flex items-center gap-2">
-						<span className="text-xs text-muted-foreground">
-							{format(new Date(note.createdAt), 'PPP', {
-								locale: ar,
-							})}
-						</span>
+					<div className="flex items-center gap-2 min-w-0">
 						{note.labelColor && (
 							<div
-								className="h-2 w-2 rounded-sm"
+								className="h-2 w-2 shrink-0 rounded-sm"
 								style={{
 									backgroundColor:
 										HIGHLIGHT_COLORS[note.labelColor]
@@ -81,6 +74,11 @@ export function NoteCard({ note, className }: NoteCardProps) {
 								}}
 							/>
 						)}
+						<span className="text-xs text-muted-foreground truncate">
+							{format(new Date(note.createdAt), 'PPP', {
+								locale: ar,
+							})}
+						</span>
 					</div>
 
 					{/* Actions */}
@@ -88,31 +86,31 @@ export function NoteCard({ note, className }: NoteCardProps) {
 						{note.highlightId && (
 							<Button
 								variant="ghost"
-								onClick={handleJumpToHighlight}
 								size="icon"
-								className="h-8 w-8 opacity-0 group-hover:opacity-100"
+								className="h-7 w-7 sm:h-8 sm:w-8 opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+								onClick={handleJumpToHighlight}
 								title="الانتقال إلى التظليل"
 							>
-								<Link className="h-4 w-4" />
+								<Link className="h-3 w-3 sm:h-4 sm:w-4" />
 							</Button>
 						)}
 						<Button
 							variant="ghost"
 							size="icon"
-							className="h-8 w-8"
+							className="h-7 w-7 sm:h-8 sm:w-8"
 							onClick={handleEdit}
 							title="تعديل"
 						>
-							<Pen className="h-4 w-4" />
+							<Pen className="h-3 w-3 sm:h-4 sm:w-4" />
 						</Button>
 						<Button
 							variant="ghost"
 							size="icon"
-							className="h-8 w-8 hover:text-destructive"
+							className="h-7 w-7 sm:h-8 sm:w-8 hover:text-destructive"
 							onClick={handleDelete}
 							title="حذف"
 						>
-							<Trash2 className="h-4 w-4" />
+							<Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
 						</Button>
 					</div>
 				</div>
@@ -132,19 +130,29 @@ export function NoteCard({ note, className }: NoteCardProps) {
 				)}
 			</CardHeader>
 
-			<CardContent className="p-4 pt-0">
+			<CardContent className="p-3 sm:p-4 pt-0">
 				{needsExpansion ? (
 					<div
-						className="text-sm cursor-pointer"
+						className="space-y-2"
 						onClick={() => setIsExpanded(!isExpanded)}
 					>
-						{isExpanded ? note.content : previewContent}
+						<p className="text-sm">
+							{isExpanded ? note.content : previewContent}
+						</p>
 						<Button
 							variant="ghost"
 							size="sm"
-							className="mt-2 w-full justify-center hover:bg-muted"
+							className="h-6 w-full justify-center text-xs hover:bg-muted"
 						>
-							{isExpanded ? 'عرض أقل' : 'عرض المزيد'}
+							<ChevronDown
+								className={cn(
+									'h-3 w-3 transition-transform duration-200',
+									isExpanded && 'rotate-180'
+								)}
+							/>
+							<span className="ml-1">
+								{isExpanded ? 'عرض أقل' : 'عرض المزيد'}
+							</span>
 						</Button>
 					</div>
 				) : (

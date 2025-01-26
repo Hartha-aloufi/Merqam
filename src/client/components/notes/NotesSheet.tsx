@@ -89,7 +89,7 @@ export function NotesSheet({ topicId, lessonId }: NotesSheetProps) {
 		<Sheet open={isOpen} onOpenChange={(open) => !open && close()}>
 			<SheetContent
 				side="right"
-				className="w-full sm:max-w-lg flex flex-col h-full p-0"
+				className="w-full sm:max-w-lg flex flex-col h-full p-0 border-0 sm:border-l"
 				showOverlay={false}
 			>
 				{/* Fixed Header */}
@@ -100,7 +100,6 @@ export function NotesSheet({ topicId, lessonId }: NotesSheetProps) {
 						</SheetTitle>
 
 						<Button
-							variant="outline"
 							size="sm"
 							onClick={handleNewNote}
 							className="gap-1"

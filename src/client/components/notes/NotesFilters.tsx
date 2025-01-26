@@ -1,6 +1,7 @@
 import React from 'react';
 import { Input } from '@/client/components/ui/input';
-import { Search, ChevronDown, Filter, SquareX } from 'lucide-react';
+import { Button } from '@/client/components/ui/button';
+import { Search, ChevronDown } from 'lucide-react';
 import { Badge } from '@/client/components/ui/badge';
 import { cn } from '@/client/lib/utils';
 import { HIGHLIGHT_COLORS, HighlightColorKey } from '@/constants/highlights';
@@ -45,77 +46,87 @@ export function NotesFilters({
 		(selectedColor !== 'all' ? 1 : 0) + (selectedTags.length > 0 ? 1 : 0);
 
 	return (
-		<div className="space-y-4">
-			{/* Search Input */}
-			<div className="relative">
-				<Search className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
-				<Input
-					placeholder="البحث في الملاحظات..."
-					value={searchQuery}
-					onChange={(e) => onSearchChange(e.target.value)}
-					className="pl-3 pr-9"
-				/>
+		<div className="space-y-3">
+			{/* Search Input and Clear Filters */}
+			<div className="flex items-center gap-2">
+				<div className="relative flex-1">
+					<Search className="absolute right-2 top-2 h-4 w-4 text-muted-foreground" />
+					<Input
+						placeholder="البحث في الملاحظات..."
+						value={searchQuery}
+						onChange={(e) => onSearchChange(e.target.value)}
+						className="pl-2 pr-8 h-8 text-sm sm:text-base"
+					/>
+				</div>
+				{(searchQuery || hasActiveFilters) && (
+					<Button
+						variant="ghost"
+						size="sm"
+						className="h-8 px-2 text-xs"
+						onClick={() => {
+							onSearchChange('');
+							onColorChange('all');
+							onTagsChange([]);
+						}}
+					>
+						مسح
+					</Button>
+				)}
 			</div>
-
-			{(searchQuery || hasActiveFilters) && (
-				<button
-					onClick={() => {
-						onSearchChange('');
-						onColorChange('all');
-						onTagsChange([]);
-					}}
-					className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-				>
-					<SquareX className='w-5 h-5'/> مسح التصفية
-				</button>
-			)}
 
 			{/* Filters Collapse */}
 			<Collapsible open={isOpen} onOpenChange={setIsOpen}>
-				<CollapsibleTrigger className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground">
-					<ChevronDown
-						className={cn(
-							'h-3 w-3 transition-transform duration-200',
-							isOpen && 'rotate-180'
-						)}
-					/>
-					<span>تصفية</span>
-					{hasActiveFilters && (
-						<Badge
-							variant="secondary"
-							className="h-4 px-1 text-xs font-normal"
+				<div className="flex items-center justify-between">
+					<CollapsibleTrigger asChild>
+						<Button
+							variant="ghost"
+							size="sm"
+							className="h-8 -ml-2 gap-2 text-xs text-muted-foreground hover:text-foreground"
 						>
-							{activeFiltersCount}
-						</Badge>
-					)}
-					<Filter className="h-3 w-3" />
-				</CollapsibleTrigger>
+							<ChevronDown
+								className={cn(
+									'h-3 w-3 transition-transform duration-200',
+									isOpen && 'rotate-180'
+								)}
+							/>
+							<span>خيارات التصفية</span>
+							{hasActiveFilters && (
+								<Badge
+									variant="secondary"
+									className="h-4 px-1 text-xs font-normal"
+								>
+									{activeFiltersCount}
+								</Badge>
+							)}
+						</Button>
+					</CollapsibleTrigger>
+				</div>
 
-				<CollapsibleContent className="space-y-4 pt-4">
+				<CollapsibleContent className="pt-3 space-y-3">
 					{/* Color Filters */}
 					<div className="space-y-2">
-						<h4 className="text-sm font-medium text-muted-foreground px-1">
-							تصفية حسب اللون
-						</h4>
-						<div className="flex flex-wrap gap-2">
+						<div className="flex flex-wrap gap-1.5">
 							{(
 								[
 									'all',
 									...Object.keys(HIGHLIGHT_COLORS),
 								] as const
 							).map((color) => (
-								<button
+								<Button
 									key={color}
+									variant="ghost"
+									size="sm"
 									onClick={() => onColorChange(color)}
 									className={cn(
-										'flex items-center gap-2 rounded-full px-3 py-1 text-sm transition-colors',
-										'border border-input hover:bg-accent',
-										selectedColor === color && 'bg-accent'
+										'h-7 gap-1.5 px-2 text-xs',
+										selectedColor === color
+											? 'bg-accent text-accent-foreground'
+											: 'text-muted-foreground hover:text-foreground'
 									)}
 								>
 									{color !== 'all' && (
 										<div
-											className="h-2 w-2 rounded-full"
+											className="h-2 w-2 rounded-sm ring-1 ring-inset ring-border"
 											style={{
 												backgroundColor:
 													HIGHLIGHT_COLORS[color]
@@ -124,42 +135,38 @@ export function NotesFilters({
 										/>
 									)}
 									{colorLabels[color]}
-								</button>
+								</Button>
 							))}
 						</div>
 					</div>
 
 					{/* Tag Filters */}
 					{availableTags.length > 0 && (
-						<div className="space-y-2">
-							<h4 className="text-sm font-medium text-muted-foreground px-1">
-								تصفية حسب التصنيفات
-							</h4>
-							<div className="flex flex-wrap gap-1">
-								{availableTags.map((tag) => (
-									<Badge
-										key={tag.id}
-										variant={
+						<div className="flex flex-wrap gap-1.5">
+							{availableTags.map((tag) => (
+								<Button
+									key={tag.id}
+									variant="ghost"
+									size="sm"
+									onClick={() => {
+										onTagsChange(
 											selectedTags.includes(tag.id)
-												? 'default'
-												: 'outline'
-										}
-										className="cursor-pointer"
-										onClick={() => {
-											onTagsChange(
-												selectedTags.includes(tag.id)
-													? selectedTags.filter(
-															(id) =>
-																id !== tag.id
-													  )
-													: [...selectedTags, tag.id]
-											);
-										}}
-									>
-										{tag.name}
-									</Badge>
-								))}
-							</div>
+												? selectedTags.filter(
+														(id) => id !== tag.id
+												  )
+												: [...selectedTags, tag.id]
+										);
+									}}
+									className={cn(
+										'h-7 px-2 text-xs',
+										selectedTags.includes(tag.id)
+											? 'bg-accent text-accent-foreground'
+											: 'text-muted-foreground hover:text-foreground'
+									)}
+								>
+									{tag.name}
+								</Button>
+							))}
 						</div>
 					)}
 				</CollapsibleContent>
