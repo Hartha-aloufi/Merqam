@@ -99,6 +99,12 @@ export default function RootLayout({
 	return (
 		<html lang="ar" dir="rtl" suppressHydrationWarning>
 			<head>
+				{/* Enable this for scanning rerenders */}
+				{/* <script
+					src="https://unpkg.com/react-scan/dist/auto.global.js"
+					async
+				/> */}
+
 				<link rel="manifest" href="/manifest.json" />
 				<meta name="theme-color" content="#ffffff" />
 				<meta name="application-name" content="مِرْقَم" />

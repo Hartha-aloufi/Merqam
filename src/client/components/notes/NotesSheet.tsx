@@ -99,14 +99,16 @@ export function NotesSheet({ topicId, lessonId }: NotesSheetProps) {
 							{view === 'list' ? 'الملاحظات' : 'ملاحظة جديدة'}
 						</SheetTitle>
 
-						<Button
-							size="sm"
-							onClick={handleNewNote}
-							className="gap-1"
-						>
-							<Plus className="h-3 w-3" />
-							كتابة ملاحظة جديدة
-						</Button>
+						{view === 'list' && (
+							<Button
+								size="sm"
+								onClick={handleNewNote}
+								className="gap-1"
+							>
+								<Plus className="h-3 w-3" />
+								كتابة ملاحظة جديدة
+							</Button>
+						)}
 					</SheetHeader>
 				</div>
 

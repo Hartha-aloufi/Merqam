@@ -126,7 +126,7 @@ export function NotesFilters({
 								>
 									{color !== 'all' && (
 										<div
-											className="h-2 w-2 rounded-sm ring-1 ring-inset ring-border"
+											className="h-3 w-3 rounded-sm ring-1  ring-border"
 											style={{
 												backgroundColor:
 													HIGHLIGHT_COLORS[color]

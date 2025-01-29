@@ -88,11 +88,7 @@ export function NoteEditor({ topicId, lessonId }: NoteEditorProps) {
 	};
 
 	const handleBack = () => {
-		if (selectedNoteId) {
 			setView('list');
-		} else {
-			close();
-		}
 	};
 
 	return (
@@ -130,22 +126,13 @@ export function NoteEditor({ topicId, lessonId }: NoteEditorProps) {
 							placeholder="اكتب ملاحظتك هنا..."
 							value={content}
 							onChange={(e) => setContent(e.target.value)}
-							className="min-h-[150px] resize-none border-none focus:ring-0 text-base bg-transparent"
-							dir="auto"
+							className="min-h-[150px] resize-none text-base"
+							// dir="auto"
 						/>
 					</div>
 				</CardContent>
 
 				<CardFooter className="flex justify-end gap-2 py-3 px-4 bg-muted/30 border-t">
-					<Button
-						variant="ghost"
-						size="sm"
-						onClick={() => setContent('')}
-						disabled={!content}
-					>
-						<X className="h-4 w-4 ml-2" />
-						مسح
-					</Button>
 					<Button
 						type="submit"
 						size="sm"
