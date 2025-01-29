@@ -13,6 +13,7 @@ import PrintableLesson from './print/printable-lesson';
 import { cn } from '@/client/lib/utils';
 import { useVideoSettings } from '@/client/stores/use-video-settings';
 import { NotesSheet } from '../notes/NotesSheet';
+import { NoteSheetMobile } from '../notes/NoteSheetMobile';
 
 interface LessonViewProps {
 	lesson: Lesson;
@@ -91,6 +92,10 @@ export function LessonView({
 			{/* Notes Sheet */}
 			<NotesSheet topicId={topicId} lessonId={lessonId} />
 
+			<NoteSheetMobile
+				lessonId={lessonId}
+				topicId={topicId}
+			/>
 		</VideoProvider>
 	);
 }

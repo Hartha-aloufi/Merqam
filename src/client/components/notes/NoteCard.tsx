@@ -3,7 +3,7 @@ import { Note } from '@/types/note';
 import { Card, CardContent, CardHeader } from '@/client/components/ui/card';
 import { Button } from '@/client/components/ui/button';
 import { Pen, Trash2, Link, ChevronDown } from 'lucide-react';
-import { cn } from '@/client/lib/utils';
+import { cn, NotoNaskhArabic } from '@/client/lib/utils';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { useNotesSheet } from '@/client/stores/use-notes-sheet';
@@ -42,7 +42,7 @@ export function NoteCard({ note, className }: NoteCardProps) {
 	};
 
 	const handleJumpToHighlight = () => {
-			scrollToHighlight(note.highlightId!);
+		scrollToHighlight(note.highlightId!);
 	};
 
 	return (
@@ -136,7 +136,7 @@ export function NoteCard({ note, className }: NoteCardProps) {
 						className="space-y-2"
 						onClick={() => setIsExpanded(!isExpanded)}
 					>
-						<p className="text-sm">
+						<p className={cn('text-sm', NotoNaskhArabic.className)}>
 							{isExpanded ? note.content : previewContent}
 						</p>
 						<Button
@@ -156,7 +156,9 @@ export function NoteCard({ note, className }: NoteCardProps) {
 						</Button>
 					</div>
 				) : (
-					<p className="text-sm">{note.content}</p>
+					<p className={cn('text-sm', NotoNaskhArabic.className)}>
+						{note.content}
+					</p>
 				)}
 			</CardContent>
 		</Card>

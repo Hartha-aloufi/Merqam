@@ -12,6 +12,7 @@ import { Card, CardContent, CardFooter } from '../ui/card';
 import { TagSelector } from './TagSelector';
 import { HighlightColorKey } from '@/constants/highlights';
 import { NoteLabel } from './NoteLabel';
+import { cn, NotoNaskhArabic } from '@/client/lib/utils';
 
 interface NoteEditorProps {
 	topicId: string;
@@ -88,7 +89,7 @@ export function NoteEditor({ topicId, lessonId }: NoteEditorProps) {
 	};
 
 	const handleBack = () => {
-			setView('list');
+		setView('list');
 	};
 
 	return (
@@ -126,7 +127,10 @@ export function NoteEditor({ topicId, lessonId }: NoteEditorProps) {
 							placeholder="اكتب ملاحظتك هنا..."
 							value={content}
 							onChange={(e) => setContent(e.target.value)}
-							className="min-h-[150px] resize-none text-base"
+							className={cn(
+								'min-h-[150px] resize-none text-base',
+								NotoNaskhArabic.className
+							)}
 							// dir="auto"
 						/>
 					</div>

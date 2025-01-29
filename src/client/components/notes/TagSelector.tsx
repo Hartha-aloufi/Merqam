@@ -21,9 +21,14 @@ import { useTags, useCreateTag } from '@/client/hooks/use-notes';
 interface TagSelectorProps {
 	selectedTags: string[];
 	onTagsChange: (tags: string[]) => void;
+	renderSelectedTags?: boolean
 }
 
-export function TagSelector({ selectedTags, onTagsChange }: TagSelectorProps) {
+export function TagSelector({
+	selectedTags,
+	onTagsChange,
+	renderSelectedTags,
+}: TagSelectorProps) {
 	const [isOpen, setIsOpen] = React.useState(false);
 	const [search, setSearch] = React.useState('');
 	const inputRef = React.useRef<HTMLInputElement>(null);
@@ -69,27 +74,28 @@ export function TagSelector({ selectedTags, onTagsChange }: TagSelectorProps) {
 		<div>
 			<div className="flex flex-wrap gap-1">
 				{/* Selected Tags */}
-				{selectedTags.map((tagId) => {
-					const tag = tags.find((t) => t.id === tagId);
-					if (!tag) return null;
+				{renderSelectedTags &&
+					selectedTags.map((tagId) => {
+						const tag = tags.find((t) => t.id === tagId);
+						if (!tag) return null;
 
-					return (
-						<span
-							key={tag.id}
-							className="group flex items-center gap-1 rounded-md bg-primary/10 px-2 py-1 text-sm text-primary"
-						>
-							{tag.name}
-							<Button
-								type="button"
-								variant="ghost"
-								className="h-4 w-4 p-0 opacity-50 hover:opacity-100"
-								onClick={() => handleTagSelect(tag.id)}
+						return (
+							<span
+								key={tag.id}
+								className="group flex items-center gap-1 rounded-md bg-primary/10 px-2 py-1 text-sm text-primary"
 							>
-								<X className="h-3 w-3" />
-							</Button>
-						</span>
-					);
-				})}
+								{tag.name}
+								<Button
+									type="button"
+									variant="ghost"
+									className="h-4 w-4 p-0 opacity-50 hover:opacity-100"
+									onClick={() => handleTagSelect(tag.id)}
+								>
+									<X className="h-3 w-3" />
+								</Button>
+							</span>
+						);
+					})}
 
 				{/* Tag Selector */}
 				<Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -179,7 +185,8 @@ export function TagSelector({ selectedTags, onTagsChange }: TagSelectorProps) {
 														) : (
 															<Plus className="mr-2 h-3 w-3" />
 														)}
-														إنشاء تصنيف &quot;{search}&quot;
+														إنشاء تصنيف &quot;
+														{search}&quot;
 													</CommandItem>
 												</CommandGroup>
 											</>
@@ -194,3 +201,7 @@ export function TagSelector({ selectedTags, onTagsChange }: TagSelectorProps) {
 		</div>
 	);
 }
+
+TagSelector.defaultProps = {
+	renderSelectedTags: true,
+};

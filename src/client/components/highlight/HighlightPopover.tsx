@@ -23,6 +23,7 @@ import { cn } from '@/client/lib/utils';
 import { HIGHLIGHT_COLORS, HighlightColorKey } from '@/constants/highlights';
 import { useNotesSheet } from '@/client/stores/use-notes-sheet';
 import { useHighlightNote } from '@/client/hooks/use-notes';
+import { useNoteDrawer } from '@/client/stores/use-note-sheet-mobile';
 
 interface PopoverState {
 	highlight: TextHighlight | null;
@@ -192,14 +193,22 @@ export function HighlightPopoverProvider({
 						<button
 							onClick={() => {
 								const highlight = popoverState.highlight!;
-								useNotesSheet.getState().open(highlight.id);
-								console.log('noteData', noteData);
-								// If note exists, set the view to editor with that note
-								if (noteData?.id) {
-									useNotesSheet
-										.getState()
-										.setSelectedNoteId(noteData.id);
-									useNotesSheet.getState().setView('editor');
+								// Use drawer on mobile/tablet, sheet on desktop
+								if (window.innerWidth < 1024) {
+									useNoteDrawer.getState().open({
+										noteId: noteData?.id,
+										highlightId: highlight.id,
+									});
+								} else {
+									useNotesSheet.getState().open(highlight.id);
+									if (noteData?.id) {
+										useNotesSheet
+											.getState()
+											.setSelectedNoteId(noteData.id);
+										useNotesSheet
+											.getState()
+											.setView('editor');
+									}
 								}
 								hidePopover();
 							}}
