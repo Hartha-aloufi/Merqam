@@ -28,17 +28,17 @@ const envSchema = z
 		GOOGLE_CLIENT_SECRET: z.string(),
 		NEXT_PUBLIC_APP_URL: z.string().url(),
 		OPENAI_API_KEY: z.string().optional(),
-		GEMINI_API_KEYS: z.array(z.string()).default([]),
+		GEMINI_API_KEYS: z.array(z.string()).default([]).optional(),
 	})
 	.transform((data) => ({
 		...data,
 		GEMINI_API_KEYS:
-			data.GEMINI_API_KEYS.length > 0
+			data.GEMINI_API_KEYS && data.GEMINI_API_KEYS.length > 0
 				? data.GEMINI_API_KEYS
 				: getGeminiKeys(),
 	}))
 	.refine((data) => Boolean(data.OPENAI_API_KEY || data.GEMINI_API_KEYS), {
 		message: 'Either OPENAI_API_KEY or GEMINI_API_KEY must be provided',
-	});;
+	});
 
 export const env = envSchema.parse(process.env);

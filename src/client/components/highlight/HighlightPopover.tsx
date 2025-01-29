@@ -6,7 +6,7 @@ import React, {
 	useCallback,
 	useRef,
 } from 'react';
-import { Trash2 } from 'lucide-react';
+import { FileText, Trash2 } from 'lucide-react';
 import { TextHighlight } from '@/types/highlight';
 import {
 	FloatingPortal,
@@ -21,6 +21,8 @@ import {
 } from '@floating-ui/react';
 import { cn } from '@/client/lib/utils';
 import { HIGHLIGHT_COLORS, HighlightColorKey } from '@/constants/highlights';
+import { useNotesSheet } from '@/client/stores/use-notes-sheet';
+import { useHighlightNote } from '@/client/hooks/use-notes';
 
 interface PopoverState {
 	highlight: TextHighlight | null;
@@ -75,6 +77,7 @@ interface HighlightPopoverProviderProps {
 		id: string,
 		options: { color: HighlightColorKey }
 	) => void | Promise<void>;
+	lessonId: string;
 }
 
 /**
@@ -84,11 +87,18 @@ export function HighlightPopoverProvider({
 	children,
 	onRemoveHighlight,
 	onUpdateHighlight,
+	lessonId,
 }: HighlightPopoverProviderProps) {
 	const [popoverState, setPopoverState] = useState<PopoverState>({
 		highlight: null,
 		anchorElement: null,
 	});
+
+	// Get associated note info
+	const { data: noteData } = useHighlightNote(
+		lessonId,
+		popoverState.highlight?.id || ''
+	);
 
 	const arrowRef = useRef<HTMLDivElement>(null);
 
@@ -177,6 +187,42 @@ export function HighlightPopoverProvider({
 
 						{/* Divider */}
 						<div className="w-px h-6 bg-border/50" />
+
+						{/* Note Button */}
+						<button
+							onClick={() => {
+								const highlight = popoverState.highlight!;
+								useNotesSheet.getState().open(highlight.id);
+								console.log('noteData', noteData);
+								// If note exists, set the view to editor with that note
+								if (noteData?.id) {
+									useNotesSheet
+										.getState()
+										.setSelectedNoteId(noteData.id);
+									useNotesSheet.getState().setView('editor');
+								}
+								hidePopover();
+							}}
+							className={cn(
+								'h-7 w-7 flex items-center justify-center',
+								'rounded-full transition-colors duration-150',
+								'hover:bg-primary hover:text-primary-foreground',
+								'focus:outline-none focus:ring-2 focus:ring-primary',
+								'active:scale-95'
+							)}
+							title={
+								noteData
+									? 'عرض الملاحظة المرتبطة'
+									: 'إضافة ملاحظة'
+							}
+						>
+							<FileText
+								className={cn(
+									'h-4 w-4',
+									noteData && 'fill-current' // Fill icon if note exists
+								)}
+							/>
+						</button>
 
 						{/* Delete Button */}
 						<button

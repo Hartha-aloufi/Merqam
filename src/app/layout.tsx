@@ -6,6 +6,7 @@ import { Metadata, Viewport } from 'next';
 import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider } from '@/client/providers/auth-provider';
 import { tajawal } from '@/client/lib/utils';
+import { Toaster } from 'sonner';
 
 // Static metadata
 export const metadata: Metadata = {
@@ -98,6 +99,12 @@ export default function RootLayout({
 	return (
 		<html lang="ar" dir="rtl" suppressHydrationWarning>
 			<head>
+				{/* Enable this for scanning rerenders */}
+				{/* <script
+					src="https://unpkg.com/react-scan/dist/auto.global.js"
+					async
+				/> */}
+
 				<link rel="manifest" href="/manifest.json" />
 				<meta name="theme-color" content="#ffffff" />
 				<meta name="application-name" content="مِرْقَم" />
@@ -121,6 +128,7 @@ export default function RootLayout({
 			</head>
 			<body className={tajawal.className}>
 				<AuthProvider>
+					<Toaster />
 					<ThemeProvider defaultTheme="sepia" attribute="data-theme">
 						<TooltipProvider delayDuration={300}>
 							<Layout>{children}</Layout>
