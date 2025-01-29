@@ -12,6 +12,7 @@ import {
 import { useNoteDrawer } from '@/client/stores/use-note-sheet-mobile';
 import { useNotesSheet } from '@/client/stores/use-notes-sheet';
 import { useScrollToHighlight } from '@/client/hooks/highlights/use-scroll-to-highlight';
+import { cn } from '@/client/lib/utils';
 
 interface NoteSheetMobileProps {
 	lessonId: string;
@@ -20,12 +21,10 @@ interface NoteSheetMobileProps {
 
 export function NoteSheetMobile({ lessonId, topicId }: NoteSheetMobileProps) {
 	const { isOpen, noteId, highlightId, close } = useNoteDrawer();
-
 	const { data: notes = [] } = useNotes(lessonId);
 	const [currentNoteId, setCurrentNoteId] = React.useState<
 		string | undefined
 	>(noteId);
-
 	const scrollToHighlight = useScrollToHighlight();
 
 	// Reset current note when sheet opens/closes
@@ -42,43 +41,53 @@ export function NoteSheetMobile({ lessonId, topicId }: NoteSheetMobileProps) {
 	}, [notes, currentNoteId]);
 
 	// Handle navigation
-	const handleNext = () => {
+	const handleNext = React.useCallback(() => {
 		if (currentIndex < notes.length - 1) {
 			setCurrentNoteId(notes[currentIndex + 1].id);
 			if (notes[currentIndex + 1].highlightId) {
 				scrollToHighlight(notes[currentIndex + 1].highlightId!);
 			}
 		}
-	};
+	}, [currentIndex, notes, scrollToHighlight]);
 
-	const handlePrev = () => {
+	const handlePrev = React.useCallback(() => {
 		if (currentIndex > 0) {
 			setCurrentNoteId(notes[currentIndex - 1].id);
-
 			if (notes[currentIndex - 1].highlightId) {
 				scrollToHighlight(notes[currentIndex - 1].highlightId!);
 			}
 		}
-	};
+	}, [currentIndex, notes, scrollToHighlight]);
 
-	const openAllNotes = () => {
+	const openAllNotes = React.useCallback(() => {
 		close();
 		useNotesSheet.getState().open();
-	};
+	}, [close]);
 
 	return (
 		<Sheet open={isOpen} onOpenChange={(open) => !open && close()}>
 			<SheetContent
 				side="bottom"
-				className="p-0 border-t"
-				// Prevent dragging on mobile
+				className="p-0 border-t bg-background/95 backdrop-blur-md"
 				onTouchMove={(e) => e.stopPropagation()}
+				hideCloseButton={true}
 			>
 				{/* Header */}
-				<SheetHeader className="px-4 pt-2">
+				<SheetHeader className="border-b border-border/40 px-4 py-2">
+					{/* This title is only for accessability */}
+					<SheetTitle className="hidden">الملاحظات</SheetTitle>
+
 					<div className="flex items-center justify-between">
-						{/* close sheet button */}
-						<X onClick={close} className="h-4 w-4" />
+						{/* Close button */}
+						<Button
+							variant="ghost"
+							size="icon"
+							onClick={close}
+							className="h-8 w-8 rounded-full hover:bg-accent/80"
+						>
+							<X className="h-4 w-4 text-muted-foreground" />
+							<span className="sr-only">إغلاق</span>
+						</Button>
 
 						{/* Navigation Controls */}
 						{notes.length > 0 && (
@@ -88,9 +97,13 @@ export function NoteSheetMobile({ lessonId, topicId }: NoteSheetMobileProps) {
 									size="icon"
 									disabled={currentIndex <= 0}
 									onClick={handlePrev}
-									className="h-8 w-8"
+									className={cn(
+										'h-8 w-8 rounded-full',
+										currentIndex <= 0 && 'opacity-50'
+									)}
 								>
-									<ChevronRight className="h-8 w-8" />
+									<ChevronRight className="h-4 w-4" />
+									<span className="sr-only">السابق</span>
 								</Button>
 								<span className="min-w-[4rem] text-center text-sm text-muted-foreground">
 									{currentIndex + 1} من {notes.length}
@@ -103,20 +116,32 @@ export function NoteSheetMobile({ lessonId, topicId }: NoteSheetMobileProps) {
 										currentIndex >= notes.length - 1
 									}
 									onClick={handleNext}
-									className="h-8 w-8"
+									className={cn(
+										'h-8 w-8 rounded-full',
+										(currentIndex === -1 ||
+											currentIndex >= notes.length - 1) &&
+											'opacity-50'
+									)}
 								>
-									<ChevronLeft className="h-8 w-8" />
+									<ChevronLeft className="h-4 w-4" />
+									<span className="sr-only">التالي</span>
 								</Button>
 							</div>
 						)}
-						<Button variant="ghost" onClick={openAllNotes}>
+
+						{/* View all notes button */}
+						<Button
+							variant="ghost"
+							onClick={openAllNotes}
+							className="text-sm font-medium text-primary hover:text-primary/80"
+						>
 							عرض الكل
 						</Button>
 					</div>
 				</SheetHeader>
 
-				{/* Content */}
-				<div className="h-full overflow-y-auto">
+				{/* Content Area */}
+				<div className="max-h-[70vh] overflow-y-auto">
 					<NoteEditorMobile
 						topicId={topicId}
 						lessonId={lessonId}

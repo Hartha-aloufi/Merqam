@@ -3,6 +3,8 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { Exercise, UserAnswers, QuizResults } from '@/types/exercise';
 import { Tajawal } from "next/font/google";
+import { Noto_Naskh_Arabic } from 'next/font/google';
+
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -130,6 +132,12 @@ export function convertToSeconds(timeStr: string, floor = true) {
 export const tajawal = Tajawal({
   subsets: ["arabic"],
   weight: ["200", "300", "400", "500", "700", "800", "900"],
+});
+
+// For user entered Arabic text
+export const NotoNaskhArabic = Noto_Naskh_Arabic({
+	subsets: ['arabic'],
+	weight: ['400', '500'],
 });
 
 export const getSearchParamFromURL = (urlStr: string, param: string): string | null => {
