@@ -1,5 +1,6 @@
 // src/client/components/highlight/HighlightContainer.tsx
 import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useHighlightState } from '@/client/hooks/highlights/use-highlights-state';
 import { useHighlightOperations } from '@/client/hooks/highlights/use-highlight-operations';
 import {
@@ -164,20 +165,23 @@ export function HighlightContainer({
 		>
 			<div className="relative">
 				{/* Toolbar */}
-				<HighlightToolbar
-					isEnabled={state.isEnabled}
-					onToggle={state.toggleHighlighting}
-					activeColor={state.activeColor}
-					onColorChange={state.setActiveColor}
-					highlightsCount={highlights.length}
-					onNavigate={handleNavigate}
-					currentIsGroup={currentIsGroup}
-					currentHighlightIndex={currentHighlightIndex}
-					onUndo={undo}
-					onRedo={redo}
-					canUndo={canUndo}
-					canRedo={canRedo}
-				/>
+				{createPortal(
+					<HighlightToolbar
+						isEnabled={state.isEnabled}
+						onToggle={state.toggleHighlighting}
+						activeColor={state.activeColor}
+						onColorChange={state.setActiveColor}
+						highlightsCount={highlights.length}
+						onNavigate={handleNavigate}
+						currentIsGroup={currentIsGroup}
+						currentHighlightIndex={currentHighlightIndex}
+						onUndo={undo}
+						onRedo={redo}
+						canUndo={canUndo}
+						canRedo={canRedo}
+					/>,
+					document.getElementById('lesson-top-header') as HTMLElement
+				)}
 
 				{/* Content with highlights */}
 				<div className="pt-8">
