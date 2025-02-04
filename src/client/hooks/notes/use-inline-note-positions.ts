@@ -1,6 +1,7 @@
-import { useCallback } from 'react';
+import { Note } from '@/types/note';
 
-const MARGIN = 20;
+
+export const createInlineNoteElId = (noteId: string) => `inline-note-${noteId}`;
 
 /**
  * In case we have notes to view, we can maximize the space in the viewport by translating the whole content to the left.
@@ -12,8 +13,8 @@ const MARGIN = 20;
  * paddings = 24px * 2px
  * playerPadding = 56px
  * total (minViewPort)= 1172px
- * @param viewPortWidth 
- * @returns 
+ * @param viewPortWidth
+ * @returns
  */
 export function calcTranslationValue(viewPortWidth) {
 	const minViewPortWidth = 1172,
@@ -22,48 +23,99 @@ export function calcTranslationValue(viewPortWidth) {
 		maxTrans = 172;
 
 	if (viewPortWidth >= maxViewPortWidth || viewPortWidth < 1172) return -1;
-	
-  // map the range 1172 - 1512 to 172 - 0
-	const translateX = (
+
+	// map the range 1172 - 1512 to 172 - 0
+	const translateX =
 		maxTrans -
 		((viewPortWidth - minViewPortWidth) * (maxTrans - minTrans)) /
-			(maxViewPortWidth - minViewPortWidth)
-	);
+			(maxViewPortWidth - minViewPortWidth);
 
 	// convert to integer
 	return Math.round(translateX);
 }
 
 /**
- * Hook to manage inline note positions relative to their highlights
+ * Calculate the top position of the highlight element with the given id
+ * this function is dependent on the DOM, so it should be used only after the component is mounted
+ * @param highlightId 
+ * @returns 
  */
-export function useInlineNotePositions() {
-	const getNotePosition = useCallback(
-		(
-			highlightId: string,
-			prevNoteCard?: { top: number; height: number }
-		): number | null => {
-			const highlightEl = document.querySelector(
-				`mark[data-highlight="${highlightId}"]`
-			) as HTMLElement;
+export const getHighlightElementTopPosition = (highlightId?: string | null): number => {
+	const highlightEl = document.querySelector(
+		`mark[data-highlight="${highlightId}"]`
+	) as HTMLElement;
 
-			if (!highlightEl) return null;
+	if (!highlightEl) return 0;
 
-			// Get highlight position
-			const { top } = highlightEl.getBoundingClientRect();
+	// Get highlight position
+	const { top } = highlightEl.getBoundingClientRect();
 
-			// Add scroll offset and some margin
-			const initialPos = Math.max(0, top + window.scrollY - MARGIN);
-			let minTop = initialPos;
+	// Add scroll offset
+	return Math.max(0, top + window.scrollY) - 150;
+};
 
-			if (prevNoteCard) {
-				minTop = prevNoteCard.top + prevNoteCard.height + MARGIN;
-			}
+/**
+ * get the height of the note element with the given id
+ * this function is dependent on the DOM, so it should be used only after the component is mounted
+ * @param noteId 
+ * @returns 
+ */
+const getNoteHeight = (noteId: string) => {
+	const noteEl = document.getElementById(createInlineNoteElId(noteId));
+	if (!noteEl) return 0;
 
-			return Math.max(minTop, initialPos);
-		},
-		[]
+	return noteEl.getBoundingClientRect().height;
+};
+
+type PositionedNote = Note & { top: number };
+
+/**
+ * Avoid overlap between notes by adjusting the top position of the note
+ * top position should be greater than the previous note top position + previous note height
+ * @param note 
+ * @param prevNote 
+ * @returns 
+ */
+const avoidOverlap = (note: PositionedNote, prevNote?: PositionedNote) => {
+	if (!prevNote) return note.top;
+	const prevNoteHeight = getNoteHeight(prevNote.id);
+
+	const minTop = prevNote.top + prevNoteHeight;
+
+	return Math.max(minTop, note.top);
+};
+
+/**
+ * Align notes with their corresponding highlights
+ * This will ensure that notes are displayed in the correct order and avoid overlapping
+ * @param notes 
+ * @returns 
+ */
+export const alignNotesWithHighlights = (notes?: Note[]) => {
+	if (!notes) return new Map<string, number>();
+	return (
+		notes
+			// get initial top position for each note
+			.map((note) => {
+				return {
+					...note,
+					top: getHighlightElementTopPosition(note.highlightId),
+				};
+			})
+			// filter out notes without highlights
+			.filter((note) => note)
+			// sort notes by top position
+			.sort((a, b) => a.top - b.top)
+			// avoid overlap notes by adjusting top position
+			.map((note, idx, arr) => ({
+				id: note.id,
+				top: avoidOverlap(note, arr[idx - 1]),
+			}))
+			// convert to map of noteId -> top position
+			.reduce((acc, note) => {
+				acc.set(note.id, note.top);
+				return acc;
+			}, new Map<string, number>())
 	);
+};
 
-	return { getNotePosition };
-}
