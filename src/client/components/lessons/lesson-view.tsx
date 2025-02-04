@@ -7,13 +7,12 @@ import { useParagraphTracking } from '@/client/hooks/use-paragraph-tracking';
 import { usePrintLesson } from '@/client/hooks/use-print-lesson';
 import type { Lesson } from '@/types';
 import { LessonHeader } from './lesson-header';
-import { ReadingProgressBar } from '../reading/ReadingProgressBar';
 import PrintButton from './print/print-button';
 import PrintableLesson from './print/printable-lesson';
-import { cn } from '@/client/lib/utils';
 import { useVideoSettings } from '@/client/stores/use-video-settings';
 import { NotesSheet } from '../notes/NotesSheet';
 import { NoteSheetMobile } from '../notes/NoteSheetMobile';
+import CustomLessonLayout from './CustomLayout';
 
 interface LessonViewProps {
 	lesson: Lesson;
@@ -46,8 +45,7 @@ export function LessonView({
 
 	return (
 		<VideoProvider>
-			<div>
-
+			<CustomLessonLayout topicId={topicId} lessonId={lessonId}>
 				<div className="flex items-center justify-between mb-8">
 					<LessonHeader
 						title={lesson.title}
@@ -73,7 +71,7 @@ export function LessonView({
 				<div className="prose prose-lg dark:prose-invert max-w-none">
 					{children}
 				</div>
-			</div>
+			</CustomLessonLayout>
 
 			<PrintableLesson
 				title={lesson.title}
@@ -89,10 +87,7 @@ export function LessonView({
 			{/* Notes Sheet */}
 			<NotesSheet topicId={topicId} lessonId={lessonId} />
 
-			<NoteSheetMobile
-				lessonId={lessonId}
-				topicId={topicId}
-			/>
+			<NoteSheetMobile lessonId={lessonId} topicId={topicId} />
 		</VideoProvider>
 	);
 }

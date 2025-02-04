@@ -32,11 +32,7 @@ interface InlineNoteCardProps {
 /**
  * Renders a single inline note with minimal UI like Notion
  */
-export function InlineNoteCard({
-	note,
-	topicId,
-	lessonId,
-}: InlineNoteCardProps) {
+export function InlineNoteCard({ note }: InlineNoteCardProps) {
 	const [isEditing, setIsEditing] = useState(false);
 	const [showActions, setShowActions] = useState(false);
 	const { data: session } = useSession();
@@ -52,7 +48,7 @@ export function InlineNoteCard({
 		<div
 			className={cn(
 				'group relative rounded-lg border bg-background shadow-sm transition-shadow hover:shadow-md',
-				'mb-4 w-[340px]'
+				'mb-4 w-[300px]'
 			)}
 			onMouseEnter={() => setShowActions(true)}
 			onMouseLeave={() => setShowActions(false)}
@@ -84,7 +80,7 @@ export function InlineNoteCard({
 							showActions ? 'opacity-100' : 'opacity-0'
 						)}
 					>
-						<DropdownMenu>
+						<DropdownMenu modal={false}>
 							<DropdownMenuTrigger asChild>
 								<Button
 									variant="ghost"
