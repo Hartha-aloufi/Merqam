@@ -1,5 +1,5 @@
 'use client';
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { YouTubeMusicPlayer } from '@/client/components/video/youtube-music-player';
 import { ShortcutsToast } from '@/client/components/reading/ShortcutsToast';
 import { VideoProvider } from '@/client/contexts/video-context';
@@ -13,6 +13,7 @@ import { useVideoSettings } from '@/client/stores/use-video-settings';
 import { NotesSheet } from '../notes/NotesSheet';
 import { NoteSheetMobile } from '../notes/NoteSheetMobile';
 import CustomLessonLayout from './CustomLayout';
+import { useIsDesktop } from '@/client/hooks/use-screen-sizes';
 
 interface LessonViewProps {
 	lesson: Lesson;
@@ -29,8 +30,22 @@ export function LessonView({
 	children,
 }: LessonViewProps) {
 	const pTracker = useParagraphTracking(topicId, lessonId);
+
 	const { position } = useVideoSettings();
-	const handlePrint = usePrintLesson({ title: lesson.title });
+
+	const { print, printing, togglePrinting } = usePrintLesson({
+		title: lesson.title,
+	});
+
+	const isDesktopScreen = useIsDesktop();
+
+	const handlePrint = useCallback(() => {
+		togglePrinting();
+
+		setTimeout(() => {
+			print();
+		}, 300);
+	}, [print, togglePrinting]);
 
 	useEffect(() => {
 		pTracker.scrollToLastRead();
@@ -73,12 +88,14 @@ export function LessonView({
 				</div>
 			</CustomLessonLayout>
 
-			<PrintableLesson
-				title={lesson.title}
-				content={children}
-				topicId={topicId}
-				lessonId={lessonId}
-			/>
+			{printing && (
+				<PrintableLesson
+					title={lesson.title}
+					content={children}
+					topicId={topicId}
+					lessonId={lessonId}
+				/>
+			)}
 
 			<div className="print:hidden">
 				<ShortcutsToast />
@@ -87,7 +104,9 @@ export function LessonView({
 			{/* Notes Sheet */}
 			<NotesSheet topicId={topicId} lessonId={lessonId} />
 
-			<NoteSheetMobile lessonId={lessonId} topicId={topicId} />
+			{!isDesktopScreen && (
+				<NoteSheetMobile lessonId={lessonId} topicId={topicId} />
+			)}
 		</VideoProvider>
 	);
 }

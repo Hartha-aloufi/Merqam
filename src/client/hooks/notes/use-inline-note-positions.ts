@@ -76,7 +76,7 @@ type PositionedNote = Note & { top: number };
  * @param prevNote 
  * @returns 
  */
-const avoidOverlap = (note: PositionedNote, prevNote?: PositionedNote) => {
+const avoidOverlap = (note: PositionedNote, prevNote?: {id: string, top: number}) => {
 	if (!prevNote) return note.top;
 	const prevNoteHeight = getNoteHeight(prevNote.id);
 
@@ -106,14 +106,22 @@ export const alignNotesWithHighlights = (notes?: Note[]) => {
 			.filter((note) => note)
 			// sort notes by top position
 			.sort((a, b) => a.top - b.top)
+			// .map((note, idx, arr) => ({
+				// 	id: note.id,
+				// 	top: avoidOverlap(note, arr[idx - 1]),
+				// }))
 			// avoid overlap notes by adjusting top position
-			.map((note, idx, arr) => ({
-				id: note.id,
-				top: avoidOverlap(note, arr[idx - 1]),
-			}))
 			// convert to map of noteId -> top position
-			.reduce((acc, note) => {
-				acc.set(note.id, note.top);
+			.reduce((acc, note, idx, arr) => {
+				if(acc.size > 0) {
+					const prevNoteTop = acc.get(arr[idx - 1].id);
+
+					const newTop = avoidOverlap(note, { id: arr[idx - 1].id, top: prevNoteTop as number });
+					acc.set(note.id, newTop);
+				} else {
+					acc.set(note.id, note.top);
+				}				
+
 				return acc;
 			}, new Map<string, number>())
 	);

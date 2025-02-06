@@ -1,5 +1,5 @@
 // src/client/components/highlight/HighlightContainer.tsx
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback,  useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useHighlightState } from '@/client/hooks/highlights/use-highlights-state';
 import { useHighlightOperations } from '@/client/hooks/highlights/use-highlight-operations';
@@ -16,7 +16,6 @@ import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useHighlightNavigation } from '@/client/hooks/highlights/use-highlight-navigation';
 import { useKeyboardNavigation } from '@/client/hooks/use-keyboard-navigation';
-import { uuid } from '@supabase/gotrue-js/dist/module/lib/helpers';
 import { HighlightColorKey } from '@/constants/highlights';
 import { HighlightToolbar } from './HighlightToolbar';
 
@@ -26,6 +25,7 @@ interface HighlightContainerProps {
 	children: React.ReactNode;
 	className?: string;
 }
+
 
 /**
  * Container component that provides highlighting functionality.
@@ -63,6 +63,7 @@ export function HighlightContainer({
 		canRedo,
 	} = useHighlightOperations(topicId, lessonId);
 
+	
 	// Handle text selection for new highlights
 	const handleSelection = useHighlightSelection({
 		isEnabled: state.isEnabled,

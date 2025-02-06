@@ -70,7 +70,7 @@ export function NoteSheetMobile({ lessonId, topicId }: NoteSheetMobileProps) {
 				side="bottom"
 				className="p-0 border-t bg-background/95 backdrop-blur-md"
 				onTouchMove={(e) => e.stopPropagation()}
-				hideCloseButton={true}
+				hideCloseButton={true} 
 			>
 				{/* Header */}
 				<SheetHeader className="border-b border-border/40 px-4 py-2">

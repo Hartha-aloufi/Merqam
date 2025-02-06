@@ -24,6 +24,7 @@ import { HIGHLIGHT_COLORS, HighlightColorKey } from '@/constants/highlights';
 import { useNotesSheet } from '@/client/stores/use-notes-sheet';
 import { useHighlightNote } from '@/client/hooks/use-notes';
 import { useNoteDrawer } from '@/client/stores/use-note-sheet-mobile';
+import { useIsDesktop } from '@/client/hooks/use-screen-sizes';
 
 interface PopoverState {
 	highlight: TextHighlight | null;
@@ -100,6 +101,8 @@ export function HighlightPopoverProvider({
 		lessonId,
 		popoverState.highlight?.id || ''
 	);
+
+	const isDesktopScreen = useIsDesktop()
 
 	const arrowRef = useRef<HTMLDivElement>(null);
 
@@ -194,7 +197,7 @@ export function HighlightPopoverProvider({
 							onClick={() => {
 								const highlight = popoverState.highlight!;
 								// Use drawer on mobile/tablet, sheet on desktop
-								if (window.innerWidth < 1024) {
+								if (!isDesktopScreen) {
 									useNoteDrawer.getState().open({
 										noteId: noteData?.id,
 										highlightId: highlight.id,
