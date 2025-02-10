@@ -68,12 +68,12 @@ export function NoteSheetMobile({ lessonId, topicId }: NoteSheetMobileProps) {
 		<Sheet open={isOpen} onOpenChange={(open) => !open && close()}>
 			<SheetContent
 				side="bottom"
-				className="p-0 border-t bg-background/95 backdrop-blur-md"
-				onTouchMove={(e) => e.stopPropagation()}
-				hideCloseButton={true} 
-			>
-				{/* Header */}
-				<SheetHeader className="border-b border-border/40 px-4 py-2">
+					className="p-0 border-t bg-background/95 backdrop-blur-md"
+					onTouchMove={(e) => e.stopPropagation()}
+					hideCloseButton={true} 
+				>
+					{/* Header */}
+					<SheetHeader className="border-b border-border/40 px-4 py-2">
 					{/* This title is only for accessability */}
 					<SheetTitle className="hidden">الملاحظات</SheetTitle>
 

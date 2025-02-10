@@ -148,6 +148,10 @@ export function HighlightContainer({
 		onRedo: canRedo ? redo : undefined,
 	});
 
+	const topHeaderEl = document.getElementById(
+		'lesson-top-header'
+	) as HTMLElement;
+
 	// Show unauthorized toolbar if not authenticated
 	if (!isAuthenticated) {
 		return (
@@ -166,23 +170,24 @@ export function HighlightContainer({
 		>
 			<div className="relative">
 				{/* Toolbar */}
-				{createPortal(
-					<HighlightToolbar
-						isEnabled={state.isEnabled}
-						onToggle={state.toggleHighlighting}
-						activeColor={state.activeColor}
-						onColorChange={state.setActiveColor}
-						highlightsCount={highlights.length}
-						onNavigate={handleNavigate}
-						currentIsGroup={currentIsGroup}
-						currentHighlightIndex={currentHighlightIndex}
-						onUndo={undo}
-						onRedo={redo}
-						canUndo={canUndo}
-						canRedo={canRedo}
-					/>,
-					document.getElementById('lesson-top-header') as HTMLElement
-				)}
+				{topHeaderEl &&
+					createPortal(
+						<HighlightToolbar
+							isEnabled={state.isEnabled}
+							onToggle={state.toggleHighlighting}
+							activeColor={state.activeColor}
+							onColorChange={state.setActiveColor}
+							highlightsCount={highlights.length}
+							onNavigate={handleNavigate}
+							currentIsGroup={currentIsGroup}
+							currentHighlightIndex={currentHighlightIndex}
+							onUndo={undo}
+							onRedo={redo}
+							canUndo={canUndo}
+							canRedo={canRedo}
+						/>,
+						topHeaderEl
+					)}
 
 				{/* Content with highlights */}
 				<div className="pt-8">
