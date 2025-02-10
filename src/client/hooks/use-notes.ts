@@ -22,6 +22,11 @@ export function useNotes(lessonId: string) {
 	});
 }
 
+export function useNotesCount(lessonId: string) {
+	const useNotesQuery = useNotes(lessonId);
+	return useNotesQuery.data?.length || 0;
+}
+
 type NoteList = Awaited<ReturnType<typeof notesService.getNotes>>;
 
 export function useNote(lessonId: string, noteId: string | null) {

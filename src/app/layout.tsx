@@ -5,7 +5,7 @@ import { TooltipProvider } from '@/client/components/ui/tooltip';
 import { Metadata, Viewport } from 'next';
 import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider } from '@/client/providers/auth-provider';
-import { tajawal } from '@/client/lib/utils';
+import { cn, tajawal } from '@/client/lib/utils';
 import { Toaster } from 'sonner';
 
 // Static metadata
@@ -126,7 +126,7 @@ export default function RootLayout({
 					color="#5bbad5"
 				/>
 			</head>
-			<body className={tajawal.className}>
+			<body className={cn(tajawal.className, 'overflow-x-hidden')}>
 				<AuthProvider>
 					<Toaster />
 					<ThemeProvider defaultTheme="sepia" attribute="data-theme">

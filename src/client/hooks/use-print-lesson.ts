@@ -1,33 +1,40 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
 interface PrintLessonOptions {
-    title: string;
+	title: string;
 }
 
 export const usePrintLesson = ({ title }: PrintLessonOptions) => {
-    return useCallback(() => {
-        // Store current title
-        const originalTitle = document.title;
+	const [printing, setPrinting] = useState(false);
+	const togglePrinting = useCallback(() => setPrinting((prev) => !prev), []);
 
-        // Set print-specific title
-        const beforePrintHandler = () => {
-            document.title = title;
-        };
+	const print = useCallback(() => {
+		// Store current title
+		const originalTitle = document.title;
 
-        // Restore original title
-        const afterPrintHandler = () => {
-            document.title = originalTitle;
-        };
+		// Set print-specific title
+		const beforePrintHandler = () => {
+			document.title = title;
+		};
 
-        // Add event listeners
-        window.addEventListener('beforeprint', beforePrintHandler);
-        window.addEventListener('afterprint', afterPrintHandler);
+		// Restore original title
+		const afterPrintHandler = () => {
+			document.title = originalTitle;
+			// Reset printing state
+			togglePrinting();
+		};
 
-        // Trigger print
-        window.print();
+		// Add event listeners
+		window.addEventListener('beforeprint', beforePrintHandler);
+		window.addEventListener('afterprint', afterPrintHandler);
 
-        // Cleanup
-        window.removeEventListener('beforeprint', beforePrintHandler);
-        window.removeEventListener('afterprint', afterPrintHandler);
-    }, [title]);
+		// Trigger print
+		window.print();
+
+		// Cleanup
+		window.removeEventListener('beforeprint', beforePrintHandler);
+		window.removeEventListener('afterprint', afterPrintHandler);
+	}, [title]);
+
+	return { print, printing, togglePrinting };
 };
