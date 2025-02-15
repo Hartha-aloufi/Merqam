@@ -1,13 +1,16 @@
-import { useMediaQuery } from "@uidotdev/usehooks";
+import { useMediaQuery } from 'usehooks-ts';
 
 export const useIsDesktop = () => {
-  return useMediaQuery("(min-width: 1172px)");
-}
+	// if ssr then return true
+	return useMediaQuery('(min-width: 1172px)', { initializeWithValue: false });
+};
 
 export const useIsTablet = () => {
-  return useMediaQuery("(min-width: 768px) and (max-width: 1171px)");
-}
+	return useMediaQuery('(min-width: 768px) and (max-width: 1171px)', {
+		initializeWithValue: false,
+	});
+};
 
 export const useIsMobile = () => {
-  return useMediaQuery("(max-width: 767px)");
-}
+	return useMediaQuery('(max-width: 767px)', { initializeWithValue: false });
+};

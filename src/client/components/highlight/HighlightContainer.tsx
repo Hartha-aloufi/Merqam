@@ -148,9 +148,12 @@ export function HighlightContainer({
 		onRedo: canRedo ? redo : undefined,
 	});
 
-	const topHeaderEl = document.getElementById(
-		'lesson-top-header'
-	) as HTMLElement;
+
+	let topHeaderEl : HTMLElement | null  = null 
+	if (typeof window !== 'undefined') {
+		topHeaderEl = document.getElementById('lesson-top-header');
+	}
+
 
 	// Show unauthorized toolbar if not authenticated
 	if (!isAuthenticated) {

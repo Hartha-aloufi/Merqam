@@ -15,7 +15,10 @@ interface PageProps {
 
 const useLayoutTranslator = (enabled: boolean) => {
 	const [translateX, setTranslateX] = useState<CSSProperties>();
-	const ref = useRef<HTMLElement | null>(document.body);
+	const ref = useRef<HTMLElement | null>();
+	if(typeof window !== 'undefined') {
+		ref.current = document.body
+	}
 
 	const onResize = useDebounceCallback(
 		useCallback(
