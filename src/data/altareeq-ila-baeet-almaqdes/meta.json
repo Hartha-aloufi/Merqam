@@ -1,30 +1,31 @@
 {
-  "title": "الطريق إلى بيت المقدس | سيرة نور الدين وصلاح الدين",
-  "description": "",
-  "lessons": {
-    "RQnWxVEFHsI": {
-      "title": "الطريق إلى بيت المقدس ١٨ | الله أكبر.. فتح بيت المقدس | أحمد السيد",
-      "youtubeUrl": "https://www.youtube.com/watch?v=RQnWxVEFHsI"
-    },
-    "kKiBNBOQX2I": {
-      "title": "",
-      "youtubeUrl": "https://www.youtube.com/watch?v=kKiBNBOQX2I"
-    },
-    "yMYv8TwnuZo": {
-      "title": "",
-      "youtubeUrl": "https://www.youtube.com/watch?v=yMYv8TwnuZo"
-    },
-    "rl-zeLCFLnI": {
-      "title": "",
-      "youtubeUrl": "https://www.youtube.com/watch?v=rl-zeLCFLnI"
-    },
-    "58YC5xtYvCY": {
-      "title": "الطريق إلى بيت المقدس | الأخيرة ٢٣ | الدفاع عن القدس ونهاية المسيرة | أحمد السيد",
-      "youtubeUrl": "https://www.youtube.com/watch?v=58YC5xtYvCY"
-    },
-    "Fp3ugHBhCpM": {
-      "title": "",
-      "youtubeUrl": "https://www.youtube.com/watch?v=Fp3ugHBhCpM"
-    }
-  }
+	"title": "الطريق إلى بيت المقدس | سيرة نور الدين وصلاح الدين",
+	"description": "",
+	"speaker": "أحمد السيد",
+	"lessons": {
+		"RQnWxVEFHsI": {
+			"title": "الطريق إلى بيت المقدس ١٨ | الله أكبر.. فتح بيت المقدس | أحمد السيد",
+			"youtubeUrl": "https://www.youtube.com/watch?v=RQnWxVEFHsI"
+		},
+		"kKiBNBOQX2I": {
+			"title": "",
+			"youtubeUrl": "https://www.youtube.com/watch?v=kKiBNBOQX2I"
+		},
+		"yMYv8TwnuZo": {
+			"title": "",
+			"youtubeUrl": "https://www.youtube.com/watch?v=yMYv8TwnuZo"
+		},
+		"rl-zeLCFLnI": {
+			"title": "",
+			"youtubeUrl": "https://www.youtube.com/watch?v=rl-zeLCFLnI"
+		},
+		"58YC5xtYvCY": {
+			"title": "الطريق إلى بيت المقدس | الأخيرة ٢٣ | الدفاع عن القدس ونهاية المسيرة | أحمد السيد",
+			"youtubeUrl": "https://www.youtube.com/watch?v=58YC5xtYvCY"
+		},
+		"Fp3ugHBhCpM": {
+			"title": "",
+			"youtubeUrl": "https://www.youtube.com/watch?v=Fp3ugHBhCpM"
+		}
+	}
 }

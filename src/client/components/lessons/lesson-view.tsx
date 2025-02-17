@@ -17,19 +17,19 @@ import { useIsDesktop } from '@/client/hooks/use-screen-sizes';
 
 interface LessonViewProps {
 	lesson: Lesson;
-	topicId: string;
+	playListId: string | null;
 	lessonId: string;
 	readingTime: number;
 	children: React.ReactNode;
 }
 export function LessonView({
 	lesson,
-	topicId,
+	playListId,
 	lessonId,
 	readingTime,
 	children,
 }: LessonViewProps) {
-	const pTracker = useParagraphTracking(topicId, lessonId);
+	const pTracker = useParagraphTracking(playListId, lessonId);
 
 	const { position } = useVideoSettings();
 
@@ -60,13 +60,13 @@ export function LessonView({
 
 	return (
 		<VideoProvider>
-			<CustomLessonLayout topicId={topicId} lessonId={lessonId}>
+			<CustomLessonLayout topicId={playListId} lessonId={lessonId}>
 				<div className="flex items-center justify-between mb-8">
 					<LessonHeader
 						title={lesson.title}
 						readingTime={readingTime}
 						youtubeUrl={lesson.youtubeUrl}
-						topicId={topicId}
+						topicId={playListId}
 						lessonId={lessonId}
 					/>
 					<PrintButton onClick={handlePrint} className="ml-4" />
@@ -92,7 +92,7 @@ export function LessonView({
 				<PrintableLesson
 					title={lesson.title}
 					content={children}
-					topicId={topicId}
+					topicId={playListId}
 					lessonId={lessonId}
 				/>
 			)}
@@ -102,10 +102,10 @@ export function LessonView({
 			</div>
 
 			{/* Notes Sheet */}
-			<NotesSheet topicId={topicId} lessonId={lessonId} />
+			<NotesSheet topicId={playListId} lessonId={lessonId} />
 
 			{!isDesktopScreen && (
-				<NoteSheetMobile lessonId={lessonId} topicId={topicId} />
+				<NoteSheetMobile lessonId={lessonId} topicId={playListId} />
 			)}
 		</VideoProvider>
 	);

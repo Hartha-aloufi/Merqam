@@ -14,9 +14,9 @@ const options = {
 };
 
 interface LessonContentProps {
-  content: string;
-  topicId: string;
-  lessonId: string;
+	content: string;
+	playlistId: string | null;
+	lessonId: string;
 }
 
 /**
@@ -39,19 +39,19 @@ function* incrementingGenerator() {
  */
 export function LessonContent({
   content,
-  topicId,
+  playlistId,
   lessonId,
 }: LessonContentProps) {
   const paragraphIndexGen = incrementingGenerator();
   const mdxComponents = createMDXComponents(paragraphIndexGen);
 
   return (
-    <MDXClientWrapper topicId={topicId} lessonId={lessonId}>
-      <MDXRemote
-        source={content}
-        components={mdxComponents}
-        options={options}
-      />
-    </MDXClientWrapper>
+		<MDXClientWrapper topicId={playlistId} lessonId={lessonId}>
+			<MDXRemote
+				source={content}
+				components={mdxComponents}
+				options={options}
+			/>
+		</MDXClientWrapper>
   );
 }

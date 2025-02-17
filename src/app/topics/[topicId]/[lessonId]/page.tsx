@@ -66,7 +66,7 @@ export default async function LessonPage({ params }: PageProps) {
 	return (
 		<ErrorBoundary>
 			<LessonView
-				topicId={topicId}
+				playListId={topicId}
 				lessonId={lessonId}
 				readingTime={readingTime}
 				lesson={lessonData}

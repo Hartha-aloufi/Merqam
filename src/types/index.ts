@@ -9,6 +9,6 @@ export interface Topic {
 export interface Lesson {
     id: string;
     title: string;
-    youtubeUrl: string;
+    youtubeUrl: string | null;
     content: string;
 }
