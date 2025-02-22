@@ -103,8 +103,8 @@ export default async function HomePage() {
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
 						{playlists.slice(0, 3).map((playlist) => (
 							<Link
-								key={playlist.id}
-								href={`/playlists/${playlist.id}`}
+								key={playlist.youtube_playlist_id}
+								href={`/playlists/${playlist.youtube_playlist_id}`}
 								className="group touch-manipulation"
 							>
 								<div className="relative h-full overflow-hidden rounded-lg border bg-background p-4 sm:p-6 hover:shadow-md transition-all duration-200 active:scale-[0.98]">

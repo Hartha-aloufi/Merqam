@@ -9,8 +9,8 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.addColumn('youtube_video_id', 'varchar(255)', (col) =>
 			col.primaryKey()
 		)
-		.addColumn('playlist_id', 'uuid', (col) =>
-			col.references('playlists.id').onDelete('set null')
+		.addColumn('playlist_id', 'varchar(255)', (col) =>
+			col.references('playlists.youtube_playlist_id').onDelete('set null')
 		)
 		.addColumn('speaker_id', 'uuid', (col) =>
 			col.references('speakers.id').onDelete('set null')
@@ -35,12 +35,12 @@ export async function up(db: Kysely<any>): Promise<void> {
 		)
 		.execute();
 
-  await db.schema
-    .createIndex('idx_lesson_youtube_video')
-    .on('lessons')
-    .column('youtube_video_id')
-    .execute();
-  
+	await db.schema
+		.createIndex('idx_lesson_youtube_video')
+		.on('lessons')
+		.column('youtube_video_id')
+		.execute();
+
 	console.log('YouTube video table migration completed successfully');
 }
 

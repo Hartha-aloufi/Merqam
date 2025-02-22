@@ -2,7 +2,7 @@ import { db } from '../config/db';
 import fs from 'fs/promises';
 import path from 'path';
 
-const DATA_DIR = path.join(process.cwd(), 'src/data');
+const ROOT_PATH = path.join(process.cwd(), 'src');
 
 export class ContentService {
 	/**
@@ -13,7 +13,6 @@ export class ContentService {
 			.selectFrom('playlists')
 			.innerJoin('speakers', 'speakers.id', 'playlists.speaker_id')
 			.select([
-				'playlists.id',
 				'playlists.title',
 				'playlists.description',
 				'playlists.youtube_playlist_id',
@@ -26,7 +25,7 @@ export class ContentService {
 			playlists.map(async (playlist) => {
 				const count = await db
 					.selectFrom('lessons')
-					.where('playlist_id', '=', playlist.id)
+					.where('playlist_id', '=', playlist.youtube_playlist_id)
 					.select(db.fn.count('id').as('count'))
 					.executeTakeFirst();
 
@@ -48,9 +47,8 @@ export class ContentService {
 		const playlist = await db
 			.selectFrom('playlists')
 			.innerJoin('speakers', 'speakers.id', 'playlists.speaker_id')
-			.where('playlists.id', '=', playlistId)
+			.where('playlists.youtube_playlist_id', '=', playlistId)
 			.select([
-				'playlists.id',
 				'playlists.title',
 				'playlists.description',
 				'playlists.youtube_playlist_id',
@@ -115,9 +113,8 @@ export class ContentService {
 		if (!lesson) return null;
 
 		// Read content from file system using content_key
-		const [playlistId, fileName] = lesson.content_key.split('/');
 		const content = await fs.readFile(
-			path.join(DATA_DIR, playlistId, `${fileName}.mdx`),
+			path.join(ROOT_PATH, lesson.content_key),
 			'utf-8'
 		);
 
