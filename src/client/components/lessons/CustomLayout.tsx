@@ -9,7 +9,6 @@ import { useDebounceCallback, useResizeObserver } from 'usehooks-ts';
 
 interface PageProps {
 	children: React.ReactNode;
-	topicId: string;
 	lessonId: string;
 }
 
@@ -52,7 +51,6 @@ const useLayoutTranslator = (enabled: boolean) => {
 export default function CustomLessonLayout({
 	children,
 	lessonId,
-	topicId,
 }: PageProps) {
 	const isDesktopScreen = useIsDesktop();
 
@@ -72,7 +70,7 @@ export default function CustomLessonLayout({
 			>
 				{isDesktopScreen && (
 					<section className="pe-14">
-						<InlineNoteList topicId={topicId} lessonId={lessonId} />
+						<InlineNoteList lessonId={lessonId} />
 					</section>
 				)}
 				<section className="col-start-2 col-end-3 ">{children}</section>

@@ -15,11 +15,10 @@ import { Plus, FileText, Loader2 } from 'lucide-react';
 import { HighlightColorKey } from '@/constants/highlights';
 
 interface NotesSheetProps {
-	topicId: string;
 	lessonId: string;
 }
 
-export function NotesSheet({ topicId, lessonId }: NotesSheetProps) {
+export function NotesSheet({ lessonId }: NotesSheetProps) {
 	const { isOpen, view, close, setView } = useNotesSheet();
 	const { data: notes = [], isLoading } = useNotes(lessonId);
 	const { data: tags = [] } = useTags();
@@ -157,7 +156,7 @@ export function NotesSheet({ topicId, lessonId }: NotesSheetProps) {
 								</div>
 							</div>
 						) : (
-							<NoteEditor topicId={topicId} lessonId={lessonId} />
+							<NoteEditor lessonId={lessonId} />
 						)}
 					</div>
 				</div>

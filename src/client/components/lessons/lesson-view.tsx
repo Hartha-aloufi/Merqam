@@ -17,7 +17,7 @@ import { useIsDesktop } from '@/client/hooks/use-screen-sizes';
 
 interface LessonViewProps {
 	lesson: Lesson;
-	playListId: string | null;
+	playListId: string;
 	lessonId: string;
 	readingTime: number;
 	children: React.ReactNode;
@@ -29,7 +29,7 @@ export function LessonView({
 	readingTime,
 	children,
 }: LessonViewProps) {
-	const pTracker = useParagraphTracking(playListId, lessonId);
+	const pTracker = useParagraphTracking(lessonId);
 
 	const { position } = useVideoSettings();
 
@@ -60,13 +60,12 @@ export function LessonView({
 
 	return (
 		<VideoProvider>
-			<CustomLessonLayout topicId={playListId} lessonId={lessonId}>
+			<CustomLessonLayout  lessonId={lessonId}>
 				<div className="flex items-center justify-between mb-8">
 					<LessonHeader
 						title={lesson.title}
 						readingTime={readingTime}
 						youtubeUrl={lesson.youtubeUrl}
-						topicId={playListId}
 						lessonId={lessonId}
 					/>
 					<PrintButton onClick={handlePrint} className="ml-4" />
@@ -102,10 +101,10 @@ export function LessonView({
 			</div>
 
 			{/* Notes Sheet */}
-			<NotesSheet topicId={playListId} lessonId={lessonId} />
+			<NotesSheet lessonId={lessonId} />
 
 			{!isDesktopScreen && (
-				<NoteSheetMobile lessonId={lessonId} topicId={playListId} />
+				<NoteSheetMobile lessonId={lessonId}  />
 			)}
 		</VideoProvider>
 	);

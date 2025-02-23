@@ -7,7 +7,6 @@ interface RawNote {
 	id: string;
 	content: string;
 	highlightId: string | null;
-	topicId: string;
 	lessonId: string;
 	createdAt: Date;
 	updatedAt: Date;

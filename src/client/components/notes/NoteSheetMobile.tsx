@@ -16,10 +16,9 @@ import { cn } from '@/client/lib/utils';
 
 interface NoteSheetMobileProps {
 	lessonId: string;
-	topicId: string;
 }
 
-export function NoteSheetMobile({ lessonId, topicId }: NoteSheetMobileProps) {
+export function NoteSheetMobile({ lessonId }: NoteSheetMobileProps) {
 	const { isOpen, noteId, highlightId, close } = useNoteDrawer();
 	const { data: notes = [] } = useNotes(lessonId);
 	const [currentNoteId, setCurrentNoteId] = React.useState<
@@ -143,7 +142,6 @@ export function NoteSheetMobile({ lessonId, topicId }: NoteSheetMobileProps) {
 				{/* Content Area */}
 				<div className="max-h-[70vh] overflow-y-auto">
 					<NoteEditorMobile
-						topicId={topicId}
 						lessonId={lessonId}
 						noteId={currentNoteId}
 						highlightId={highlightId}

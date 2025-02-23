@@ -10,7 +10,6 @@ export interface NoteTag {
 export interface Note {
 	id: string;
 	userId: string;
-	topicId: string;
 	lessonId: string;
 	highlightId?: string | null;
 	content: string;
@@ -21,7 +20,6 @@ export interface Note {
 }
 
 export interface CreateNoteDTO {
-	topicId: string;
 	lessonId: string;
 	highlightId?: string;
 	content: string;

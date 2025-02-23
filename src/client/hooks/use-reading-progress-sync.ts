@@ -9,21 +9,19 @@ import { useCallback, useMemo } from 'react';
 
 const READING_PROGRESS_KEYS = {
 	all: ['reading-progress'] as const,
-	lesson: (topicId: string, lessonId: string) =>
-		[...READING_PROGRESS_KEYS.all, topicId, lessonId] as const,
+	lesson: (lessonId: string) =>
+		[...READING_PROGRESS_KEYS.all, lessonId] as const,
 };
 
 /**
  * Fetches the latest read paragraph from either local storage or API
  */
 export const getLatestReadParagraph = async (
-	topicId: string,
 	lessonId: string
 ) => {
 	if (hasSession()) {
 		const response = await httpClient.get('/reading-progress', {
 			params: {
-				topic_id: topicId,
 				lesson_id: lessonId,
 			},
 		});
@@ -31,22 +29,22 @@ export const getLatestReadParagraph = async (
 		return response.data.latest_read_paragraph ?? 0;
 	} else {
 		// Fallback to local storage if API fails
-		return getLessonProgress(topicId, lessonId);
+		return getLessonProgress(lessonId);
 	}
 };
 
 /**
  * Hook to sync reading progress between local storage and server
  */
-export function useReadingProgressSync(topicId: string, lessonId: string) {
+export function useReadingProgressSync(lessonId: string) {
 	const { data: session } = useSession();
 	const queryClient = useQueryClient();
 	const isAuthenticated = !!session?.user;
 
 	// Fetch reading progress
 	const progressQuery = useQuery({
-		queryKey: READING_PROGRESS_KEYS.lesson(topicId, lessonId),
-		queryFn: () => getLatestReadParagraph(topicId, lessonId),
+		queryKey: READING_PROGRESS_KEYS.lesson(lessonId),
+		queryFn: () => getLatestReadParagraph(lessonId),
 		enabled: isAuthenticated,
 	});
 
@@ -55,7 +53,7 @@ export function useReadingProgressSync(topicId: string, lessonId: string) {
 		mutationFn: (update: ReadingProgressUpdate) => {
 			if (!isAuthenticated) {
 				// Handle non-authenticated users with localStorage
-				setLessonProgress(topicId, lessonId, {
+				setLessonProgress(lessonId, {
 					paragraphIndex: update.latest_read_paragraph,
 					date: new Date().toISOString(),
 				});
@@ -64,14 +62,13 @@ export function useReadingProgressSync(topicId: string, lessonId: string) {
 
 			// Handle authenticated users with API
 			return httpClient.post('/reading-progress', {
-				topic_id: update.topic_id,
 				lesson_id: update.lesson_id,
 				latest_read_paragraph: update.latest_read_paragraph,
 			});
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({
-				queryKey: READING_PROGRESS_KEYS.lesson(topicId, lessonId),
+				queryKey: READING_PROGRESS_KEYS.lesson(lessonId),
 			});
 		},
 	});
@@ -80,12 +77,11 @@ export function useReadingProgressSync(topicId: string, lessonId: string) {
 	const updateProgress = useCallback(
 		debounce((latestIdx: number) => {
 			progressMutation.mutate({
-				topic_id: topicId,
 				lesson_id: lessonId,
 				latest_read_paragraph: latestIdx,
 			});
 		}, 3000),
-		[progressMutation.mutate, topicId, lessonId]
+		[progressMutation.mutate, lessonId]
 	);
 
 	return useMemo(
