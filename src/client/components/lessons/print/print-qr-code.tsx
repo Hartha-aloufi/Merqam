@@ -10,7 +10,7 @@ const PrintQRCode = ({ topicId, lessonId }: PrintQRCodeProps) => {
   // Only generate URL in browser environment
   const url =
     typeof window !== "undefined"
-      ? `${window.location.origin}/topics/${topicId}/${lessonId}`
+      ? `${window.location.origin}/playlists/${topicId}/${lessonId}`
       : "";
 
   return (

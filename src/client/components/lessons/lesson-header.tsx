@@ -45,7 +45,7 @@ export function LessonHeader({
 						</Button>
 					</Link>
 				)}
-				<Link href={`/topics/${lessonId}/exercise`}>
+				<Link href={`/playlists/${lessonId}/exercise`}>
 					<Button variant="secondary" className="gap-2">
 						<BookOpen className="h-4 w-4" />
 						حل التمارين
