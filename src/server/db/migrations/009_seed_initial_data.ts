@@ -159,7 +159,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 						.insertInto('lessons')
 						.values({
 							title: lessonMeta.title,
-							content_key: path.join(DATA_DIR, dir, lessonId),
+							content_key: path.join(DATA_DIR, dir, `${lessonId}.mdx`),
 							speaker_id: speaker.id,
 							playlist_id: playlist.youtube_playlist_id,
 							youtube_video_id: youtubeVideoId,

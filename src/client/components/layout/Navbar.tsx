@@ -50,7 +50,7 @@ export default function Navbar() {
 				</Link>
 
 				<div className="flex items-center gap-4">
-					<Link href="/topics">
+					<Link href="/playlists">
 						<Button variant="ghost">المواضيع</Button>
 					</Link>
 

@@ -12,7 +12,7 @@ export const StickyHeader = () => {
 	const pathname = usePathname();
 	// Matches routes like /topics/[topicId]/[lessonId] but not /topics/[topicId]/[lessonId]/exercise
 	const isLessonPage = useMemo(
-		() => /^\/topics\/[^\/]+\/[^\/]+\/?$/.test(pathname),
+		() => /^\/playlists\/[^/]+\/lessons\/[^/]+\/?$/.test(pathname),
 		[pathname]
 	);
 

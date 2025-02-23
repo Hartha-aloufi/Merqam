@@ -7,7 +7,7 @@ import { sql } from 'kysely';
 async function handler(req: AuthenticatedRequest) {
 	if (req.method === 'POST') {
 		try {
-			const { topic_id, lesson_id, latest_read_paragraph } =
+			const { lesson_id, latest_read_paragraph } =
 				await req.json();
 
 			// Upsert reading progress
@@ -15,14 +15,13 @@ async function handler(req: AuthenticatedRequest) {
 				.insertInto('reading_progress')
 				.values({
 					user_id: req.user.id,
-					topic_id,
 					lesson_id,
 					latest_read_paragraph,
 					last_read_paragraph: latest_read_paragraph,
 				})
 				.onConflict((oc) =>
 					oc
-						.columns(['user_id', 'topic_id', 'lesson_id'])
+						.columns(['user_id', 'lesson_id'])
 						.doUpdateSet({
 							latest_read_paragraph,
 							last_read_paragraph: sql`reading_progress.latest_read_paragraph`,
@@ -45,12 +44,11 @@ async function handler(req: AuthenticatedRequest) {
 		try {
 			// Fix: Get query parameters correctly from URL
 			const url = new URL(req.url);
-			const topic_id = url.searchParams.get('topic_id');
 			const lesson_id = url.searchParams.get('lesson_id');
 
-			if (!topic_id || !lesson_id) {
+			if (!lesson_id) {
 				return NextResponse.json(
-					{ error: 'Missing topic_id or lesson_id' },
+					{ error: 'Missing lesson_id' },
 					{ status: 400 }
 				);
 			}
@@ -58,7 +56,6 @@ async function handler(req: AuthenticatedRequest) {
 			const progress = await db
 				.selectFrom('reading_progress')
 				.where('user_id', '=', req.user.id)
-				.where('topic_id', '=', topic_id)
 				.where('lesson_id', '=', lesson_id)
 				.select([
 					'latest_read_paragraph',
