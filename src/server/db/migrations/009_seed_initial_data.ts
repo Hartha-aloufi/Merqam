@@ -2,7 +2,9 @@ import { Kysely, sql } from 'kysely';
 import fs from 'fs/promises';
 import path from 'path';
 
-const DATA_DIR = path.join(process.cwd(), 'src/data');
+const ROOT_PATH = path.join(process.cwd(), 'src');
+const DATA_DIR = 'data'
+const DATA_PATH = path.join(ROOT_PATH, DATA_DIR);
 
 interface MetaJson {
 	title: string;
@@ -77,14 +79,14 @@ export async function up(db: Kysely<any>): Promise<void> {
 			.execute();
 
 		// Read all directories in the data folder
-		const dirs = await fs.readdir(DATA_DIR);
+		const dirs = await fs.readdir(DATA_PATH);
 
 		// Track created speakers to avoid duplicates
 		const speakerCache = new Map<string, { id: string }>();
 
 		// Process each directory (playlist)
 		for (const dir of dirs) {
-			const dirPath = path.join(DATA_DIR, dir);
+			const dirPath = path.join(DATA_PATH, dir);
 			const stats = await fs.stat(dirPath);
 
 			if (!stats.isDirectory()) continue;
@@ -122,7 +124,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 						speaker_id: speaker.id,
 						youtube_playlist_id: dir,
 					})
-					.returning('id')
+					.returning('youtube_playlist_id')
 					.execute();
 
 				// Process each lesson
@@ -142,7 +144,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 								.insertInto('youtube_videos')
 								.values({
 									youtube_video_id: youtubeVideoId,
-									playlist_id: playlist.id,
+									playlist_id: playlist.youtube_playlist_id,
 									speaker_id: speaker.id,
 								})
 								.onConflict((oc) =>
@@ -157,9 +159,9 @@ export async function up(db: Kysely<any>): Promise<void> {
 						.insertInto('lessons')
 						.values({
 							title: lessonMeta.title,
-							content_key: `${dir}/${lessonId}`,
+							content_key: path.join(DATA_DIR, dir, `${lessonId}.mdx`),
 							speaker_id: speaker.id,
-							playlist_id: playlist.id,
+							playlist_id: playlist.youtube_playlist_id,
 							youtube_video_id: youtubeVideoId,
 							user_id: adminUser.id,
 							tags: sql`'[]'::jsonb`,

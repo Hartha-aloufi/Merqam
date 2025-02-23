@@ -7,7 +7,6 @@ import { useEffect } from 'react';
 
 interface MDXClientWrapperProps {
 	children: React.ReactNode;
-	topicId: string;
 	lessonId: string;
 }
 
@@ -19,7 +18,6 @@ interface MDXClientWrapperProps {
  */
 export function MDXClientWrapper({
 	children,
-	topicId,
 	lessonId,
 }: MDXClientWrapperProps) {
 	const { fontSize, showHeadings } = useSettings();
@@ -30,7 +28,6 @@ export function MDXClientWrapper({
 
 	return (
 		<HighlightContainer
-			topicId={topicId}
 			lessonId={lessonId}
 			className={cn(
 				'dark:prose-invert max-w-none',

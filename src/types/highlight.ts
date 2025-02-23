@@ -14,7 +14,6 @@ export interface HighlightItem {
 }
 
 export interface BatchUpdateHighlightsDto {
-	topicId: string;
 	lessonId: string;
 	highlights: HighlightItem[];
 }

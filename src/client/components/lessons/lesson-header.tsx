@@ -7,15 +7,13 @@ import { Video, BookOpen, Clock } from 'lucide-react';
 interface LessonHeaderProps {
 	title: string;
 	readingTime: number;
-	youtubeUrl?: string;
-	topicId: string;
+	youtubeUrl: string | null;
 	lessonId: string;
 }
 
 export function LessonHeader({
 	readingTime,
 	youtubeUrl,
-	topicId,
 	lessonId,
 }: LessonHeaderProps) {
 	return (
@@ -47,7 +45,7 @@ export function LessonHeader({
 						</Button>
 					</Link>
 				)}
-				<Link href={`/topics/${topicId}/${lessonId}/exercise`}>
+				<Link href={`/playlists/${lessonId}/exercise`}>
 					<Button variant="secondary" className="gap-2">
 						<BookOpen className="h-4 w-4" />
 						حل التمارين

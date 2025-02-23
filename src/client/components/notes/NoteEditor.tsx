@@ -7,7 +7,7 @@ import {
 	useCreateNote,
 	useUpdateNote,
 } from '@/client/hooks/use-notes';
-import { X, ArrowRight, Send } from 'lucide-react';
+import { ArrowRight, Send } from 'lucide-react';
 import { Card, CardContent, CardFooter } from '../ui/card';
 import { TagSelector } from './TagSelector';
 import { HighlightColorKey } from '@/constants/highlights';
@@ -15,11 +15,10 @@ import { NoteLabel } from './NoteLabel';
 import { cn, NotoNaskhArabic } from '@/client/lib/utils';
 
 interface NoteEditorProps {
-	topicId: string;
 	lessonId: string;
 }
 
-export function NoteEditor({ topicId, lessonId }: NoteEditorProps) {
+export function NoteEditor({ lessonId }: NoteEditorProps) {
 	const [content, setContent] = useState('');
 	const [selectedTags, setSelectedTags] = useState<string[]>([]);
 	const [labelColor, setLabelColor] = useState<HighlightColorKey | null>(
@@ -72,7 +71,6 @@ export function NoteEditor({ topicId, lessonId }: NoteEditorProps) {
 		} else {
 			createNote(
 				{
-					topicId,
 					lessonId,
 					content: content.trim(),
 					tags: selectedTags,

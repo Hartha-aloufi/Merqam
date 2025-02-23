@@ -14,10 +14,9 @@ async function handler(req: AuthenticatedRequest) {
 	if (req.method === 'GET') {
 		try {
 			const url = new URL(req.url);
-			const topic_id = url.searchParams.get('topic_id');
 			const lesson_id = url.searchParams.get('lesson_id');
 
-			if (!topic_id || !lesson_id) {
+			if (!lesson_id) {
 				return NextResponse.json(
 					{ error: 'Missing required parameters' },
 					{ status: 400 }
@@ -27,7 +26,6 @@ async function handler(req: AuthenticatedRequest) {
 			const result = await db
 				.selectFrom('highlights')
 				.where('user_id', '=', req.user.id)
-				.where('topic_id', '=', topic_id)
 				.where('lesson_id', '=', lesson_id)
 				.select(['highlights'])
 				.executeTakeFirst();
@@ -65,10 +63,10 @@ async function handler(req: AuthenticatedRequest) {
 	// POST: Update highlights for a lesson
 	if (req.method === 'POST') {
 		try {
-			const { topic_id, lesson_id, highlights } = await req.json();
+			const {lesson_id, highlights } = await req.json();
 
 			// Validate input
-			if (!topic_id || !lesson_id || !Array.isArray(highlights)) {
+			if (!lesson_id || !Array.isArray(highlights)) {
 				return NextResponse.json(
 					{ error: 'Invalid request data' },
 					{ status: 400 }
@@ -94,7 +92,6 @@ async function handler(req: AuthenticatedRequest) {
 				.insertInto('highlights')
 				.values({
 					user_id: req.user.id,
-					topic_id,
 					lesson_id,
 					highlights: highlightsData,
 					created_at: new Date(),
@@ -102,7 +99,7 @@ async function handler(req: AuthenticatedRequest) {
 				})
 				.onConflict((oc) =>
 					oc
-						.columns(['user_id', 'topic_id', 'lesson_id'])
+						.columns(['user_id', 'lesson_id'])
 						.doUpdateSet({
 							highlights: sql`${JSON.stringify(
 								highlightsData

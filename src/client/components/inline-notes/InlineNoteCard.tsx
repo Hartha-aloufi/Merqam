@@ -25,7 +25,6 @@ import { useSession } from '@/client/hooks/use-auth-query';
 
 interface InlineNoteCardProps {
 	note: Note;
-	topicId: string;
 	lessonId: string;
 }
 

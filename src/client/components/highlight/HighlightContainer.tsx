@@ -20,7 +20,6 @@ import { HighlightColorKey } from '@/constants/highlights';
 import { HighlightToolbar } from './HighlightToolbar';
 
 interface HighlightContainerProps {
-	topicId: string;
 	lessonId: string;
 	children: React.ReactNode;
 	className?: string;
@@ -33,7 +32,6 @@ interface HighlightContainerProps {
  * Supports both single and multi-paragraph highlights.
  */
 export function HighlightContainer({
-	topicId,
 	lessonId,
 	children,
 	className,
@@ -61,7 +59,7 @@ export function HighlightContainer({
 		redo,
 		canUndo,
 		canRedo,
-	} = useHighlightOperations(topicId, lessonId);
+	} = useHighlightOperations(lessonId);
 
 	
 	// Handle text selection for new highlights

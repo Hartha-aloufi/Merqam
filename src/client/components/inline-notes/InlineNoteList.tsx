@@ -11,13 +11,12 @@ import { useNotes } from '@/client/hooks/use-notes';
 
 interface InlineNoteListProps {
 	lessonId: string;
-	topicId: string;
 }
 
 /**
  * Manages the list of inline notes, handling their positioning relative to highlights
  */
-export function InlineNoteList({ lessonId, topicId }: InlineNoteListProps) {
+export function InlineNoteList({ lessonId }: InlineNoteListProps) {
 	const { data: notes } = useNotes(lessonId);
 	const [notePositions, setNotePositions] = useState<Map<string, number>>(
 		new Map()
@@ -55,13 +54,12 @@ export function InlineNoteList({ lessonId, topicId }: InlineNoteListProps) {
 					>
 						<InlineNoteCard
 							note={note}
-							topicId={topicId}
 							lessonId={lessonId}
 						/>
 					</div>
 				);
 			});
-	}, [notes, notePositions, topicId, lessonId]);
+	}, [notes, notePositions, lessonId]);
 
 	return <div className="w-full h-full relative">{notesItems}</div>;
 }

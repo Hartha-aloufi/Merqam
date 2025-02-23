@@ -7,8 +7,8 @@ import {
   useReadingProgressSync,
 } from "./use-reading-progress-sync";
 
-export function useParagraphTracking(topicId: string, lessonId: string) {
-  const progress = useReadingProgressSync(topicId, lessonId);
+export function useParagraphTracking(lessonId: string) {
+  const progress = useReadingProgressSync(lessonId);
 
   const observerRef = useRef<IntersectionObserver | null>(null);
 
@@ -54,7 +54,7 @@ export function useParagraphTracking(topicId: string, lessonId: string) {
 
   const scrollToLastRead = useCallback(() => {
     // get the latest read paragraph index asynchronously
-    getLatestReadParagraph(topicId, lessonId).then((lastIndex) => {
+    getLatestReadParagraph(lessonId).then((lastIndex) => {
       const element = document.querySelector(
         `[data-paragraph-index="${lastIndex}"]`
       );
@@ -64,7 +64,7 @@ export function useParagraphTracking(topicId: string, lessonId: string) {
         console.error(`Could not find paragraph with index ${lastIndex}`);
       }
     });
-  }, [lessonId, topicId]);
+  }, [lessonId]);
 
   return useMemo(
     () => ({

@@ -16,14 +16,12 @@ export class HighlightService {
 	 * Get highlights for a specific lesson
 	 */
 	async getHighlights(
-		topicId: string,
 		lessonId: string
 	): Promise<GetHighlightsResponse> {
 		const { data } = await httpClient.get<GetHighlightsResponse>(
 			this.baseUrl,
 			{
 				params: {
-					topic_id: topicId,
 					lesson_id: lessonId,
 				},
 			}
@@ -38,7 +36,6 @@ export class HighlightService {
 		updateDto: BatchUpdateHighlightsDto
 	): Promise<void> {
 		await httpClient.post(this.baseUrl, {
-			topic_id: updateDto.topicId,
 			lesson_id: updateDto.lessonId,
 			highlights: updateDto.highlights,
 		});

@@ -10,9 +10,9 @@ import { useMemo } from 'react';
  */
 export const StickyHeader = () => {
 	const pathname = usePathname();
-	// Matches routes like /topics/[topicId]/[lessonId] but not /topics/[topicId]/[lessonId]/exercise
+	// Matches routes like /playlists/[topicId]/[lessonId] but not /playlists/[topicId]/[lessonId]/exercise
 	const isLessonPage = useMemo(
-		() => /^\/topics\/[^\/]+\/[^\/]+\/?$/.test(pathname),
+		() => /^\/playlists\/[^/]+\/lessons\/[^/]+\/?$/.test(pathname),
 		[pathname]
 	);
 

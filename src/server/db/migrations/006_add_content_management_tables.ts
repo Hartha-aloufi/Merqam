@@ -29,11 +29,8 @@ export async function up(db: Kysely<any>): Promise<void> {
 	// Create playlists table
 	await db.schema
 		.createTable('playlists')
-		.addColumn('id', 'uuid', (col) =>
-			col.primaryKey().defaultTo(sql`gen_random_uuid()`)
-		)
 		.addColumn('youtube_playlist_id', 'varchar(255)', (col) =>
-			col.notNull().unique()
+			col.primaryKey()
 		)
 		.addColumn('speaker_id', 'uuid', (col) =>
 			col.references('speakers.id').onDelete('cascade').notNull()
@@ -60,12 +57,14 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.addColumn('speaker_id', 'uuid', (col) =>
 			col.references('speakers.id').onDelete('cascade').notNull()
 		)
-		.addColumn('playlist_id', 'uuid', (col) =>
-			col.references('playlists.id').onDelete('set null')
+		.addColumn('playlist_id', 'varchar(255)', (col) =>
+			col.references('playlists.youtube_playlist_id').onDelete('set null')
 		)
 		.addColumn('title', 'varchar(255)', (col) => col.notNull())
 		.addColumn('description', 'text')
-		.addColumn('content_key', 'varchar(255)', (col) => col.notNull())
+		.addColumn('content_key', 'varchar(255)', (col) =>
+			col.notNull().unique()
+		)
 		.addColumn('tags', 'jsonb')
 		.addColumn('views_count', 'integer', (col) =>
 			col.notNull().defaultTo(0)
@@ -77,6 +76,15 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.addColumn('updated_at', 'timestamptz', (col) =>
 			col.notNull().defaultTo(sql`NOW()`)
 		)
+		.execute();
+
+	// Add unique constraint for youtube_video_id and playlist_id on lessons
+	await db.schema
+		.alterTable('lessons')
+		.addUniqueConstraint('lessons_youtube_video_playlist_unique', [
+			'youtube_video_id',
+			'playlist_id',
+		])
 		.execute();
 
 	// Add indexes for lessons

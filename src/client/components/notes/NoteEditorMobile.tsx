@@ -14,7 +14,6 @@ import { cn, NotoNaskhArabic } from '@/client/lib/utils';
 
 
 interface NoteEditorMobileProps {
-	topicId: string;
 	lessonId: string;
 	noteId?: string;
 	highlightId?: string;
@@ -22,7 +21,6 @@ interface NoteEditorMobileProps {
 }
 
 export function NoteEditorMobile({
-	topicId,
 	lessonId,
 	noteId,
 	highlightId,
@@ -74,11 +72,10 @@ export function NoteEditorMobile({
 		} else {
 			createNote(
 				{
-					topicId,
 					lessonId,
 					content: content.trim(),
 					tags: selectedTags,
-					labelColor,
+					labelColor: labelColor || undefined,
 					highlightId,
 				},
 				{ onSuccess: handleSuccess }

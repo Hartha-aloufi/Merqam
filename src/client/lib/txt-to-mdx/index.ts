@@ -30,7 +30,7 @@ export class TxtToMdxConverter {
 		tempDir: string = path.join(process.cwd(), 'temp'),
 		aiServiceType?: AIServiceType
 	) {
-    this.aiService = AIServiceFactory.getService(aiServiceType);
+		this.aiService = AIServiceFactory.getService(aiServiceType);
 		this.dataPath = dataPath;
 		this.tempDir = tempDir;
 	}
@@ -38,36 +38,41 @@ export class TxtToMdxConverter {
 	/**
 	 * Processes a YouTube URL and converts its transcript to MDX format
 	 * @param url - YouTube video URL
-	 * @param topicId - Topic identifier for organizing content
+	 * @param playlistId - Topic identifier for organizing content
 	 * @returns Promise<ConversionResult>
 	 */
 	async processContent(
 		url: string,
-		topicId: string
+		playlistId: string
 	): Promise<ConversionResult> {
 		let tempMdxPath: string | undefined;
 		let txtPath: string | undefined;
 		let srtPath: string | undefined;
 
 		try {
-			await this.validateInputs(url, topicId);
+			await this.validateInputs(url, playlistId);
 
 			// Set up directories
-			const { topicPath } = await this.setupDirectories(topicId);
+			const { topicPath: playlistPath } = await this.setupDirectories(playlistId);
 
 			// Download and extract content
 			const { videoId, title, files } = await this.downloadContent(url);
 			txtPath = files.txt;
 			srtPath = files.srt;
 
+			const txtContent = await fs.readFile(txtPath, 'utf-8');
+
 			// Process the content
-			const processedContent = await this.processWithAI(txtPath, title);
+			const processedContent = await this.processWithAI(
+				txtContent,
+				title
+			);
 
 			// Create and process MDX
 			const { finalPath } = await this.createMDX(
 				processedContent,
 				videoId,
-				topicPath,
+				playlistPath,
 				srtPath
 			);
 
@@ -157,11 +162,9 @@ export class TxtToMdxConverter {
 	 * Processes content with AI service with fallback handling
 	 */
 	private async processWithAI(
-		txtPath: string,
+		txtContent: string,
 		title: string
 	): Promise<string> {
-		const txtContent = await fs.readFile(txtPath, 'utf-8');
-
 		try {
 			let processedContent = await this.aiService.processContent(
 				txtContent,
@@ -191,7 +194,7 @@ export class TxtToMdxConverter {
 	private async createMDX(
 		content: string,
 		videoId: string,
-		topicPath: string,
+		playlistPath: string,
 		srtPath: string
 	) {
 		// Create temporary MDX
@@ -200,7 +203,7 @@ export class TxtToMdxConverter {
 		logger.info('Created temp MDX file', { tempMdxPath });
 
 		// Create final MDX with timestamps
-		const finalPath = path.join(topicPath, `${videoId}.mdx`);
+		const finalPath = path.join(playlistPath, `${videoId}.mdx`);
 		await syncWithVideo(tempMdxPath, srtPath, finalPath);
 		logger.info('Created final MDX with timestamps', { finalPath });
 

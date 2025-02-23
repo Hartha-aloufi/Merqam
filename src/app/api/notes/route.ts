@@ -7,7 +7,6 @@ const notesService = new NotesService();
 
 // Validation schemas
 const createNoteSchema = z.object({
-	topicId: z.string().min(1, 'معرف الموضوع مطلوب'),
 	lessonId: z.string().min(1, 'معرف الدرس مطلوب'),
 	highlightId: z.string().optional(),
 	content: z

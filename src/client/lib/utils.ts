@@ -96,19 +96,19 @@ export function calculateReadingTime(text: string): number {
 
 const lessonProgressKey = "lesson-progress";
 
-export const setLessonProgress = (topicId: string, lessonId: string, progressInfo: { paragraphIndex: number, date: string }) => {
+export const setLessonProgress = (lessonId: string, progressInfo: { paragraphIndex: number, date: string }) => {
   const data = localStorage.getItem(lessonProgressKey);
   const progress = data ? JSON.parse(data) : {};
-  const lessonKey = `${topicId}:${lessonId}`;
+  const lessonKey = `${lessonId}`;
   progress[lessonKey] = progressInfo;
 
   localStorage.setItem(lessonProgressKey, JSON.stringify(progress));
 }
 
-export const getLessonProgress = (topicId: string, lessonId: string): number => {
+export const getLessonProgress = (lessonId: string): number => {
   const data = localStorage.getItem(lessonProgressKey);
   const progress = data ? JSON.parse(data) : {};
-  const lessonKey = `${topicId}:${lessonId}`;
+  const lessonKey = `${lessonId}`;
 
   return progress[lessonKey]?.paragraphIndex ?? 0;
 }

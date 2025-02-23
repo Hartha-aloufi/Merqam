@@ -7,7 +7,6 @@ interface RawNote {
 	id: string;
 	content: string;
 	highlightId: string | null;
-	topicId: string;
 	lessonId: string;
 	createdAt: Date;
 	updatedAt: Date;
@@ -24,7 +23,6 @@ export class NotesService {
 				'notes.id',
 				'notes.content',
 				'notes.highlight_id as highlightId',
-				'notes.topic_id as topicId',
 				'notes.lesson_id as lessonId',
 				'label_color as labelColor',
 				'notes.created_at as createdAt',
@@ -46,7 +44,6 @@ export class NotesService {
 				'notes.highlight_id',
 				'notes.created_at',
 				'notes.updated_at',
-				'notes.topic_id',
 				'notes.lesson_id',
 			])
 			.orderBy('notes.created_at', 'desc')
@@ -69,7 +66,6 @@ export class NotesService {
 				'notes.id',
 				'notes.content',
 				'notes.highlight_id as highlightId',
-				'notes.topic_id as topicId',
 				'notes.lesson_id as lessonId',
 				'notes.created_at as createdAt',
 				'notes.updated_at as updatedAt',
@@ -89,7 +85,6 @@ export class NotesService {
 				'notes.highlight_id',
 				'notes.created_at',
 				'notes.updated_at',
-				'notes.topic_id',
 				'notes.lesson_id',
 			])
 			.executeTakeFirst()) as unknown as RawNote | undefined;
@@ -122,7 +117,6 @@ export class NotesService {
 				.insertInto('notes')
 				.values({
 					user_id: userId,
-					topic_id: data.topicId,
 					lesson_id: data.lessonId,
 					highlight_id: data.highlightId,
 					content: data.content,
@@ -132,7 +126,6 @@ export class NotesService {
 					'id',
 					'content',
 					'highlight_id as highlightId',
-					'topic_id as topicId',
 					'label_color as labelColor',
 					'lesson_id as lessonId',
 					'created_at as createdAt',
