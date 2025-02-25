@@ -2,7 +2,7 @@ import { Kysely, sql } from 'kysely';
 import fs from 'fs/promises';
 import path from 'path';
 
-const ROOT_PATH = path.join(process.cwd(), 'src');
+const ROOT_PATH = path.join("public");
 const DATA_DIR = 'data'
 const DATA_PATH = path.join(ROOT_PATH, DATA_DIR);
 

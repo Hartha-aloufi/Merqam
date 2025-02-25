@@ -2,7 +2,7 @@ import { db } from '../config/db';
 import fs from 'fs/promises';
 import path from 'path';
 
-const ROOT_PATH = path.join(process.cwd(), 'src');
+const ROOT_PATH = path.join("public");
 
 export class ContentService {
 	/**
