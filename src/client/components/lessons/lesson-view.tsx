@@ -17,14 +17,14 @@ import { useIsDesktop } from '@/client/hooks/use-screen-sizes';
 
 interface LessonViewProps {
 	lesson: Lesson;
-	playListId: string;
+	playlistId: string;
 	lessonId: string;
 	readingTime: number;
 	children: React.ReactNode;
 }
 export function LessonView({
 	lesson,
-	playListId,
+	playlistId,
 	lessonId,
 	readingTime,
 	children,
@@ -91,7 +91,7 @@ export function LessonView({
 				<PrintableLesson
 					title={lesson.title}
 					content={children}
-					topicId={playListId}
+					topicId={playlistId}
 					lessonId={lessonId}
 				/>
 			)}

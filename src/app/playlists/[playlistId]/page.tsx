@@ -5,16 +5,18 @@ import { ArrowRight, Video, BookOpen, GraduationCap, Eye } from 'lucide-react';
 import { ContentService } from '@/server/services/content.service';
 
 interface PlaylistPageProps {
-	params: {
+	params: Promise<{
 		playlistId: string;
-	};
+	}>;
 }
 
 export async function generateMetadata({
 	params,
 }: PlaylistPageProps): Promise<Metadata> {
+	const { playlistId } = await params;
+
 	const contentService = new ContentService();
-	const playlist = await contentService.getPlaylist(params.playlistId);
+	const playlist = await contentService.getPlaylist(playlistId);
 
 	if (!playlist) {
 		return {
@@ -82,8 +84,10 @@ const LessonCard = (props: {
 };
 
 export default async function PlaylistPage({ params }: PlaylistPageProps) {
+	const { playlistId } = await params;
+
 	const contentService = new ContentService();
-	const playlist = await contentService.getPlaylist(params.playlistId);
+	const playlist = await contentService.getPlaylist(playlistId);
 
 	if (!playlist) {
 		notFound();

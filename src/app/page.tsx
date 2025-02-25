@@ -6,7 +6,7 @@ import { BookOpen, ArrowRight, Video } from 'lucide-react';
 
 export default async function HomePage() {
 	const contentService = new ContentService();
-	const playlists = await contentService.getPlaylists();
+	const playlists = await contentService.getPlaylists({limit: 3});
 	const totalLessons = playlists.reduce(
 		(acc, playlist) => acc + playlist.lessonCount,
 		0
@@ -101,7 +101,7 @@ export default async function HomePage() {
 					</div>
 
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-						{playlists.slice(0, 3).map((playlist) => (
+						{playlists.map((playlist) => (
 							<Link
 								key={playlist.youtube_playlist_id}
 								href={`/playlists/${playlist.youtube_playlist_id}`}
