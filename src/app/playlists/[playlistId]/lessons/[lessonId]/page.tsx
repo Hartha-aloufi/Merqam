@@ -7,19 +7,19 @@ import { ErrorBoundary } from '@/client/components/error-boundary';
 import { calculateReadingTime } from '@/client/lib/utils';
 
 interface LessonPageProps {
-	params: {
+	params: Promise<{
 		playlistId: string;
 		lessonId: string;
-	};
+	}>;
 }
 
 export async function generateMetadata({
 	params,
 }: LessonPageProps): Promise<Metadata> {
-  await params
+  const { lessonId } = await params;
 
 	const contentService = new ContentService();
-	const lesson = await contentService.getLesson(params.lessonId);
+	const lesson = await contentService.getLesson(lessonId);
 
 	if (!lesson) {
 		return {
@@ -34,10 +34,10 @@ export async function generateMetadata({
 }
 
 export default async function LessonPage({ params }: LessonPageProps) {
-  await params;
+  const { lessonId, playlistId } = await params;
 
 	const contentService = new ContentService();
-	const lesson = await contentService.getLesson(params.lessonId);
+	const lesson = await contentService.getLesson(lessonId);
 
 	if (!lesson) {
 		notFound();
@@ -46,20 +46,20 @@ export default async function LessonPage({ params }: LessonPageProps) {
 	const readingTime = calculateReadingTime(lesson.content);
 
 	// Increment view count asynchronously
-	contentService.incrementLessonViews(params.lessonId).catch(console.error);
+	contentService.incrementLessonViews(lessonId).catch(console.error);
 
 	return (
 		<ErrorBoundary>
 			<LessonView
-				playlistId={params.playlistId}
-				lessonId={params.lessonId}
-				readingTime={readingTime}
 				lesson={lesson}
+				playlistId={playlistId}
+				lessonId={lessonId}
+				readingTime={readingTime}
 			>
 				<LessonContent
 					content={lesson.content}
-					lessonId={params.lessonId}
-					playlistId={params.playlistId}
+					lessonId={lessonId}
+					playlistId={playlistId}
 				/>
 			</LessonView>
 		</ErrorBoundary>
