@@ -1,42 +1,43 @@
 import { db } from '../config/db';
-import fs from 'fs/promises';
-import path from 'path';
-
-const ROOT_PATH = path.join(process.cwd(), 'src');
+import { getLessonContent } from '../lib/utils/content-utils';
 
 export class ContentService {
 	/**
-	 * Retrieves all playlists with their speaker information
+	 * Retrieves all playlists with their speaker information and lesson count
 	 */
-	async getPlaylists() {
-		const playlists = await db
+	async getPlaylists({limit}: {limit?: number} = {}) {
+		let q = db
 			.selectFrom('playlists')
 			.innerJoin('speakers', 'speakers.id', 'playlists.speaker_id')
+			.leftJoin(
+				'lessons',
+				'lessons.playlist_id',
+				'playlists.youtube_playlist_id'
+			)
 			.select([
 				'playlists.title',
 				'playlists.description',
 				'playlists.youtube_playlist_id',
 				'speakers.name as speaker_name',
+				db.fn.count('lessons.id').as('lessonCount'),
 			])
-			.execute();
+			.groupBy([
+				'playlists.title',
+				'playlists.description',
+				'playlists.youtube_playlist_id',
+				'speakers.name',
+			]);
 
-		// Get lesson count for each playlist
-		const playlistsWithCounts = await Promise.all(
-			playlists.map(async (playlist) => {
-				const count = await db
-					.selectFrom('lessons')
-					.where('playlist_id', '=', playlist.youtube_playlist_id)
-					.select(db.fn.count('id').as('count'))
-					.executeTakeFirst();
+		if (limit != undefined) {
+			q = q.limit(limit);
+		}
 
-				return {
-					...playlist,
-					lessonCount: Number(count?.count || 0),
-				};
-			})
-		);
+		const res = await q.execute();
 
-		return playlistsWithCounts;
+		return res.map((playlist) => ({
+			...playlist,
+			lessonCount: Number(playlist.lessonCount || 0),
+		}));
 	}
 
 	/**
@@ -112,12 +113,9 @@ export class ContentService {
 
 		if (!lesson) return null;
 
-		// Read content from file system using content_key
-		const content = await fs.readFile(
-			path.join(ROOT_PATH, lesson.content_key),
-			'utf-8'
-		);
-
+		// Read content from file from storage
+		const content = await getLessonContent(lesson.content_key);
+			console.log('sssssssssssssssssss', content)
 		return {
 			...lesson,
 			content,
