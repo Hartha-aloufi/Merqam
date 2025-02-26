@@ -1,12 +1,10 @@
-import path from "path";
+import path from 'path';
 import fs from 'fs/promises';
 
 export const getRemoteLessonUrl = (contentKey: string) => {
 	// read BLOB_URL from env
 	return (
-		process.env.STORAGE_ROOT_URL +
-		'/' +
-		contentKey.replaceAll('\\', '/')
+		process.env.STORAGE_ROOT_URL + '/' + contentKey.replaceAll('\\', '/')
 	);
 };
 
@@ -16,17 +14,37 @@ export const getLocalLessonUrl = (contentKey: string) => {
 	}
 
 	return path.join(process.env.STORAGE_ROOT_URL, contentKey);
-}
+};
 
 export const getLessonContent = async (contentKey: string) => {
 	// read from local file if we are in the dev environment
 	if (process.env.NODE_ENV === 'development') {
-		const filePath = getLocalLessonUrl(contentKey);
-		return fs.readFile(filePath, 'utf-8');
-	}
-	else {
+		try {
+			const filePath = getLocalLessonUrl(contentKey);
+			return await fs.readFile(filePath, 'utf-8');
+		} catch (error) {
+			console.error(
+				`Error reading local lesson content for ${contentKey}:`,
+				error
+			);
+			throw error;
+		}
+	} else {
 		// download content from downloadUrl
-		const response = await fetch(getRemoteLessonUrl(contentKey));
-		return response.text();
+		try {
+			const response = await fetch(getRemoteLessonUrl(contentKey));
+			if (!response.ok) {
+				throw new Error(
+					`Failed to fetch content: ${response.status} ${response.statusText}`
+				);
+			}
+			return response.text();
+		} catch (error) {
+			console.error(
+				`Error fetching lesson content for ${contentKey}:`,
+				error
+			);
+			throw error;
+		}
 	}
-}
+};

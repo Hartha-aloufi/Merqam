@@ -29,7 +29,7 @@ export class ContentService {
 			]);
 
 		if (limit != undefined) {
-			q = q.limit(3)
+			q = q.limit(limit);
 		}
 
 		const res = await q.execute();
