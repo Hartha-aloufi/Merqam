@@ -1,8 +1,5 @@
 import { db } from '../config/db';
-import fs from 'fs/promises';
-import path from 'path';
-
-const ROOT_PATH = path.join("public");
+import { getLessonContent } from '../lib/utils/content-utils';
 
 export class ContentService {
 	/**
@@ -116,12 +113,9 @@ export class ContentService {
 
 		if (!lesson) return null;
 
-		// Read content from file system using content_key
-		const content = await fs.readFile(
-			path.join(ROOT_PATH, lesson.content_key),
-			'utf-8'
-		);
-
+		// Read content from file from storage
+		const content = await getLessonContent(lesson.content_key);
+			console.log('sssssssssssssssssss', content)
 		return {
 			...lesson,
 			content,
