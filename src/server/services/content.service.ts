@@ -5,7 +5,7 @@ export class ContentService {
 	/**
 	 * Retrieves all playlists with their speaker information and lesson count
 	 */
-	async getPlaylists({limit}: {limit?: number} = {}) {
+	async getPlaylists({ limit }: { limit?: number } = {}) {
 		let q = db
 			.selectFrom('playlists')
 			.innerJoin('speakers', 'speakers.id', 'playlists.speaker_id')
@@ -115,7 +115,7 @@ export class ContentService {
 
 		// Read content from file from storage
 		const content = await getLessonContent(lesson.content_key);
-			console.log('sssssssssssssssssss', content)
+
 		return {
 			...lesson,
 			content,

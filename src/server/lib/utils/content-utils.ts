@@ -18,7 +18,7 @@ export const getLocalLessonUrl = (contentKey: string) => {
 
 export const getLessonContent = async (contentKey: string) => {
 	// read from local file if we are in the dev environment
-	if (process.env.NODE_ENV === 'development') {
+	if (0 &&process.env.NODE_ENV === 'development') {
 		try {
 			const filePath = getLocalLessonUrl(contentKey);
 			return await fs.readFile(filePath, 'utf-8');
@@ -32,6 +32,7 @@ export const getLessonContent = async (contentKey: string) => {
 	} else {
 		// download content from downloadUrl
 		try {
+			console.log('fetching content frommmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm', getRemoteLessonUrl(contentKey));
 			const response = await fetch(getRemoteLessonUrl(contentKey));
 			if (!response.ok) {
 				throw new Error(
