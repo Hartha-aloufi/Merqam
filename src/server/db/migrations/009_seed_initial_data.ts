@@ -2,9 +2,7 @@ import { Kysely, sql } from 'kysely';
 import fs from 'fs/promises';
 import path from 'path';
 
-const ROOT_PATH = path.join("public");
-const DATA_DIR = 'data'
-const DATA_PATH = path.join(ROOT_PATH, DATA_DIR);
+const DATA_PATH = path.join('public', 'data');
 
 interface MetaJson {
 	title: string;
@@ -159,7 +157,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 						.insertInto('lessons')
 						.values({
 							title: lessonMeta.title,
-							content_key: path.join(DATA_DIR, dir, `${lessonId}.mdx`),
+							content_key: path.join(dir, `${lessonId}.mdx`),
 							speaker_id: speaker.id,
 							playlist_id: playlist.youtube_playlist_id,
 							youtube_video_id: youtubeVideoId,

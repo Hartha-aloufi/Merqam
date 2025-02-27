@@ -31,9 +31,6 @@ export default async function PlaylistsPage() {
 						className="group touch-manipulation"
 					>
 						<article className="relative h-full overflow-hidden rounded-lg border bg-background p-4 sm:p-6 hover:shadow-md transition-all duration-200 active:scale-[0.98]">
-							{/* Decorative elements */}
-							<div className="absolute top-0 left-0 w-24 h-24 bg-primary/5 rounded-br-full -z-10 transition-all duration-200 group-hover:scale-150" />
-							<div className="absolute bottom-0 right-0 w-16 h-16 bg-primary/5 rounded-tl-full -z-10 transition-all duration-200 group-hover:scale-150" />
 
 							<div className="flex flex-col h-full">
 								{/* Icon */}

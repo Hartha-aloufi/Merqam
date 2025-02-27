@@ -108,7 +108,6 @@ export default async function HomePage() {
 								className="group touch-manipulation"
 							>
 								<div className="relative h-full overflow-hidden rounded-lg border bg-background p-4 sm:p-6 hover:shadow-md transition-all duration-200 active:scale-[1]">
-									<div className="absolute top-0 left-0 w-20 h-20 bg-primary/10 rounded-br-full -z-10 transition-all duration-200 group-hover:scale-150" />
 
 									<div className="flex flex-col h-full">
 										<h3 className="text-lg sm:text-xl font-semibold mb-2 line-clamp-2">
