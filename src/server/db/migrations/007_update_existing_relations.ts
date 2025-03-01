@@ -39,7 +39,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.dropColumn('topic_id')
 		.dropColumn('lesson_id')
 		.addColumn('lesson_id', 'uuid', (col) =>
-			col.references('lessons.id').onDelete('cascade')
+			col.references('lessons.id').notNull().onDelete('cascade')
 		)
 		.execute();
 

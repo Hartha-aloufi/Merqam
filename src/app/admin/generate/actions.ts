@@ -5,6 +5,7 @@ import { TxtToMdxConverter } from '@/client/lib/txt-to-mdx';
 import { revalidatePath } from 'next/cache';
 import path from 'path';
 import { AIServiceType } from '@/server/services/ai/types';
+import { validateIsVideoNotInDatabase } from './utils';
 
 // Constants
 const DATA_PATH = path.join(process.cwd(), 'src', 'data');
@@ -47,25 +48,6 @@ function validateInput(input: GenerateContentInput) {
 	}
 }
 
-async function extractYoutubeId(url: string): Promise<string> {
-	const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/;
-	const match = url.match(regex);
-	return match?.[1] ?? '';
-}
-
-const validateIsVideoNotInDatabase = async (url: string) => {
-	const videoId = await extractYoutubeId(url);
-
-	const existingVideo = await db
-		.selectFrom('lessons')
-		.where('youtube_video_id', '=', videoId)
-		.executeTakeFirst();
-
-	if (existingVideo) {
-		throw new Error('هذا الفيديو موجود بالفعل');
-	}
-};
-
 export async function generateContent(input: GenerateContentInput) {
 	try {
 		// Validate input
@@ -100,7 +82,7 @@ export async function generateContent(input: GenerateContentInput) {
 			if (input.speakerId) {
 				speakerId = input.speakerId;
 			} else if (input.newSpeakerName) {
-				const [speaker] = await db
+				const [speaker] = await trx
 					.insertInto('speakers')
 					.values({
 						name: input.newSpeakerName,
@@ -123,7 +105,7 @@ export async function generateContent(input: GenerateContentInput) {
 			if (input.playlistId) {
 				playlistId = input.playlistId;
 			} else if (input.newPlaylistId && input.newPlaylistTitle) {
-				const [playlist] = await db
+				const [playlist] = await trx
 					.insertInto('playlists')
 					.values({
 						youtube_playlist_id: input.newPlaylistId,
@@ -141,7 +123,7 @@ export async function generateContent(input: GenerateContentInput) {
 
 			// Create YouTube video entry
 			if (videoId) {
-				await db
+				await trx
 					.insertInto('youtube_videos')
 					.values({
 						youtube_video_id: videoId,
@@ -158,7 +140,7 @@ export async function generateContent(input: GenerateContentInput) {
 			const contentKey = mdxPath.split(path.resolve('src'))[1].slice(1);
 
 			// Create lesson
-			const [lesson] = await db
+			const [lesson] = await trx
 				.insertInto('lessons')
 				.values({
 					title,
