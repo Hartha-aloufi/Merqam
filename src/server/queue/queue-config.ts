@@ -1,6 +1,7 @@
 // src/server/queue/queue-config.ts
-import { Queue, Worker, QueueScheduler, ConnectionOptions } from 'bullmq';
+import { Queue, QueueEvents, ConnectionOptions } from 'bullmq';
 import { env } from '../config/env';
+import { AIServiceType } from '../services/ai/types';
 
 /**
  * Redis connection configuration for BullMQ
@@ -17,11 +18,11 @@ export const QUEUE_NAMES = {
 	LESSON_GENERATION: 'lesson-generation',
 } as const;
 
-// Define job types
+// Define job data interface matching our DB schema
 export interface LessonGenerationJobData {
 	url: string;
 	userId: string;
-	aiService: string;
+	aiService: AIServiceType;
 	playlistId?: string;
 	speakerId?: string;
 	newPlaylistId?: string;
@@ -32,7 +33,7 @@ export interface LessonGenerationJobData {
 
 // Singleton instances to ensure we use the same connection throughout the app
 let lessonGenerationQueue: Queue<LessonGenerationJobData> | null = null;
-let queueScheduler: QueueScheduler | null = null;
+let queueEvents: QueueEvents | null = null;
 
 /**
  * Get the lesson generation queue instance (creates it if it doesn't exist)
@@ -60,16 +61,16 @@ export function getLessonGenerationQueue(): Queue<LessonGenerationJobData> {
 }
 
 /**
- * Initialize the queue scheduler (needed for delayed jobs and retries)
+ * Initialize queue events for listening to job events
  */
-export function initializeQueueScheduler(): QueueScheduler {
-	if (!queueScheduler) {
-		queueScheduler = new QueueScheduler(QUEUE_NAMES.LESSON_GENERATION, {
+export function getQueueEvents(): QueueEvents {
+	if (!queueEvents) {
+		queueEvents = new QueueEvents(QUEUE_NAMES.LESSON_GENERATION, {
 			connection: redisConnection,
 		});
-		console.log('Queue scheduler initialized');
+		console.log('Queue events initialized');
 	}
-	return queueScheduler;
+	return queueEvents;
 }
 
 /**
@@ -78,9 +79,9 @@ export function initializeQueueScheduler(): QueueScheduler {
 export async function closeQueues(): Promise<void> {
 	console.log('Closing queue connections...');
 
-	if (queueScheduler) {
-		await queueScheduler.close();
-		queueScheduler = null;
+	if (queueEvents) {
+		await queueEvents.close();
+		queueEvents = null;
 	}
 
 	if (lessonGenerationQueue) {

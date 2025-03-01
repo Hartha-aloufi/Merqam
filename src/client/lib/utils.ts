@@ -1,10 +1,39 @@
-// src/lib/utils.ts (client-side utilities)
+// src/client/lib/utils.ts
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { Exercise, UserAnswers, QuizResults } from '@/types/exercise';
-import { Tajawal } from "next/font/google";
-import { Noto_Naskh_Arabic } from 'next/font/google';
 
+// Only import fonts in browser environment
+let tajawal: any = { className: '' };
+let NotoNaskhArabic: any = { className: '' };
+
+// Check if we're in a browser/Next.js environment where these imports are available
+if (typeof window !== 'undefined') {
+  try {
+    // Dynamic imports to avoid issues in Node.js environment
+    import('next/font/google').then((fonts) => {
+      if (fonts.Tajawal) {
+        tajawal = fonts.Tajawal({
+          subsets: ["arabic"],
+          weight: ["200", "300", "400", "500", "700", "800", "900"],
+        });
+      }
+      
+      if (fonts.Noto_Naskh_Arabic) {
+        NotoNaskhArabic = fonts.Noto_Naskh_Arabic({
+          subsets: ['arabic'],
+          weight: ['400', '500'],
+        });
+      }
+    }).catch(err => {
+      console.warn('Failed to load Next.js fonts:', err);
+    });
+  } catch (error) {
+    console.warn('Next.js font loading not available in this environment');
+  }
+}
+
+export { tajawal, NotoNaskhArabic };
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -97,6 +126,8 @@ export function calculateReadingTime(text: string): number {
 const lessonProgressKey = "lesson-progress";
 
 export const setLessonProgress = (lessonId: string, progressInfo: { paragraphIndex: number, date: string }) => {
+  if (typeof window === 'undefined') return;
+  
   const data = localStorage.getItem(lessonProgressKey);
   const progress = data ? JSON.parse(data) : {};
   const lessonKey = `${lessonId}`;
@@ -106,6 +137,8 @@ export const setLessonProgress = (lessonId: string, progressInfo: { paragraphInd
 }
 
 export const getLessonProgress = (lessonId: string): number => {
+  if (typeof window === 'undefined') return 0;
+  
   const data = localStorage.getItem(lessonProgressKey);
   const progress = data ? JSON.parse(data) : {};
   const lessonKey = `${lessonId}`;
@@ -129,19 +162,12 @@ export function convertToSeconds(timeStr: string, floor = true) {
   return Math.ceil(totalSeconds);
 }
 
-export const tajawal = Tajawal({
-  subsets: ["arabic"],
-  weight: ["200", "300", "400", "500", "700", "800", "900"],
-});
-
-// For user entered Arabic text
-export const NotoNaskhArabic = Noto_Naskh_Arabic({
-	subsets: ['arabic'],
-	weight: ['400', '500'],
-});
-
-export const getSearchParamFromURL = (urlStr: string, param: string): string | null => {
-  const url = new URL(urlStr);
-  const searchParams = new URLSearchParams(url.search);
-  return searchParams.get(param);
+export function getSearchParamFromURL(urlStr: string, param: string): string | null {
+  try {
+    const url = new URL(urlStr);
+    const searchParams = new URLSearchParams(url.search);
+    return searchParams.get(param);
+  } catch (e) {
+    return null;
+  }
 }

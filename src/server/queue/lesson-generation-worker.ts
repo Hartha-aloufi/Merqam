@@ -6,7 +6,9 @@ import {
 	QUEUE_NAMES,
 	LessonGenerationJobData,
 } from './queue-config';
-import { TxtToMdxConverter } from '@/client/lib/txt-to-mdx';
+import { EnhancedTxtToMdxConverter } from '@/client/lib/txt-to-mdx/enhanced-converter';
+import { JobProgressReporter } from './job-progress-utils';
+import { processError } from './job-error-utils';
 import path from 'path';
 import { AIServiceType } from '../services/ai/types';
 
@@ -15,50 +17,17 @@ const DATA_PATH = path.join(process.cwd(), 'src', 'data');
 const TEMP_PATH = path.join(process.cwd(), 'temp');
 
 /**
- * Updates job status and progress in the database
- */
-async function updateJobStatus(
-	jobId: string,
-	status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled',
-	updates: {
-		progress?: number;
-		error?: string;
-		result?: any;
-		started_at?: Date;
-		completed_at?: Date;
-	}
-) {
-	console.log(
-		`Updating job ${jobId} status to ${status} with progress ${updates.progress}`
-	);
-
-	try {
-		await db
-			.updateTable('generation_jobs')
-			.set({
-				status,
-				...updates,
-				updated_at: new Date(),
-			})
-			.where('id', '=', jobId)
-			.execute();
-	} catch (error) {
-		console.error(`Error updating job ${jobId} status:`, error);
-	}
-}
-
-/**
  * Process a lesson generation job
  */
 async function processJob(job: Job<LessonGenerationJobData>) {
 	console.log(`Processing job ${job.id}`, job.data);
 
+	// Create a progress reporter for this job
+	const progressReporter = new JobProgressReporter(job.id as string, job);
+
 	try {
-		// Mark job as processing in database
-		await updateJobStatus(job.id as string, 'processing', {
-			progress: 0,
-			started_at: new Date(),
-		});
+		// Mark job as processing in database and initialize progress
+		await progressReporter.reportStage('INITIALIZED');
 
 		// Extract job data
 		const {
@@ -66,45 +35,23 @@ async function processJob(job: Job<LessonGenerationJobData>) {
 			userId,
 			aiService,
 			playlistId,
-			speakerId,
 			newPlaylistId,
-			newPlaylistTitle,
-			newSpeakerName,
 		} = job.data;
 
-		// Initialize converter with appropriate AI service
-		const converter = new TxtToMdxConverter(
-			DATA_PATH,
-			TEMP_PATH,
-			aiService as AIServiceType
-		);
-
-		// Set up progress tracking
-		let currentProgress = 0;
-		const progressSteps = {
-			DOWNLOADING: 20,
-			PROCESSING: 50,
-			SAVING: 90,
-			COMPLETED: 100,
-		};
-
-		// Update progress - downloading
-		await job.updateProgress(progressSteps.DOWNLOADING);
-		await updateJobStatus(job.id as string, 'processing', {
-			progress: progressSteps.DOWNLOADING,
+		// Initialize enhanced converter with progress reporting
+		const converter = new EnhancedTxtToMdxConverter({
+			aiServiceType: aiService as AIServiceType,
+			dataPath: DATA_PATH,
+			tempDir: TEMP_PATH,
+			progressReporter,
 		});
 
 		// Process content - this is where most of the work happens
+		// Progress will be reported by the converter
 		const processingResult = await converter.processContent(
 			url,
 			playlistId || newPlaylistId || 'new'
 		);
-
-		// Update progress - processing
-		await job.updateProgress(progressSteps.PROCESSING);
-		await updateJobStatus(job.id as string, 'processing', {
-			progress: progressSteps.PROCESSING,
-		});
 
 		// Extract needed information
 		const { videoId, title, mdxPath } = processingResult;
@@ -155,12 +102,6 @@ async function processJob(job: Job<LessonGenerationJobData>) {
 				);
 			}
 
-			// Update progress - saving
-			await job.updateProgress(progressSteps.SAVING);
-			await updateJobStatus(job.id as string, 'processing', {
-				progress: progressSteps.SAVING,
-			});
-
 			// Create YouTube video entry
 			if (videoId) {
 				await trx
@@ -198,30 +139,25 @@ async function processJob(job: Job<LessonGenerationJobData>) {
 			return {
 				lessonId: lesson.id,
 				playlistId,
+				title,
+				videoId,
 			};
 		});
 
-		// Mark job as completed
-		await job.updateProgress(progressSteps.COMPLETED);
-		await updateJobStatus(job.id as string, 'completed', {
-			progress: 100,
-			completed_at: new Date(),
-			result: result,
-		});
+		// Mark job as completed with result
+		await progressReporter.reportCompletion(result);
 
 		console.log(`Job ${job.id} completed successfully`, result);
 		return result;
 	} catch (error) {
 		console.error(`Error processing job ${job.id}:`, error);
 
-		// Update job status to failed
-		await updateJobStatus(job.id as string, 'failed', {
-			error: error instanceof Error ? error.message : String(error),
-			completed_at: new Date(),
-		});
+		// Process the error and report failure
+		const processedError = processError(error);
+		await progressReporter.reportFailure(processedError);
 
-		// Re-throw error to let BullMQ handle retries
-		throw error;
+		// Re-throw error to let BullMQ handle retries if appropriate
+		throw processedError;
 	}
 }
 
@@ -244,20 +180,46 @@ export function initializeWorker() {
 			removeOnFail: {
 				age: 60 * 60 * 24 * 14, // Keep failed jobs for 14 days
 			},
+			// Add back-off strategy
+			settings: {
+				backoffStrategy: (attemptsMade) => {
+					return Math.min(
+						1000 * Math.pow(2, attemptsMade),
+						30 * 60 * 1000
+					); // Exponential back-off up to 30 minutes
+				},
+			},
 		}
 	);
 
-	// Log worker events
-	worker.on('completed', (job) => {
-		console.log(`Job ${job.id} completed successfully`);
+	// Add more detailed event handlers
+	worker.on('completed', (job, result) => {
+		console.log(
+			`Job ${job.id} completed successfully with result:`,
+			result
+		);
 	});
 
 	worker.on('failed', (job, error) => {
-		console.error(`Job ${job?.id} failed:`, error);
+		console.error(`Job ${job?.id} failed with error:`, error);
+		const attempts = job?.attemptsMade ?? 0;
+		console.log(
+			`Attempt ${attempts}${
+				job?.opts.attempts ? '/' + job.opts.attempts : ''
+			}`
+		);
 	});
 
 	worker.on('error', (error) => {
 		console.error('Worker error:', error);
+	});
+
+	worker.on('active', (job) => {
+		console.log(`Job ${job.id} has started processing`);
+	});
+
+	worker.on('stalled', (jobId) => {
+		console.warn(`Job ${jobId} has stalled`);
 	});
 
 	console.log('Lesson generation worker initialized');

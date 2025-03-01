@@ -1,8 +1,10 @@
 // src/server/config/db.ts
-import { Pool } from 'pg';
+import pg from 'pg';
 import { Kysely, PostgresDialect } from 'kysely';
 import { DB } from '@/types/db';
 import { env } from './env';
+
+const {Pool} = pg;
 
 const dialect = new PostgresDialect({
 	pool: new Pool({
