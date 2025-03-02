@@ -1,6 +1,11 @@
 // src/server/config/env.ts
 import { z } from 'zod';
 
+import { config } from 'dotenv';
+
+config();
+config({path: '../../../.env.local', override: true});
+
 function getGeminiKeys(): string[] {
 	const keys: string[] = [];
 	let index = 1;

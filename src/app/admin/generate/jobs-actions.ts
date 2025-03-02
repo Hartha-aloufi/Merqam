@@ -223,7 +223,7 @@ export async function getGenerationJobById(jobId: string, userId: string) {
 			throw new Error('Job not found');
 		}
 
-		console.log('Found job:', job);
+		// console.log('Found job:', job);
 		return job;
 	} catch (error) {
 		console.error(`Error getting generation job with ID: ${jobId}:`, error);

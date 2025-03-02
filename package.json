@@ -14,7 +14,7 @@
 		"test:coverage": "jest --coverage",
 		"migrate": "tsx scripts/migrate.ts",
 		"generate-types": "kysely-codegen --out-file=src/types/db.ts",
-		"start:worker": "ts-node  src/worker.ts"
+		"start:worker": "npx tsx src/worker.ts"
 	},
 	"dependencies": {
 		"@floating-ui/react": "^0.26.28",

@@ -13,7 +13,7 @@ import path from 'path';
 import { AIServiceType } from '../services/ai/types';
 
 // Constants for file paths
-const DATA_PATH = path.join(process.cwd(), 'src', 'data');
+const DATA_PATH = path.join(process.cwd(), 'public', 'data');
 const TEMP_PATH = path.join(process.cwd(), 'temp');
 
 /**
@@ -117,8 +117,8 @@ async function processJob(job: Job<LessonGenerationJobData>) {
 					.execute();
 			}
 
-			// Key example: '/data/playlistId/lessonId.mdx'
-			const contentKey = mdxPath.split(path.resolve('src'))[1].slice(1);
+			// Key example: 'playlistId/lessonId.mdx'
+			const contentKey = mdxPath.split(path.resolve('data'))[1].slice(1);
 
 			// Create lesson
 			const [lesson] = await trx
