@@ -9,6 +9,8 @@ export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
   : ColumnType<T, T | undefined, T>;
 
+export type JobStatus = "cancelled" | "completed" | "failed" | "pending" | "processing";
+
 export type Json = JsonValue;
 
 export type JsonArray = JsonValue[];
@@ -23,11 +25,32 @@ export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
+export interface GenerationJobs {
+  ai_service: Generated<string>;
+  completed_at: Timestamp | null;
+  created_at: Generated<Timestamp>;
+  error: string | null;
+  id: Generated<string>;
+  new_playlist_id: string | null;
+  new_playlist_title: string | null;
+  new_speaker_name: string | null;
+  playlist_id: string | null;
+  priority: Generated<number>;
+  progress: Generated<number>;
+  result: Json | null;
+  speaker_id: string | null;
+  started_at: Timestamp | null;
+  status: Generated<JobStatus>;
+  updated_at: Generated<Timestamp>;
+  url: string;
+  user_id: string;
+}
+
 export interface Highlights {
   created_at: Generated<Timestamp>;
   highlights: Json;
   id: Generated<string>;
-  lesson_id: string | null;
+  lesson_id: string;
   updated_at: Generated<Timestamp>;
   user_id: string;
 }
@@ -74,7 +97,6 @@ export interface NoteTags {
 export interface Playlists {
   created_at: Generated<Timestamp>;
   description: string | null;
-  id: Generated<string>;
   speaker_id: string;
   title: string;
   updated_at: Generated<Timestamp>;
@@ -128,6 +150,7 @@ export interface YoutubeVideos {
 }
 
 export interface DB {
+  generation_jobs: GenerationJobs;
   highlights: Highlights;
   lessons: Lessons;
   note_tags: NoteTags;

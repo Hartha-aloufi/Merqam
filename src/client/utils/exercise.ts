@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { Exercise } from '@/types/exercise';
 
-const DATA_PATH = path.join(process.cwd(), 'src/data');
+const DATA_PATH = path.join(process.cwd(), "public", "data");
 
 /**
  * Gets exercise data for a specific lesson

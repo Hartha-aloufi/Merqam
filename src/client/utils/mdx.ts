@@ -4,7 +4,7 @@ import path from 'path';
 import { Topic, Lesson } from '@/types';
 import { cache } from 'react';
 
-const DATA_PATH = path.join(process.cwd(), 'src/data');
+const DATA_PATH = path.join(process.cwd(), 'public/data');
 
 export const getTopics = cache(async (): Promise<Topic[]> => {
   try {

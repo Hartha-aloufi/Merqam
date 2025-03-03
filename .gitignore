@@ -49,3 +49,5 @@ scripts/downloads/*
 temp
 combined.log
 error.log
+
+logs
