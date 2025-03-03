@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { JobSubmissionForm } from '@/client/components/jobs/job-submission-form';
 import { db } from '@/server/config/db';
-import { getPlaylists, getSpeakers } from '@/app/admin/generate/actions';
+import { getPlaylists, getSpeakers } from '@/app/admin/jobs/new/actions';
 import { Button } from '@/client/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';

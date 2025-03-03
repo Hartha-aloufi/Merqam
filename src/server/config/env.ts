@@ -3,9 +3,11 @@ import { z } from 'zod';
 
 import { config } from 'dotenv';
 
-config();
-config({path: '../../../.env.local', override: true});
-
+// TODO: fix loading env for worker
+if(process.env.NODE_ENV === 'development') {
+	config();
+	config({path: '../../../.env.local', override: true});
+}
 function getGeminiKeys(): string[] {
 	const keys: string[] = [];
 	let index = 1;

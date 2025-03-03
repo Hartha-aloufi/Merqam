@@ -6,7 +6,7 @@ import {
 	QUEUE_NAMES,
 	LessonGenerationJobData,
 } from './queue-config';
-import { EnhancedTxtToMdxConverter } from '@/client/lib/txt-to-mdx/enhanced-converter';
+import { EnhancedTxtToMdxConverter } from '@/client/lib/txt-to-mdx';
 import { JobProgressReporter } from './job-progress-utils';
 import { processError } from './job-error-utils';
 import { JobLogger, workerLogger } from '../lib/logging/file-logger';

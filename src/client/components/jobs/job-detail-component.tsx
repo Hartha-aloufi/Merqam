@@ -27,7 +27,7 @@ import {
   ArrowLeft,
   Loader2,
 } from 'lucide-react';
-import { formatDistanceToNow, parseISO } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import { arEG } from 'date-fns/locale';
 import Link from 'next/link';
 import { Skeleton } from '@/client/components/ui/skeleton';
@@ -44,7 +44,7 @@ import {
   AlertDialogTrigger,
 } from '@/client/components/ui/alert-dialog';
 import { Separator } from '@/client/components/ui/separator';
-import { cn } from '@/client/lib/utils';
+import { cn, formatDate } from '@/client/lib/utils';
 import { JobStatus } from '@/types/db';
 
 interface JobDetailProps {
@@ -77,17 +77,6 @@ export function JobDetail({ jobId, userId }: JobDetailProps) {
     };
   }, [isActive, refetch]);
 
-  // Format date with Arabic locale
-  const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return '';
-    
-    try {
-      const date = parseISO(dateString);
-      return formatDistanceToNow(date, { addSuffix: true, locale: arEG });
-    } catch (e) {
-      return dateString;
-    }
-  };
 
   const handleCancelJob = () => {
     cancelJob({ jobId, userId });
@@ -311,7 +300,7 @@ export function JobDetail({ jobId, userId }: JobDetailProps) {
               <Progress value={job.progress} className="h-2 w-full" />
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>{job.progress}% مكتمل</span>
-                <span>آخر تحديث: {formatDistanceToNow(new Date(lastRefreshTime), { addSuffix: true, locale: arEG })}</span>
+                <span>آخر تحديث: {formatDate((new Date(lastRefreshTime)).toString())}</span>
               </div>
             </div>
           </div>

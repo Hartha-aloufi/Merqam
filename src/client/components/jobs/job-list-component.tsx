@@ -30,8 +30,6 @@ import {
 	PaginationPrevious,
 } from '@/client/components/ui/pagination';
 import { JobStatus } from '@/types/db';
-import { formatDistanceToNow, parseISO } from 'date-fns';
-import { arEG } from 'date-fns/locale';
 import {
 	CircleDot,
 	CheckCircle,
@@ -56,6 +54,7 @@ import {
 	AlertDialogTrigger,
 } from '@/client/components/ui/alert-dialog';
 import { Progress } from '@/client/components/ui/progress';
+import { formatDate } from '@/client/lib/utils';
 
 interface JobsListProps {
 	userId: string;
@@ -131,16 +130,6 @@ export function JobsList({ userId, pageSize = 10 }: JobsListProps) {
 						<span>{status}</span>
 					</div>
 				);
-		}
-	};
-
-	// Format date with Arabic locale
-	const formatDate = (dateString: string) => {
-		try {
-			const date = parseISO(dateString);
-			return formatDistanceToNow(date, { addSuffix: true, locale: arEG });
-		} catch (e) {
-			return dateString;
 		}
 	};
 
@@ -384,7 +373,6 @@ export function JobsList({ userId, pageSize = 10 }: JobsListProps) {
 											Math.max(0, prev - 1)
 										)
 									}
-									disabled={currentPage === 0}
 								/>
 							</PaginationItem>
 
@@ -428,7 +416,6 @@ export function JobsList({ userId, pageSize = 10 }: JobsListProps) {
 											Math.min(totalPages - 1, prev + 1)
 										)
 									}
-									disabled={currentPage >= totalPages - 1}
 								/>
 							</PaginationItem>
 						</PaginationContent>

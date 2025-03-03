@@ -8,9 +8,7 @@ import {
 	LessonGenerationJobData,
 } from '@/server/queue/queue-config';
 import { AIServiceType } from '@/server/services/ai/types';
-import { validateIsVideoNotInDatabase } from '@/app/admin/generate/utils';
-
-
+import { validateIsVideoNotInDatabase } from '@/app/admin/jobs/utils';
 
 interface CreateJobInput {
 	url: string;

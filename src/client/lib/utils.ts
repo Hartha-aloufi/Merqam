@@ -4,6 +4,8 @@ import { twMerge } from 'tailwind-merge';
 import { Exercise, UserAnswers, QuizResults } from '@/types/exercise';
 import { Tajawal } from 'next/font/google';
 import { Noto_Naskh_Arabic } from 'next/font/google';
+import { formatDistanceToNow, parseISO } from 'date-fns';
+import { arEG } from 'date-fns/locale';
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -119,3 +121,16 @@ export const NotoNaskhArabic = Noto_Naskh_Arabic({
 	subsets: ['arabic'],
 	weight: ['400', '500'],
 });
+
+
+ // Format date with Arabic locale
+  export const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return '';
+    
+    try {
+      const date = parseISO(dateString);
+      return formatDistanceToNow(date, { addSuffix: true, locale: arEG });
+    } catch (e) {
+      return dateString;
+    }
+  };
