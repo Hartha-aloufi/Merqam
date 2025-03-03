@@ -1,3 +1,4 @@
+// src/server/queue/enhanced-worker.ts
 import { Worker, Job } from 'bullmq';
 import { db } from '../config/db';
 import {
@@ -11,6 +12,7 @@ import { processError } from './job-error-utils';
 import { JobLogger, workerLogger } from '../lib/logging/file-logger';
 import path from 'path';
 import { AIServiceType } from '../services/ai/types';
+import { formatErrorForLogging } from '../lib/logging/error-utils';
 
 // Constants for file paths
 const DATA_PATH = path.join(process.cwd(), 'public', 'data');
@@ -158,8 +160,9 @@ async function processJob(job: Job<LessonGenerationJobData>) {
 					.execute();
 			}
 
-			// Key example: '/playlistId/lessonId.mdx'
-			const contentKey = mdxPath.split(path.resolve('data'))[1].slice(1);
+			// Key example: '/data/playlistId/lessonId.mdx'
+			logger.info('Generating content key from MDX path', { mdxPath });
+			const contentKey = mdxPath.split('data')[1].slice(1);
 			logger.debug('Content key generated', { contentKey });
 
 			// Create lesson
@@ -206,12 +209,40 @@ async function processJob(job: Job<LessonGenerationJobData>) {
 
 		return result;
 	} catch (error) {
-		// Process the error and report failure
+		// Preserve the original stack trace by capturing it before any processing
+		const originalError = error;
+		const originalStack = error instanceof Error ? error.stack : undefined;
+
+		// Process the error
 		const processedError = processError(error);
+
+		// Preserve original stack trace on the processed error if available
+		if (
+			originalStack &&
+			processedError instanceof Error &&
+			!processedError.stack
+		) {
+			processedError.stack = originalStack;
+		}
+
+		// Report failure to database
 		await progressReporter.reportFailure(processedError);
 
-		// Log the error with full details
-		logger.logJobFailure(processedError);
+		// Log the error with full details including original error info
+		logger.logJobFailure(processedError, {
+			originalError:
+				originalError instanceof Error
+					? {
+							message: originalError.message,
+							name: originalError.name,
+							stack: originalError.stack,
+					  }
+					: String(originalError),
+			failureLocation: new Error().stack
+				?.split('\n')
+				.slice(1, 5)
+				.map((line) => line.trim()),
+		});
 
 		// Log execution time even for failures
 		const executionTime = (Date.now() - startTime) / 1000;
@@ -235,7 +266,7 @@ export function initializeEnhancedWorker() {
 		processJob,
 		{
 			connection: redisConnection,
-			concurrency: 1, // Process one job at a time
+			concurrency: 10, // Process one job at a time
 			removeOnComplete: {
 				age: 60 * 60 * 24 * 7, // Keep completed jobs for 7 days
 				count: 100, // Keep last 100 completed jobs
@@ -262,14 +293,17 @@ export function initializeEnhancedWorker() {
 			result,
 		});
 	});
-
 	worker.on('failed', (job, error) => {
+		// Using formatErrorForLogging imported at the top
 		workerLogger.error(`Job ${job?.id} failed with error:`, {
 			jobId: job?.id,
-			error: error instanceof Error ? error.message : String(error),
-			stack: error instanceof Error ? error.stack : undefined,
-			attempts: job?.attemptsMade,
-			maxAttempts: job?.opts.attempts,
+			error: formatErrorForLogging(error),
+			jobInfo: {
+				attempts: job?.attemptsMade,
+				maxAttempts: job?.opts.attempts,
+				data: job?.data,
+				timestamp: new Date().toISOString(),
+			},
 		});
 	});
 

@@ -46,7 +46,7 @@ export class EnhancedTxtToMdxConverter {
 	constructor(options: ConverterOptions = {}) {
 		this.aiService = AIServiceFactory.getService(options.aiServiceType);
 		this.dataPath =
-			options.dataPath || path.join(process.cwd(), 'public/data');
+			options.dataPath || path.join(process.cwd(), 'public', 'data');
 		this.tempDir = options.tempDir || path.join(process.cwd(), 'temp');
 		this.progressReporter = options.progressReporter;
 

@@ -3,6 +3,7 @@ import winston from 'winston';
 import path from 'path';
 import fs from 'fs';
 import { env } from '@/server/config/env';
+import { formatErrorForLogging } from './error-utils';
 
 // Ensure log directory exists
 const LOG_DIR = path.join(process.cwd(), 'logs');
@@ -136,7 +137,7 @@ export class JobLogger {
 	}
 
 	/**
-	 * Log error level message
+	 * Log error level message with enhanced stack trace information
 	 */
 	error(
 		message: string,
@@ -147,14 +148,7 @@ export class JobLogger {
 			metadata: {
 				jobId: this.jobId,
 				...metadata,
-				error: error
-					? {
-							message: error.message || String(error),
-							stack: error.stack,
-							name: error.name,
-							code: error.code,
-					  }
-					: undefined,
+				error: error ? formatErrorForLogging(error) : undefined,
 			},
 		});
 	}
@@ -210,10 +204,23 @@ export class JobLogger {
 	}
 
 	/**
-	 * Log job failure
+	 * Log job failure with enhanced error details
 	 */
-	logJobFailure(error: Error | string): void {
-		this.error(`Job ${this.jobId} failed`, error);
+	logJobFailure(
+		error: Error | string,
+		metadata: Record<string, any> = {}
+	): void {
+		// Capture current stack trace to show where the failure was logged from
+		const currentStack = new Error().stack;
+
+		this.error(`Job ${this.jobId} failed`, error, {
+			failureLocation: currentStack
+				?.split('\n')
+				.slice(1, 4)
+				.map((line) => line.trim()),
+			failureTimestamp: new Date().toISOString(),
+			...metadata,
+		});
 	}
 
 	/**

@@ -35,12 +35,12 @@ export default async function JobsPage() {
 						مراقبة وإدارة مهام إنشاء الدروس
 					</p>
 				</div>
-				<Button asChild>
 					<Link href="/admin/jobs/new">
-						<PlusCircle className="h-4 w-4 mr-2" />
-						مهمة جديدة
+						<Button>
+								<PlusCircle className="h-4 w-4 mr-2" />
+								مهمة جديدة
+						</Button>
 					</Link>
-				</Button>
 			</div>
 
 			<div className="max-w-6xl mx-auto">
