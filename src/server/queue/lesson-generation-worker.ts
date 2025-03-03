@@ -1,4 +1,3 @@
-// src/server/queue/lesson-generation-worker.ts
 import { Worker, Job } from 'bullmq';
 import { db } from '../config/db';
 import {
@@ -9,6 +8,7 @@ import {
 import { EnhancedTxtToMdxConverter } from '@/client/lib/txt-to-mdx/enhanced-converter';
 import { JobProgressReporter } from './job-progress-utils';
 import { processError } from './job-error-utils';
+import { JobLogger, workerLogger } from '../lib/logging/file-logger';
 import path from 'path';
 import { AIServiceType } from '../services/ai/types';
 
@@ -17,17 +17,23 @@ const DATA_PATH = path.join(process.cwd(), 'public', 'data');
 const TEMP_PATH = path.join(process.cwd(), 'temp');
 
 /**
- * Process a lesson generation job
+ * Process a lesson generation job with enhanced logging
  */
 async function processJob(job: Job<LessonGenerationJobData>) {
-	console.log(`Processing job ${job.id}`, job.data);
+	// Create a job-specific logger
+	const logger = new JobLogger(job.id as string, 'lesson-generation');
+	logger.logJobStart({ data: job.data });
 
 	// Create a progress reporter for this job
 	const progressReporter = new JobProgressReporter(job.id as string, job);
 
+	// Log execution start time
+	const startTime = Date.now();
+
 	try {
 		// Mark job as processing in database and initialize progress
 		await progressReporter.reportStage('INITIALIZED');
+		logger.logProgress(0, 'Initialized');
 
 		// Extract job data
 		const {
@@ -35,8 +41,22 @@ async function processJob(job: Job<LessonGenerationJobData>) {
 			userId,
 			aiService,
 			playlistId,
+			speakerId,
 			newPlaylistId,
+			newPlaylistTitle,
+			newSpeakerName,
 		} = job.data;
+
+		logger.info('Job data extracted', {
+			url,
+			userId,
+			aiService,
+			playlistId,
+			speakerId,
+			newPlaylistId,
+			newPlaylistTitle,
+			newSpeakerName,
+		});
 
 		// Initialize enhanced converter with progress reporting
 		const converter = new EnhancedTxtToMdxConverter({
@@ -48,6 +68,7 @@ async function processJob(job: Job<LessonGenerationJobData>) {
 
 		// Process content - this is where most of the work happens
 		// Progress will be reported by the converter
+		logger.info('Starting content processing', { url });
 		const processingResult = await converter.processContent(
 			url,
 			playlistId || newPlaylistId || 'new'
@@ -55,14 +76,20 @@ async function processJob(job: Job<LessonGenerationJobData>) {
 
 		// Extract needed information
 		const { videoId, title, mdxPath } = processingResult;
+		logger.info('Content processing completed', { videoId, title });
 
 		// Start database transaction to save results
+		logger.info('Starting database transaction to save results');
 		const result = await db.transaction().execute(async (trx) => {
 			// Handle Speaker
 			let speakerId: string;
 			if (job.data.speakerId && job.data.speakerId !== 'new') {
 				speakerId = job.data.speakerId;
+				logger.debug('Using existing speaker', { speakerId });
 			} else if (job.data.newSpeakerName) {
+				logger.debug('Creating new speaker', {
+					newSpeakerName: job.data.newSpeakerName,
+				});
 				const [speaker] = await trx
 					.insertInto('speakers')
 					.values({
@@ -75,17 +102,24 @@ async function processJob(job: Job<LessonGenerationJobData>) {
 					.returning(['id'])
 					.execute();
 				speakerId = speaker.id;
+				logger.debug('New speaker created', { speakerId });
 			} else {
-				throw new Error(
-					'Either speakerId or newSpeakerName must be provided'
-				);
+				const error =
+					'Either speakerId or newSpeakerName must be provided';
+				logger.error(error);
+				throw new Error(error);
 			}
 
 			// Handle Playlist
 			let playlistId: string;
 			if (job.data.playlistId) {
 				playlistId = job.data.playlistId;
+				logger.debug('Using existing playlist', { playlistId });
 			} else if (job.data.newPlaylistId && job.data.newPlaylistTitle) {
+				logger.debug('Creating new playlist', {
+					newPlaylistId: job.data.newPlaylistId,
+					newPlaylistTitle: job.data.newPlaylistTitle,
+				});
 				const [playlist] = await trx
 					.insertInto('playlists')
 					.values({
@@ -96,14 +130,21 @@ async function processJob(job: Job<LessonGenerationJobData>) {
 					.returning(['youtube_playlist_id'])
 					.execute();
 				playlistId = playlist.youtube_playlist_id;
+				logger.debug('New playlist created', { playlistId });
 			} else {
-				throw new Error(
-					'Either playlistId or newPlaylist details must be provided'
-				);
+				const error =
+					'Either playlistId or newPlaylist details must be provided';
+				logger.error(error);
+				throw new Error(error);
 			}
 
 			// Create YouTube video entry
 			if (videoId) {
+				logger.debug('Creating YouTube video entry', {
+					videoId,
+					playlistId,
+					speakerId,
+				});
 				await trx
 					.insertInto('youtube_videos')
 					.values({
@@ -117,10 +158,19 @@ async function processJob(job: Job<LessonGenerationJobData>) {
 					.execute();
 			}
 
-			// Key example: 'playlistId/lessonId.mdx'
+			// Key example: '/playlistId/lessonId.mdx'
 			const contentKey = mdxPath.split(path.resolve('data'))[1].slice(1);
+			logger.debug('Content key generated', { contentKey });
 
 			// Create lesson
+			logger.debug('Creating lesson', {
+				title,
+				contentKey,
+				speakerId,
+				playlistId,
+				videoId,
+				userId,
+			});
 			const [lesson] = await trx
 				.insertInto('lessons')
 				.values({
@@ -136,6 +186,8 @@ async function processJob(job: Job<LessonGenerationJobData>) {
 				.returning(['id'])
 				.execute();
 
+			logger.debug('Lesson created', { lessonId: lesson.id });
+
 			return {
 				lessonId: lesson.id,
 				playlistId,
@@ -147,14 +199,25 @@ async function processJob(job: Job<LessonGenerationJobData>) {
 		// Mark job as completed with result
 		await progressReporter.reportCompletion(result);
 
-		console.log(`Job ${job.id} completed successfully`, result);
+		// Log execution time
+		const executionTime = (Date.now() - startTime) / 1000;
+		logger.metric('executionTime', executionTime, 'ms', { result });
+		logger.logJobCompletion(result);
+
 		return result;
 	} catch (error) {
-		console.error(`Error processing job ${job.id}:`, error);
-
 		// Process the error and report failure
 		const processedError = processError(error);
 		await progressReporter.reportFailure(processedError);
+
+		// Log the error with full details
+		logger.logJobFailure(processedError);
+
+		// Log execution time even for failures
+		const executionTime = (Date.now() - startTime) / 1000;
+		logger.metric('executionTime', executionTime, 'ms', {
+			status: 'failed',
+		});
 
 		// Re-throw error to let BullMQ handle retries if appropriate
 		throw processedError;
@@ -162,10 +225,10 @@ async function processJob(job: Job<LessonGenerationJobData>) {
 }
 
 /**
- * Initialize the worker
+ * Initialize the worker with enhanced logging
  */
-export function initializeWorker() {
-	console.log('Initializing lesson generation worker');
+export function initializeEnhancedWorker() {
+	workerLogger.info('Initializing enhanced lesson generation worker');
 
 	const worker = new Worker<LessonGenerationJobData>(
 		QUEUE_NAMES.LESSON_GENERATION,
@@ -192,36 +255,41 @@ export function initializeWorker() {
 		}
 	);
 
-	// Add more detailed event handlers
+	// Add more detailed event handlers with logging
 	worker.on('completed', (job, result) => {
-		console.log(
-			`Job ${job.id} completed successfully with result:`,
-			result
-		);
+		workerLogger.info(`Job ${job.id} completed successfully with result:`, {
+			jobId: job.id,
+			result,
+		});
 	});
 
 	worker.on('failed', (job, error) => {
-		console.error(`Job ${job?.id} failed with error:`, error);
-		const attempts = job?.attemptsMade ?? 0;
-		console.log(
-			`Attempt ${attempts}${
-				job?.opts.attempts ? '/' + job.opts.attempts : ''
-			}`
-		);
+		workerLogger.error(`Job ${job?.id} failed with error:`, {
+			jobId: job?.id,
+			error: error instanceof Error ? error.message : String(error),
+			stack: error instanceof Error ? error.stack : undefined,
+			attempts: job?.attemptsMade,
+			maxAttempts: job?.opts.attempts,
+		});
 	});
 
 	worker.on('error', (error) => {
-		console.error('Worker error:', error);
+		workerLogger.error('Worker error:', {
+			error: error instanceof Error ? error.message : String(error),
+			stack: error instanceof Error ? error.stack : undefined,
+		});
 	});
 
 	worker.on('active', (job) => {
-		console.log(`Job ${job.id} has started processing`);
+		workerLogger.info(`Job ${job.id} has started processing`, {
+			jobId: job.id,
+		});
 	});
 
 	worker.on('stalled', (jobId) => {
-		console.warn(`Job ${jobId} has stalled`);
+		workerLogger.warn(`Job ${jobId} has stalled`, { jobId });
 	});
 
-	console.log('Lesson generation worker initialized');
+	workerLogger.info('Enhanced lesson generation worker initialized');
 	return worker;
 }

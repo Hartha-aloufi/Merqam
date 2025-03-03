@@ -1,5 +1,5 @@
 // app/sitemap.ts
-import { getTopics } from '@/client/utils/mdx';
+import { getTopics } from '../../public/data/PLZmiPrHYOIsT3AhREWUIjbtPEAGH4NR5x/mdx';
 import { MetadataRoute } from 'next';
 
 // Mark as static

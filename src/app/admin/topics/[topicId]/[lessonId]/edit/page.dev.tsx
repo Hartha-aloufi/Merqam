@@ -1,5 +1,8 @@
 // app/topics/[topicId]/[lessonId]/page.tsx
-import { getTopics, getLesson } from '@/client/utils/mdx';
+import {
+	getTopics,
+	getLesson,
+} from '../../../../../../../public/data/PLZmiPrHYOIsT3AhREWUIjbtPEAGH4NR5x/mdx';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import AdminLessonEditPage from './AdminLessonEdit.dev';

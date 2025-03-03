@@ -1,7 +1,7 @@
 // src/app/admin/page.tsx
 import { Metadata } from 'next';
 import { AdminDashboard } from '@/client/components/admin/dashboard/AdminDashboard';
-import { getTopics } from '@/client/utils/mdx';
+import { getTopics } from '../../../public/data/PLZmiPrHYOIsT3AhREWUIjbtPEAGH4NR5x/mdx';
 
 export const metadata: Metadata = {
 	title: 'لوحة التحكم | مِرْقَم',

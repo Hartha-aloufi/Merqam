@@ -8,7 +8,7 @@ import { AIServiceType } from '@/server/services/ai/types';
 import { validateIsVideoNotInDatabase } from './utils';
 
 // Constants
-const DATA_PATH = path.join(process.cwd(), 'src', 'data');
+const DATA_PATH = path.join(process.cwd(), 'public', 'data');
 const TEMP_PATH = path.join(process.cwd(), 'temp');
 
 interface GenerateContentInput {
@@ -137,7 +137,7 @@ export async function generateContent(input: GenerateContentInput) {
 			}
 
 			// key example: '/data/playlistId/lessonId.mdx'
-			const contentKey = mdxPath.split(path.resolve('src'))[1].slice(1);
+			const contentKey = mdxPath.split(path.resolve('data'))[1].slice(1);
 
 			// Create lesson
 			const [lesson] = await trx

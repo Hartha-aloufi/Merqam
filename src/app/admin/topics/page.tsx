@@ -1,6 +1,6 @@
 // src/app/admin/topics/page.tsx
 import { Metadata } from 'next';
-import { getTopics } from '@/client/utils/mdx';
+import { getTopics } from '../../../../public/data/PLZmiPrHYOIsT3AhREWUIjbtPEAGH4NR5x/mdx';
 import { TopicsManagement } from '@/client/components/admin/topics/TopicsManagement';
 
 export const metadata: Metadata = {

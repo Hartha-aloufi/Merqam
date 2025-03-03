@@ -26,7 +26,7 @@ export class TxtToMdxConverter {
 	private tempDir: string;
 
 	constructor(
-		dataPath: string = path.join(process.cwd(), 'src/data'),
+		dataPath: string = path.join(process.cwd(), 'public/data'),
 		tempDir: string = path.join(process.cwd(), 'temp'),
 		aiServiceType?: AIServiceType
 	) {
