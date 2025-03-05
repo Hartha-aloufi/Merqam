@@ -5,7 +5,19 @@ import path from 'path';
 import fs from 'fs/promises';
 import { TranscriptResult } from '../types';
 import { BaseScraper } from './base-scraper';
-import { getSearchParamFromURL } from '@/client/lib/utils';
+
+export function getSearchParamFromURL(
+	urlStr: string,
+	param: string
+): string | null {
+	try {
+		const url = new URL(urlStr);
+		const searchParams = new URLSearchParams(url.search);
+		return searchParams.get(param);
+	} catch (e) {
+		return null;
+	}
+}
 
 export class DownsubScraper extends BaseScraper {
 	async extractVideoInfo(
@@ -40,9 +52,7 @@ export class DownsubScraper extends BaseScraper {
 			}
 
 			if (!pageInfo.title) {
-				logger.warn(
-					'Could not extract video title from Downsub page'
-				);
+				logger.warn('Could not extract video title from Downsub page');
 			}
 
 			logger.info('Successfully extracted video info', {

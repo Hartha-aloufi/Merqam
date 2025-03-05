@@ -5,7 +5,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Loader2, ExternalLink, Search } from 'lucide-react';
-import { generateContent } from './actions';
 import {
 	Command,
 	CommandEmpty,
@@ -30,6 +29,7 @@ import {
 	CardTitle,
 	CardDescription,
 	CardContent,
+	CardFooter,
 } from '@/client/components/ui/card';
 import { Alert, AlertDescription } from '@/client/components/ui/alert';
 import { RadioGroup, RadioGroupItem } from '@/client/components/ui/radio-group';
@@ -46,6 +46,8 @@ import {
 	SelectValue,
 } from '@/client/components/ui/select';
 import { useRouter } from 'next/navigation';
+import { useSubmitGenerationJob } from '@/client/hooks/use-job-query';
+import Link from 'next/link';
 
 const urlSchema = z.string().url('الرجاء إدخال رابط صحيح');
 
@@ -80,7 +82,7 @@ const formSchema = z
 
 type FormData = z.infer<typeof formSchema>;
 
-interface ContentGeneratorFormProps {
+interface JobSubmissionFormProps {
 	userId: string;
 	initialSpeakers: Array<{ id: string; name: string }>;
 	initialPlaylists: Array<{
@@ -91,15 +93,22 @@ interface ContentGeneratorFormProps {
 	}>;
 }
 
-export function ContentGeneratorForm({
+export function JobSubmissionForm({
 	userId,
 	initialSpeakers,
 	initialPlaylists,
-}: ContentGeneratorFormProps) {
-	const [newLessonUrl, setNewLessonUrl] = useState<string>();
+}: JobSubmissionFormProps) {
 	const [openCombobox, setOpenCombobox] = useState(false);
 	const [searchQuery, setSearchQuery] = useState('');
 	const router = useRouter();
+
+	// Use our custom hook
+	const {
+		mutate: submitJob,
+		isPending,
+		isSuccess,
+		data: jobResult,
+	} = useSubmitGenerationJob();
 
 	const filteredPlaylists = initialPlaylists.filter((playlist) =>
 		playlist.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -114,11 +123,9 @@ export function ContentGeneratorForm({
 		},
 	});
 
-	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
 	async function onSubmit(data: FormData) {
-		setIsSubmitting(true);
 		setError(null);
 
 		try {
@@ -141,21 +148,15 @@ export function ContentGeneratorForm({
 					  }),
 			};
 
-			const result = await generateContent(inputData);
-
-			setNewLessonUrl(
-				`/playlists/${result.playlistId}/lessons/${result.lessonId}`
-			);
-			router.refresh();
+			// Submit the job using our hook
+			submitJob(inputData);
 		} catch (err) {
-			console.error('Error generating content:', err);
+			console.error('Error submitting job:', err);
 			setError(
 				err instanceof Error
 					? err.message
-					: 'حدث خطأ أثناء إنشاء المحتوى'
+					: 'حدث خطأ أثناء إنشاء المهمة'
 			);
-		} finally {
-			setIsSubmitting(false);
 		}
 	}
 
@@ -170,24 +171,26 @@ export function ContentGeneratorForm({
 
 	return (
 		<Card className="border-2 relative">
-			{isSubmitting && (
+			{isPending && (
 				<div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center z-50">
 					<div className="text-center space-y-4">
 						<Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
 						<p className="text-lg font-medium">
-							جاري إنشاء الدرس...
+							جاري إنشاء المهمة...
 						</p>
 						<p className="text-sm text-muted-foreground">
-							قد تستغرق العملية عدة دقائق
+							سيتم وضع المهمة في قائمة الانتظار
 						</p>
 					</div>
 				</div>
 			)}
 
 			<CardHeader className="space-y-1">
-				<CardTitle className="text-xl">إنشاء درس جديد</CardTitle>
+				<CardTitle className="text-xl">
+					إنشاء مهمة توليد درس جديد
+				</CardTitle>
 				<CardDescription>
-					قم بإنشاء درس جديد من صفحة النص المفرغ
+					قم بإنشاء درس جديد من صفحة النص المفرغ باستخدام نظام المهام
 				</CardDescription>
 			</CardHeader>
 
@@ -207,7 +210,7 @@ export function ContentGeneratorForm({
 									<FormControl>
 										<Input
 											dir="ltr"
-											disabled={isSubmitting}
+											disabled={isPending}
 											placeholder="https://..."
 											className="font-mono text-sm text-left"
 											{...field}
@@ -233,7 +236,7 @@ export function ContentGeneratorForm({
 											onValueChange={field.onChange}
 											defaultValue={field.value}
 											className="space-y-4"
-											disabled={isSubmitting}
+											disabled={isPending}
 										>
 											{/* Existing Playlist Option */}
 											<FormItem className="flex items-start space-x-reverse space-x-3 space-y-0">
@@ -272,7 +275,7 @@ export function ContentGeneratorForm({
 																					'contentType'
 																				) !==
 																					'existing' ||
-																				isSubmitting
+																				isPending
 																			}
 																		>
 																			{field.value
@@ -385,7 +388,7 @@ export function ContentGeneratorForm({
 																					'contentType'
 																				) !==
 																					'new' ||
-																				isSubmitting
+																				isPending
 																			}
 																			className="text-left"
 																			{...field}
@@ -424,7 +427,7 @@ export function ContentGeneratorForm({
 																					'contentType'
 																				) !==
 																					'new' ||
-																				isSubmitting
+																				isPending
 																			}
 																			{...field}
 																		/>
@@ -453,7 +456,7 @@ export function ContentGeneratorForm({
 									<Select
 										value={field.value}
 										onValueChange={field.onChange}
-										disabled={isSubmitting}
+										disabled={isPending}
 									>
 										<FormControl>
 											<SelectTrigger>
@@ -492,7 +495,7 @@ export function ContentGeneratorForm({
 										<FormControl>
 											<Input
 												placeholder="اسم المتحدث"
-												disabled={isSubmitting}
+												disabled={isPending}
 												{...field}
 											/>
 										</FormControl>
@@ -512,7 +515,7 @@ export function ContentGeneratorForm({
 									<Select
 										value={field.value}
 										onValueChange={field.onChange}
-										disabled={isSubmitting}
+										disabled={isPending}
 									>
 										<FormControl>
 											<SelectTrigger>
@@ -556,34 +559,54 @@ export function ContentGeneratorForm({
 						<div className="flex gap-4 flex-col sm:flex-row">
 							<Button
 								type="submit"
-								disabled={isSubmitting}
+								disabled={isPending}
 								className="min-w-[140px]"
 							>
-								{isSubmitting ? (
+								{isPending ? (
 									<>
 										<Loader2 className="ml-2 h-4 w-4 animate-spin" />
 										جاري الإنشاء...
 									</>
 								) : (
-									'إنشاء الدرس'
+									'إنشاء المهمة'
 								)}
 							</Button>
-
-							{newLessonUrl && (
-								<Button
-									variant="outline"
-									onClick={() =>
-										window.open(newLessonUrl, '_blank')
-									}
-								>
-									<ExternalLink className="ml-2 h-4 w-4" />
-									فتح الدرس الجديد
-								</Button>
-							)}
 						</div>
 					</form>
 				</Form>
 			</CardContent>
+
+			{isSuccess && jobResult && (
+				<CardFooter className="border-t bg-muted/50 flex flex-col items-start gap-4 px-6 py-4">
+					<div>
+						<h3 className="font-medium text-sm">
+							تم إنشاء المهمة بنجاح!
+						</h3>
+						<p className="text-sm text-muted-foreground">
+							سيتم معالجة المهمة في الخلفية. يمكنك متابعة التقدم
+							من خلال صفحة المهام.
+						</p>
+					</div>
+					<div className="flex gap-2">
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => {
+								form.reset();
+								router.refresh();
+							}}
+						>
+							إنشاء مهمة جديدة
+						</Button>
+						<Button size="sm" asChild>
+							<Link href={`/admin/jobs/${jobResult.jobId}`}>
+								<ExternalLink className="ml-2 h-4 w-4" />
+								مشاهدة المهمة
+							</Link>
+						</Button>
+					</div>
+				</CardFooter>
+			)}
 		</Card>
 	);
 }
