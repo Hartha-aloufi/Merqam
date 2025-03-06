@@ -33,6 +33,35 @@ services:
       timeout: 5s
       retries: 5
 
+  worker:
+    image: node:20-alpine
+    container_name: mirqam_worker
+    working_dir: /app
+    command: sh -c "npm install -g tsx && tsx src/worker.ts"
+    volumes:
+      - .:/app
+      - worker_logs:/app/logs
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - BAHETH_API_TOKEN=${BAHETH_API_TOKEN}
+      - JWT_SECRET=${JWT_SECRET}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GEMINI_API_KEY_1=${GEMINI_API_KEY_1}
+      - GEMINI_API_KEY_2=${GEMINI_API_KEY_2}
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   redis_data:
+  worker_logs:
