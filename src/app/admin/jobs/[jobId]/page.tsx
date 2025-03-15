@@ -21,6 +21,8 @@ export async function generateMetadata({
 	};
 }
 
+export const dynamic = 'force-dynamic';
+
 export default async function JobDetailPage({ params }: JobDetailPageProps) {
 	// Get the current user - in production, use your auth system
 	const adminUser = await db

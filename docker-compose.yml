@@ -2,6 +2,18 @@
 version: '3.8'
 
 services:
+  web:
+    build: .
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - postgres
+    networks:
+      - my_network
+
+
   postgres:
     image: postgres:16-alpine
     container_name: mirqam_db
@@ -18,6 +30,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - my_network
   
   redis:
     image: redis:7-alpine
@@ -32,36 +46,35 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - my_network
 
   worker:
-    image: node:20-alpine
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
     container_name: mirqam_worker
-    working_dir: /app
-    command: sh -c "npm install -g tsx && tsx src/worker.ts"
     volumes:
-      - .:/app
       - worker_logs:/app/logs
-    environment:
-      - NODE_ENV=${NODE_ENV:-development}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - BAHETH_API_TOKEN=${BAHETH_API_TOKEN}
-      - JWT_SECRET=${JWT_SECRET}
-      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - GEMINI_API_KEY_1=${GEMINI_API_KEY_1}
-      - GEMINI_API_KEY_2=${GEMINI_API_KEY_2}
+      - temp_data:/app/temp
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     restart: unless-stopped
+    networks:
+      - my_network
+    env_file:
+      - .env
 
 volumes:
-  postgres_data:
+  postgres_data:      
   redis_data:
   worker_logs:
+  temp_data:
+
+networks:
+  my_network:
+    name: my_network
+    driver: bridge

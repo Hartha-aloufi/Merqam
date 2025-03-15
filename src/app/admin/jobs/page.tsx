@@ -7,6 +7,9 @@ import { PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 import { db } from '@/server/config/db';
 
+
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
 	title: 'إدارة المهام | مِرْقَم',
 	description: 'إدارة مهام إنشاء الدروس وعرض حالتها',

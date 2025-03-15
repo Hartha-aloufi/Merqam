@@ -4,6 +4,8 @@ import { notFound } from 'next/navigation';
 import { ArrowRight, Video, BookOpen, GraduationCap, Eye } from 'lucide-react';
 import { ContentService } from '@/server/services/content.service';
 
+export const dynamic = 'force-dynamic';
+
 interface PlaylistPageProps {
 	params: Promise<{
 		playlistId: string;

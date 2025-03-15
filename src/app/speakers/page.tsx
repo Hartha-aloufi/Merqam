@@ -14,13 +14,14 @@ import { SpeakerListCard } from '@/client/components/speakers/speaker-list-card'
 import { SpeakerListSkeleton } from '@/client/components/speakers/speaker-list-skeleton';
 import { useLayoutPreference } from '@/client/hooks/use-layout-preference';
 
+export const dynamic = 'force-dynamic';
+
 const layouts = {
 	list: 'grid grid-cols-1 gap-6 max-w-4xl mx-auto',
 	featured:
 		'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 [&>*:first-child]:col-span-2 [&>*:first-child]:row-span-2',
 } as const;
 
-type LayoutType = keyof typeof layouts;
 
 export default function SpeakersPage() {
 	const [searchQuery, setSearchQuery] = useState('');

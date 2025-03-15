@@ -7,7 +7,7 @@ import { AIServiceType } from '../services/ai/types';
  * Redis connection configuration for BullMQ
  */
 export const redisConnection: ConnectionOptions = {
-	host: env.REDIS_HOST || 'localhost', // This is likely using localhost as fallback
+	host: env.REDIS_HOST || 'redis', // This is likely using localhost as fallback
 	port: env.REDIS_PORT || 6379,
 	// Use password if configured in environment
 	...(env.REDIS_PASSWORD ? { password: env.REDIS_PASSWORD } : {}),

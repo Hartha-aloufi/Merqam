@@ -8,6 +8,8 @@ import { Button } from '@/client/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
 	title: 'إنشاء مهمة جديدة | مِرْقَم',
 	description: 'إنشاء مهمة جديدة لتوليد درس من النص المفرغ',

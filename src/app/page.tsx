@@ -3,6 +3,7 @@ import { ContentService } from '@/server/services/content.service';
 import { Button } from '@/client/components/ui/button';
 import { BookOpen, ArrowRight, Video } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
 	const contentService = new ContentService();

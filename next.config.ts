@@ -7,17 +7,14 @@ const withPWA = require('next-pwa')({
 });
 
 const nextConfig: NextConfig = {
-	// output: process.env.NODE_ENV === "development" ? "standalone" : "export", // We need api route in admin pages, which only used in development
+	output: 'standalone',
+
 	// Filtering dev pages from static export (Admin pages)
 	pageExtensions:
 		process.env.NODE_ENV === 'development'
 			? ['tsx', 'ts', 'jsx', 'js', 'dev.tsx', 'dev.ts'] // tsx for pages, ts for api
 			: ['tsx', 'ts', 'jsx', 'js'],
 
-	images: {
-		unoptimized: true, // Required for static export
-	},
-	trailingSlash: true, // Recommended for static exports
 	// disable linting in build
 	eslint: {
 		ignoreDuringBuilds: true,
@@ -26,6 +23,7 @@ const nextConfig: NextConfig = {
 	typescript: {
 		ignoreBuildErrors: true,
 	},
+
 	reactStrictMode: false,
 };
 
