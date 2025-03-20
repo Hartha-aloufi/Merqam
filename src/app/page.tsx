@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { ContentService } from '@/server/services/content.service';
 import { Button } from '@/client/components/ui/button';
 import { BookOpen, ArrowRight, Video } from 'lucide-react';
-
+import YouTubeSearch from '@/client/components/youTubeSearch';
 
 export default async function HomePage() {
 	const contentService = new ContentService();
@@ -27,7 +27,7 @@ export default async function HomePage() {
 							تفريغات نافعة - لمن يفضل القراءة على مشاهدة المرئيات
 						</p>
 
-						<Link href="/playlists">
+						{/* <Link href="/playlists">
 							<Button
 								size="lg"
 								className="w-full sm:w-auto h-12 sm:h-14 text-base"
@@ -35,7 +35,8 @@ export default async function HomePage() {
 								<BookOpen className="mr-2 h-5 w-5" />
 								ابدأ التعلم
 							</Button>
-						</Link>
+						</Link> */}
+						<YouTubeSearch />
 					</div>
 				</div>
 			</section>

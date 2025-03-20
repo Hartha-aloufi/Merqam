@@ -137,4 +137,37 @@ export class ContentService {
 			.where('id', '=', lessonId)
 			.execute();
 	}
+
+	/**
+	 * Retrieves lesson ID by youtube video ID
+	 */
+	async getLessonIdByYoutubeId(youtubeVideoId: string) {
+		if (!youtubeVideoId) return undefined;
+
+		// Log the lookup attempt
+		console.log(`Looking up lesson by YouTube ID: ${youtubeVideoId}`);
+
+		try {
+			// We need to join with youtube_videos table since that's where the video IDs are stored
+			const result = await db
+				.selectFrom('lessons')
+				.innerJoin(
+					'youtube_videos',
+					'youtube_videos.youtube_video_id',
+					'lessons.youtube_video_id'
+				)
+				.where('youtube_videos.youtube_video_id', '=', youtubeVideoId)
+				.select(['lessons.id', 'lessons.playlist_id'])
+				.executeTakeFirst();
+
+			console.log(`Lesson lookup result:`, result);
+			return result;
+		} catch (error) {
+			console.error(
+				`Error looking up lesson by YouTube ID: ${youtubeVideoId}`,
+				error
+			);
+			return undefined;
+		}
+	}
 }
