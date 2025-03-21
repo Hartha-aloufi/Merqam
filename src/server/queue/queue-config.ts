@@ -3,6 +3,7 @@ import { Queue, QueueEvents, ConnectionOptions } from 'bullmq';
 import { env } from '../config/env';
 import { AIServiceType } from '../services/ai/types';
 
+console.info(env.REDIS_HOST, env.REDIS_PORT, env.REDIS_PASSWORD);
 /**
  * Redis connection configuration for BullMQ
  */
