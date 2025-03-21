@@ -23,6 +23,8 @@ export default function YouTubeSearch() {
 				toast.error(result.error);
 			} else if (result?.redirectUrl) {
 				router.push(result.redirectUrl);
+			} else {
+				toast.error(result.error || 'حصلت مشكلة ما, حاول مرة اخرى');
 			}
 		} catch (error) {
 			console.log('Search error:', error);

@@ -13,7 +13,10 @@ export async function findAndRedirectToLesson(formData: FormData) {
 		const videoId = await extractYoutubeId(url);
 		if (!videoId) {
 			console.warn('Invalid YouTube URL format', { url });
-			return { success: false, error: 'رابط يوتيوب غير صالح' };
+			return {
+				success: false,
+				error: 'رابط يوتيوب غير صالح, لم يتم العثور على معرف المقطع',
+			};
 		}
 
 		const result = await contentService.getLessonIdByYoutubeId(videoId);
