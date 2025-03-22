@@ -20,8 +20,6 @@ if (!fs.existsSync(logsDir)) {
 	console.log(`Created logs directory at ${logsDir}`);
 }
 
-// log env variables
-console.log(process.env.REDIS_HOST, process.env.REDIS_PORT);
 // Handle graceful shutdown
 let shuttingDown = false;
 let worker: any = null;
