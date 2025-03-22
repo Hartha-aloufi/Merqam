@@ -141,7 +141,7 @@ export class DownsubScraper extends BaseScraper {
 		logger.info(`Starting Downsub scrape for URL: ${url}`);
 
 		const browser = await puppeteer.launch({
-			headless: true,
+			headless: false,
 			args: ['--no-sandbox', '--disable-setuid-sandbox'],
 		});
 

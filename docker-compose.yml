@@ -12,6 +12,9 @@ services:
       - postgres
     networks:
       - my_network
+    env_file:
+      - .env
+      - .env.production
 
 
   postgres:
@@ -67,6 +70,7 @@ services:
       - my_network
     env_file:
       - .env
+      - .env.production
 
 volumes:
   postgres_data:      

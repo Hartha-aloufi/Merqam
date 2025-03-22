@@ -14,7 +14,7 @@
 		"test:coverage": "jest --coverage",
 		"migrate": "tsx scripts/migrate.ts",
 		"generate-types": "kysely-codegen --out-file=src/types/db.ts",
-		"start:lesson-worker": "npx tsx src/worker.ts"
+		"lesson-worker": "bunx run tsx src/lessons-worker/worker.ts"
 	},
 	"dependencies": {
 		"@floating-ui/react": "^0.26.28",
@@ -98,6 +98,7 @@
 		"@types/node": "^20",
 		"@types/react": "^18",
 		"@types/react-dom": "^18",
+		"cross-env": "^7.0.3",
 		"eslint": "^8",
 		"eslint-config-next": "15.0.1",
 		"jest": "^29.7.0",

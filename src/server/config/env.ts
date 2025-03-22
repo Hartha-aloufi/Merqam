@@ -1,13 +1,6 @@
 // src/server/config/env.ts
 import { z } from 'zod';
 
-import { config } from 'dotenv';
-
-// TODO: fix loading env for worker
-if(process.env.NODE_ENV === 'development') {
-	config();
-	config({path: '../../../.env.local', override: true});
-}
 function getGeminiKeys(): string[] {
 	const keys: string[] = [];
 	let index = 1;
@@ -29,7 +22,7 @@ const envSchema = z
 		POSTGRES_DB: z.string(),
 		POSTGRES_HOST: z.string(),
 		POSTGRES_PORT: z.coerce.number().default(5432),
-		REDIS_HOST: z.string().default('redis'),
+		REDIS_HOST: z.string(),
 		REDIS_PORT: z.coerce.number().default(6379),
 		REDIS_PASSWORD: z.string().optional(),
 		BAHETH_API_TOKEN: z.string(),

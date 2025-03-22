@@ -6,7 +6,7 @@ WORKDIR /app
 COPY package.json bun.lock ./
 
 # Install dependencies with Bun (faster than npm)
-RUN bun install --frozen-lockfile
+RUN bun install
 
 # Stage 2: Use Puppeteer image for the runtime environment
 FROM ghcr.io/puppeteer/puppeteer:latest AS runner
