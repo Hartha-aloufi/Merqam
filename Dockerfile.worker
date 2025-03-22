@@ -36,4 +36,4 @@ ENV POSTGRES_HOST=postgres
 ENV REDIS_HOST=redis
 
 # Command to run the worker with tsx (using npm ecosystem)
-CMD ["tsx", "src/worker.ts"]
+CMD ["tsx", "src/lessons-worker/worker.ts"]
