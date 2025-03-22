@@ -4,6 +4,9 @@ import { Button } from '@/client/components/ui/button';
 import { BookOpen, ArrowRight, Video } from 'lucide-react';
 import YouTubeSearch from '@/client/components/youTubeSearch';
 
+export const dynamic = 'force-dynamic';
+
+
 export default async function HomePage() {
 	const contentService = new ContentService();
 	const playlists = await contentService.getPlaylists({limit: 3});
