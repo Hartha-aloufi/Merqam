@@ -1,0 +1,39 @@
+# Stage 1: Use Bun for dependency installation
+FROM oven/bun:alpine AS deps
+WORKDIR /app
+
+# Copy package files
+COPY package.json bun.lock ./
+
+# Install dependencies with Bun (faster than npm)
+RUN bun install
+
+# Stage 2: Use Puppeteer image for the runtime environment
+FROM ghcr.io/puppeteer/puppeteer:latest AS runner
+WORKDIR /app
+
+# Install tsx globally using npm with sudo
+# The puppeteer image uses a non-root user by default
+USER root
+RUN npm install -g tsx
+USER pptruser
+
+# Create necessary directories with proper permissions
+USER root
+RUN mkdir -p /app/logs && chmod 777 /app/logs
+RUN mkdir -p /app/temp && chmod 777 /app/temp
+USER pptruser
+
+# Copy node modules from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy application source
+COPY . .
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV POSTGRES_HOST=postgres
+ENV REDIS_HOST=redis
+
+# Command to run the worker with tsx (using npm ecosystem)
+CMD ["tsx", "src/worker.ts"]

@@ -6,6 +6,8 @@ import { LessonContent } from '@/client/components/lessons/content/lesson-conten
 import { ErrorBoundary } from '@/client/components/error-boundary';
 import { calculateReadingTime } from '@/client/lib/utils';
 
+export const dynamic = 'force-dynamic';
+
 interface LessonPageProps {
 	params: Promise<{
 		playlistId: string;

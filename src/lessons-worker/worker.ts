@@ -6,12 +6,12 @@
  * This script can be run separately from the Next.js application
  * using `npx tsx --watch src/worker.ts`
  */
-import { initializeEnhancedWorker } from './server/queue/lesson-generation-worker';
-import { workerLogger } from './server/lib/logging/file-logger';
-import { config } from 'dotenv';
+import './load-env';
+import { initializeEnhancedWorker } from '../server/queue/lesson-generation-worker';
+import { workerLogger } from '../server/lib/logging/file-logger';
 import path from 'path';
 import fs from 'fs';
-import { formatErrorForLogging } from './server/lib/logging/error-utils';
+import { formatErrorForLogging } from '../server/lib/logging/error-utils';
 
 // Ensure logs directory exists
 const logsDir = path.join(process.cwd(), 'logs');
@@ -19,9 +19,6 @@ if (!fs.existsSync(logsDir)) {
 	fs.mkdirSync(logsDir, { recursive: true });
 	console.log(`Created logs directory at ${logsDir}`);
 }
-
-// Load environment variables
-config();
 
 // Handle graceful shutdown
 let shuttingDown = false;

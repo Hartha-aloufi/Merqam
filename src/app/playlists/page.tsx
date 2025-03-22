@@ -3,6 +3,9 @@ import Link from 'next/link';
 import { PlayCircle, BookOpen } from 'lucide-react';
 import { ContentService } from '@/server/services/content.service';
 
+export const dynamic = 'force-dynamic';
+
+
 export const metadata: Metadata = {
 	title: 'قوائم التشغيل | مِرْقَم',
 	description: 'استعرض قوائم التشغيل المتوفرة',
