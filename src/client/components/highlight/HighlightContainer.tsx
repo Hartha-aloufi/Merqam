@@ -1,5 +1,5 @@
 // src/client/components/highlight/HighlightContainer.tsx
-import React, { useCallback,  useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useHighlightState } from '@/client/hooks/highlights/use-highlights-state';
 import { useHighlightOperations } from '@/client/hooks/highlights/use-highlight-operations';
@@ -18,13 +18,13 @@ import { useHighlightNavigation } from '@/client/hooks/highlights/use-highlight-
 import { useKeyboardNavigation } from '@/client/hooks/use-keyboard-navigation';
 import { HighlightColorKey } from '@/constants/highlights';
 import { HighlightToolbar } from './HighlightToolbar';
+import { useSelectionColor } from '@/client/hooks/highlights/use-selection-color';
 
 interface HighlightContainerProps {
 	lessonId: string;
 	children: React.ReactNode;
 	className?: string;
 }
-
 
 /**
  * Container component that provides highlighting functionality.
@@ -61,7 +61,16 @@ export function HighlightContainer({
 		canRedo,
 	} = useHighlightOperations(lessonId);
 
-	
+	// Apply selection color to match the active highlight color
+	// Excluded elements will keep the default selection style
+	useSelectionColor({
+		isEnabled: state.isEnabled,
+		activeColor: state.activeColor,
+		containerRef,
+		excludeSelectors:
+			'h1, h2, h3, h4, .header, .title, .exclude-highlight-selection',
+	});
+
 	// Handle text selection for new highlights
 	const handleSelection = useHighlightSelection({
 		isEnabled: state.isEnabled,
@@ -146,12 +155,10 @@ export function HighlightContainer({
 		onRedo: canRedo ? redo : undefined,
 	});
 
-
-	let topHeaderEl : HTMLElement | null  = null 
+	let topHeaderEl: HTMLElement | null = null;
 	if (typeof window !== 'undefined') {
 		topHeaderEl = document.getElementById('lesson-top-header');
 	}
-
 
 	// Show unauthorized toolbar if not authenticated
 	if (!isAuthenticated) {
