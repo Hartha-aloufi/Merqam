@@ -15,8 +15,6 @@ services:
     env_file:
       - .env
       - .env.production
-    volumes:
-      - /public/data:/app/public/data
 
 
   postgres:

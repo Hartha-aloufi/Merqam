@@ -266,7 +266,7 @@ export function initializeEnhancedWorker() {
 		processJob,
 		{
 			connection: redisConnection,
-			concurrency: 10, // Process one job at a time
+			concurrency: 10, // Process 10 jobs at a time
 			removeOnComplete: {
 				age: 60 * 60 * 24 * 7, // Keep completed jobs for 7 days
 				count: 100, // Keep last 100 completed jobs

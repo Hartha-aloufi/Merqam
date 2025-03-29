@@ -1,5 +1,7 @@
 import path from 'path';
 import fs from 'fs/promises';
+import os from 'os';
+const platform = os.platform();
 
 export const getRemoteLessonUrl = (contentKey: string) => {
 	// read BLOB_URL from env
@@ -17,10 +19,16 @@ export const getLocalLessonUrl = (contentKey: string) => {
 };
 
 export const getLessonContent = async (contentKey: string) => {
+	let fixedContentKey = contentKey;
+	if (platform !== 'win32') {
+		fixedContentKey = contentKey.replaceAll('\\', '/');
+	}
+
 	// read from local file if we are in the dev environment
-	if (process.env.NODE_ENV === 'development') {
+	if (!process.env.STORAGE_ROOT_URL?.includes("https")) {
 		try {
-			const filePath = getLocalLessonUrl(contentKey);
+			const filePath = getLocalLessonUrl(fixedContentKey);
+			console.log("Reading from local file", filePath);
 			return await fs.readFile(filePath, 'utf-8');
 		} catch (error) {
 			console.error(
@@ -32,6 +40,7 @@ export const getLessonContent = async (contentKey: string) => {
 	} else {
 		// download content from downloadUrl
 		try {
+			console.log("Downloading content from remote URL", getRemoteLessonUrl(contentKey));
 			const response = await fetch(getRemoteLessonUrl(contentKey));
 			if (!response.ok) {
 				throw new Error(
