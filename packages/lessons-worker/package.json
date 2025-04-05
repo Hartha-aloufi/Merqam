@@ -1,0 +1,43 @@
+{
+	"name": "@merqam/lessons-generator",
+	"private": true,
+	"version": "0.0.0",
+	"type": "commonjs",
+	"main": "./dist/main.js",
+	"types": "./dist/main.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/main.d.ts",
+			"require": "./dist/main.js"
+		}
+	},
+	"scripts": {
+		"build": "tsup",
+		"dev": "tsup --watch",
+		"clean": "rm -rf dist",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:coverage": "vitest run --coverage",
+		"start": "node dist/main.js"
+	},
+	"dependencies": {
+		"bullmq": "^5.41.7",
+		"openai": "^4.73.1",
+		"puppeteer": "^23.9.0",
+		"winston": "^3.17.0",
+		"kysely": "^0.27.5",
+		"zod": "^3.23.8",
+		"pg": "^8.12.0",
+		"dotenv": "^16.4.5",
+		"@google/generative-ai": "^0.2.1"
+	},
+	"devDependencies": {
+		"@types/node": "^20",
+		"@types/pg": "^8.11.10",
+		"@types/puppeteer": "^7.0.4",
+		"@vitest/coverage-v8": "^3.1.1",
+		"tsup": "^8.4.0",
+		"typescript": "~5.7.2",
+		"vitest": "^3.1.1"
+	}
+}
