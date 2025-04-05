@@ -1,7 +1,0 @@
-// kysely-codegen.config.json
-{
-	"db": {
-		"connectionString": "postgres://user:password@localhost:5432/dbname"
-	},
-	"out": "./src/lib/db/types.ts"
-}

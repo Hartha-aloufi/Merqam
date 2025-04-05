@@ -1,0 +1,12 @@
+{"level":"info","message":"Starting Downsub scrape for URL: https://downsub.com/?url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DU4BiXJZWUB8%26list%3DPLnpknmCXt_N5X7DKYKcYk5EkyW0-wmyJ0%26index%3D51","timestamp":"2025-04-03T19:46:51.254Z"}
+{"level":"info","message":"Navigating to page","timestamp":"2025-04-03T19:46:52.188Z"}
+{"level":"info","message":"Attempting to extract video info from Downsub","timestamp":"2025-04-03T19:47:06.095Z"}
+{"level":"info","message":"Extracted video info from Downsub","timestamp":"2025-04-03T19:47:06.098Z","title":"السيرة النبوية | 51. لماذا لم تحقق الغزوات والسرايا الأولى أهدافها العسكرية؟ | محمد إلهامي","url":"https://downsub.com/?url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DU4BiXJZWUB8%26list%3DPLnpknmCXt_N5X7DKYKcYk5EkyW0-wmyJ0%26index%3D51"}
+{"level":"info","message":"Successfully extracted video info","timestamp":"2025-04-03T19:47:06.099Z","title":"السيرة النبوية | 51. لماذا لم تحقق الغزوات والسرايا الأولى أهدافها العسكرية؟ | محمد إلهامي","videoId":"U4BiXJZWUB8"}
+{"level":"info","message":"Starting transcript downloads from Downsub","timestamp":"2025-04-03T19:47:06.100Z"}
+{"level":"info","message":"Setting up download listener for: C:\\Users\\month\\workspace\\merqam\\packages\\lessons-worker\\temp\\U4BiXJZWUB8 on C:\\Users\\month\\workspace\\merqam\\packages\\lessons-worker\\temp","timestamp":"2025-04-03T19:47:06.110Z"}
+{"level":"info","message":"Downloading SRT file","timestamp":"2025-04-03T19:47:06.112Z"}
+{"level":"info","message":"Downloading TXT file","timestamp":"2025-04-03T19:47:08.320Z"}
+{"level":"info","message":"Renamed srt file to U4BiXJZWUB8.srt","timestamp":"2025-04-03T19:47:09.521Z"}
+{"level":"info","message":"Renamed txt file to U4BiXJZWUB8.txt","timestamp":"2025-04-03T19:47:09.522Z"}
+{"level":"info","message":"Downsub scraping completed successfully","timestamp":"2025-04-03T19:47:09.746Z"}

@@ -35,12 +35,4 @@ export interface QuizResults {
         multipleChoice: number[];
         trueFalse: number[];
     };
-    detail: {
-        total: number;
-        correct: number;
-        mcTotal: number;
-        mcCorrect: number;
-        tfTotal: number;
-        tfCorrect: number;
-    };
 }

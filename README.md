@@ -1,49 +1,36 @@
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-# مِرْقَم - تفريغات علمية نافعة
+## Getting Started
 
-## نظرة عامة
+First, run the development server:
 
-مِرْقَم هو تساعد وتشجع على التعلم الجاد من المحتوى المرئي من خلال عدة أُمور:
-تفريغ منسق وقابل للقراءة بشكل مستقل
-امكانية تشغيل المحتوى المرئي عند اي فقرة في التفريغ
-ميزة التظليل والملاحظات
-صفحة قراءة مرنة حيث يمكن التحكم بحجم الخط ومكان وحجم بعض عناصر الصفحة
-
-### مثال
-![ميزة الملاحظات](https://github.com/user-attachments/assets/eba3b11c-a135-4505-9877-a9d6fd20117e)
-
-
-
-**اغلب هذه المشروع هو من كتابة الذكاء الاصطناعي**
-
-## الموقع (تجريبي ومؤقت)
-[http://eduo-temp.vercel.app/](http://eduo-temp.vercel.app/)
-
-
-## 🚀 المميزات
-
-- 📱 تصميم متجاوب يدعم جميع الأجهزة
-- 🌓 دعم متعدد للمظهر (فاتح، داكن، وبني فاتح)
-- 📖 عارض دروس تفاعلي مع تتبع القراءة
-- 🎥 تزامن تشغيل الفيديو مع المحتوى النصي
-- 🔍 عرض متقدم لمحتوى MDX
-- ⌨️ دعم التنقل باستخدام لوحة المفاتيح
-- 🎯 اختبارات
-
-const { data: session } = useSession();
-const { mutate: login } = useGoogleLogin();
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-## 📚 إدارة المحتوى
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-تتم كتابة الدروس بتنسيق MDX وتخزينها في مجلد `src/data`. كل موضوع له مجلد خاص يحتوي على:
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-- `meta.json`: البيانات الوصفية للموضوع ومعلومات الدروس
-- ملفات `.mdx` فردية لكل درس
-- مجلد `exercises` يحتوي على تمارين الدروس
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## 🙏 شكر وتقدير
+## Learn More
 
-- [Shadcn/UI](https://ui.shadcn.com/) لمكتبة المكونات الجميلة
-- [Tailwind CSS](https://tailwindcss.com/) لإطار عمل CSS
-- [Next.js](https://nextjs.org/) لإطار عمل React
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

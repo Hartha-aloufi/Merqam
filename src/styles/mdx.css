@@ -1,0 +1,262 @@
+.prose {
+  --tw-prose-body: theme('colors.foreground');
+  --tw-prose-headings: theme('colors.foreground');
+  --tw-prose-lead: theme('colors.muted.foreground');
+  --tw-prose-links: theme('colors.primary.DEFAULT');
+  --tw-prose-bold: theme('colors.foreground');
+  --tw-prose-counters: theme('colors.muted.foreground');
+  --tw-prose-bullets: theme('colors.muted.foreground');
+  --tw-prose-hr: theme('colors.border');
+  --tw-prose-quotes: theme('colors.muted.foreground');
+  --tw-prose-quote-borders: theme('colors.border');
+  --tw-prose-captions: theme('colors.muted.foreground');
+  --tw-prose-code: theme('colors.foreground');
+  --tw-prose-pre-code: theme('colors.primary.foreground');
+  --tw-prose-pre-bg: theme('colors.primary.DEFAULT');
+  --tw-prose-th-borders: theme('colors.border');
+  --tw-prose-td-borders: theme('colors.border');
+}
+
+/* Material Design elevation (shadow) classes */
+.material-elevation-1 {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+}
+
+.material-elevation-2 {
+  box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+}
+
+/* Material Design transitions */
+.material-transition {
+  transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+}
+
+/* Dark mode adjustments */
+.dark .prose {
+  --tw-prose-pre-bg: theme('colors.primary.DEFAULT');
+  --tw-prose-pre-code: theme('colors.primary.foreground');
+}
+
+/* Sepia mode adjustments */
+[data-theme="sepia"] .prose {
+  --tw-prose-body: hsl(30 40% 6%);
+  --tw-prose-headings: hsl(30 40% 6%);
+  --tw-prose-links: hsl(25 75% 40%);
+}
+
+.prose :is(h1, h2, h3, h4, h5, h6) {
+  text-align: center;
+  max-width: 100%;
+}
+
+.prose p {
+  text-align: justify;
+  hyphens: auto;
+  max-width: 100%;
+}
+
+.prose ul,
+.prose ol {
+  margin-right: 1.5em;
+  margin-left: 1.5em;
+  max-width: calc(100% - 3em);
+}
+
+.prose pre {
+  max-width: 90%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.prose img {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.prose blockquote {
+  max-width: 90%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* RTL specific adjustments */
+html[dir="rtl"] .prose ul,
+html[dir="rtl"] .prose ol {
+  padding-right: 1.5em;
+  padding-left: 0;
+}
+
+html[dir="rtl"] .prose blockquote {
+  border-right-width: 0.25rem;
+  border-left-width: 0;
+  padding-right: 1em;
+  padding-left: 0;
+}
+
+/* Material Design improvements */
+.prose {
+  --content-width: min(100%, 800px);
+  width: var(--content-width);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (max-width: 768px) {
+  .prose {
+    --content-width: calc(100% - 2rem);
+  }
+}
+
+
+/* Base content sizes */
+.prose-small {
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.prose-medium {
+  font-size: 1.125rem;
+  line-height: 1.8;
+}
+
+.prose-large {
+  font-size: 1.25rem;
+  line-height: 1.85;
+}
+
+/* Heading scales */
+.prose-small h1 { 
+  font-size: 2.25rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+.prose-medium h1 { 
+  font-size: 2.5rem;
+  margin-top: 2.5rem;
+  margin-bottom: 1.25rem;
+}
+.prose-large h1 { 
+  font-size: 2.75rem;
+  margin-top: 3rem;
+  margin-bottom: 1.5rem;
+}
+
+.prose-small h2 { 
+  font-size: 1.875rem;
+  margin-top: 1.75rem;
+  margin-bottom: 0.875rem;
+}
+.prose-medium h2 { 
+  font-size: 2.125rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+.prose-large h2 { 
+  font-size: 2.375rem;
+  margin-top: 2.25rem;
+  margin-bottom: 1.125rem;
+}
+
+.prose-small h3 { 
+  font-size: 1.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+.prose-medium h3 { 
+  font-size: 1.75rem;
+  margin-top: 1.75rem;
+  margin-bottom: 0.875rem;
+}
+.prose-large h3 { 
+  font-size: 2rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.prose-small h4 { 
+  font-size: 1.25rem;
+  margin-top: 1.25rem;
+  margin-bottom: 0.625rem;
+}
+.prose-medium h4 { 
+  font-size: 1.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+.prose-large h4 { 
+  font-size: 1.75rem;
+  margin-top: 1.75rem;
+  margin-bottom: 0.875rem;
+}
+
+/* Lists and paragraphs */
+.prose-small ul, 
+.prose-small ol, 
+.prose-small p { 
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.prose-medium ul, 
+.prose-medium ol, 
+.prose-medium p { 
+  margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.prose-large ul, 
+.prose-large ol, 
+.prose-large p { 
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Code blocks */
+.prose-small pre { 
+  font-size: 0.875rem;
+  padding: 1rem;
+}
+.prose-medium pre { 
+  font-size: 1rem;
+  padding: 1.25rem;
+}
+.prose-large pre { 
+  font-size: 1.125rem;
+  padding: 1.5rem;
+}
+
+/* Inline code */
+.prose-small code { 
+  font-size: 0.875rem;
+}
+.prose-medium code { 
+  font-size: 1rem;
+}
+.prose-large code { 
+  font-size: 1.125rem;
+}
+
+/* Blockquotes */
+.prose-small blockquote { 
+  font-size: 1.125rem;
+  padding: 1rem;
+}
+.prose-medium blockquote { 
+  font-size: 1.25rem;
+  padding: 1.25rem;
+}
+.prose-large blockquote { 
+  font-size: 1.375rem;
+  padding: 1.5rem;
+}
+
+/* Alert component */
+.prose-small .alert { 
+  padding: 1rem;
+}
+.prose-medium .alert { 
+  padding: 1.25rem;
+}
+.prose-large .alert { 
+  padding: 1.5rem;
+}
