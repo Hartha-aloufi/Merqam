@@ -1,5 +1,5 @@
 {
-	"name": "@merqam/lessons-generator",
+	"name": "@merqam/lessons-worker",
 	"private": true,
 	"version": "0.0.0",
 	"type": "commonjs",

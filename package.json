@@ -6,11 +6,12 @@
 	],
 	"private": true,
 	"scripts": {
-		"dev": "bun run --parallel packages/*/dev",
-		"build": "bun run --parallel packages/*/build",
-		"test": "bun run --parallel packages/*/test"
+		"dev": "concurrently \"cd packages/web && bun run dev\" \"cd packages/lessons-worker && bun run dev\"",
+		"build": "concurrently \"cd packages/web && bun run build\" \"cd packages/lessons-worker && bun run build\"",
+		"test": "concurrently \"cd packages/web && bun run test\" \"cd packages/lessons-worker && bun run test\""
 	},
 	"devDependencies": {
+		"concurrently": "^9.1.2",
 		"cross-env": "^7.0.3",
 		"eslint": "^8"
 	},
