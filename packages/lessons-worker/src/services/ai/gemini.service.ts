@@ -10,7 +10,7 @@ import { env } from '../../lib/env';
 export class GeminiService extends BaseAIService {
 	private keyManager: GeminiKeyManager;
 	private genAI: GoogleGenerativeAI;
-	private defaultModel = 'gemini-2.0-flash-exp';
+	private defaultModel = 'gemini-2.0-flash';
 
 	constructor() {
 		super({ maxChunkLength: 20000 });

@@ -99,10 +99,7 @@ export class EnhancedTxtToMdxConverter {
 
 			// Process the content with AI
 			await this.progress('AI_PROCESSING_STARTED');
-			const processedContent = await this.processWithAI(
-				txtContent,
-				title
-			);
+			const processedContent = txtContent
 
 			await this.progress('AI_PROCESSING_COMPLETED');
 			logger.info('AI processing complete', {
@@ -210,7 +207,7 @@ export class EnhancedTxtToMdxConverter {
 			throw new JobError(
 				'Failed to download transcript',
 				JobErrorType.TRANSCRIPT_DOWNLOAD,
-				{ cause: error, details: { url } }
+				{ details: error }
 			);
 		}
 	}

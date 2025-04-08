@@ -12,8 +12,8 @@
 		}
 	},
 	"scripts": {
+		"dev": "bunx run tsx watch src/main.ts",
 		"build": "tsup",
-		"dev": "tsup --watch",
 		"clean": "rm -rf dist",
 		"test": "vitest run",
 		"test:watch": "vitest",

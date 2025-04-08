@@ -36,6 +36,8 @@ export abstract class BaseAIService implements AIService {
 					}/${totalChunks} (Attempt ${attempt})`
 				);
 
+				logger.info(`Chunk length: ${chunk.length}`);
+
 				const result = await this.processChunk(
 					chat,
 					chunk,
@@ -51,8 +53,7 @@ export abstract class BaseAIService implements AIService {
 			} catch (error) {
 				if (attempt === this.chunkingService.maxRetries) throw error;
 				logger.warn(
-					`Retry ${attempt} for chunk ${chunkIndex + 1}:`,
-					error
+					`Retry ${attempt} for chunk ${chunkIndex + 1}: ${error}`
 				);
 				await this.chunkingService.sleep(
 					this.chunkingService.retryDelay * attempt
@@ -67,10 +68,10 @@ export abstract class BaseAIService implements AIService {
 		originalChunk: string
 	): boolean {
 		if (!result || result.length < originalChunk.length * 0.5) {
-			logger.warn('Suspiciously short response', {
+			logger.warn(`Suspiciously short response: ${JSON.stringify({
 				inputLength: originalChunk.length,
 				outputLength: result?.length,
-			});
+			})}`);
 			return false;
 		}
 		return true;
