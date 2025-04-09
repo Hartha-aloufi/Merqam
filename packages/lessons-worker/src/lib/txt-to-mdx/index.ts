@@ -72,6 +72,7 @@ export class EnhancedTxtToMdxConverter {
 
 		try {
 			// Report initialization
+			console.log('Initializing conversion...');
 			await this.progress('INITIALIZED');
 
 			await this.validateInputs(url, playlistId);
@@ -99,8 +100,11 @@ export class EnhancedTxtToMdxConverter {
 
 			// Process the content with AI
 			await this.progress('AI_PROCESSING_STARTED');
-			const processedContent = txtContent
-
+			// const processedContent = await this.processWithAI(
+			// 	txtContent,
+			// 	title
+			// );
+			const processedContent = 'AI processed content'; // Placeholder for AI processing
 			await this.progress('AI_PROCESSING_COMPLETED');
 			logger.info('AI processing complete', {
 				processedSize: processedContent.length,
@@ -139,9 +143,9 @@ export class EnhancedTxtToMdxConverter {
 			throw jobError;
 		} finally {
 			// Cleanup temporary files
-			await this.cleanup(
-				[tempMdxPath, txtPath, srtPath].filter(Boolean) as string[]
-			);
+			// await this.cleanup(
+			// 	[tempMdxPath, txtPath, srtPath].filter(Boolean) as string[]
+			// );
 		}
 	}
 

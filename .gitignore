@@ -5,3 +5,7 @@ logs
 
 .env*
 .vscode
+
+coverage
+temp
+.next
