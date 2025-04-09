@@ -100,11 +100,12 @@ export class EnhancedTxtToMdxConverter {
 
 			// Process the content with AI
 			await this.progress('AI_PROCESSING_STARTED');
-			// const processedContent = await this.processWithAI(
-			// 	txtContent,
-			// 	title
-			// );
-			const processedContent = 'AI processed content'; // Placeholder for AI processing
+			
+			const processedContent = await this.processWithAI(
+				txtContent,
+				title
+			);
+
 			await this.progress('AI_PROCESSING_COMPLETED');
 			logger.info('AI processing complete', {
 				processedSize: processedContent.length,

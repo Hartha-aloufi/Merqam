@@ -21,7 +21,6 @@ export class YoutubeTranscriptService implements TranscriptScraper {
 	async scrape(
 		url: string,
 		outputBasePath: string,
-		_page?: Page
 	): Promise<TranscriptResult> {
 		logger.info('Starting YouTube transcript download', { url });
 
@@ -42,8 +41,6 @@ export class YoutubeTranscriptService implements TranscriptScraper {
 				videoId: metadata.id,
 				title: metadata.title,
 			});
-
-			throw new Error('Test error'); // For testing error handling
 
 			return {
 				videoId: metadata.id,

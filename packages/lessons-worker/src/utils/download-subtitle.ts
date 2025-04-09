@@ -1,8 +1,11 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { logger } from '../lib/txt-to-mdx/scrapers/logger';
-import fs from 'fs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const execAsync = promisify(exec);
 
@@ -70,31 +73,25 @@ export class YtDlpWrapper {
 	 */
 	async downloadSubtitles(
 		videoUrl: string,
-		outputDir: string,
-		language: string = 'ar'
+		outputDir: string
 	): Promise<{ srt: string; txt: string }> {
 		const videoId = await this.extractVideoId(videoUrl);
 		console.log('Downloading subtitles for video ID:', videoId);
-		// const outputTemplate = path.join(outputDir, videoId);
 
-		// Generate SRT file using the Python script
-		const pythonCommand = `python ${path.join(
+		// Use the compiled binary instead of python command
+		const binaryPath = path.join(
 			__dirname,
 			'..',
 			'lib',
-			'generate_srt.py'
-		)} ${videoId} ${outputDir}`;
-		await this.executeCommand(pythonCommand);
+			'generate-youtube-srt',
+			'dist',
+			process.platform === 'win32' ? 'main.exe' : 'main'
+		);
 
-		// Rename the subtitle to remove language code (if needed)
-		const srtPathFrom = path.join(outputDir, `${videoId}.srt`);
+		await this.executeCommand(`"${binaryPath}" ${videoId} ${outputDir}`);
+
 		const srtPathTo = path.join(outputDir, `${videoId}.srt`);
-		fs.renameSync(srtPathFrom, srtPathTo);
-
-		// Define paths for SRT and TXT files directly in the output directory
 		const txtPath = path.join(outputDir, `${videoId}.txt`);
-
-		// Convert SRT to TXT
 
 		return { srt: srtPathTo, txt: txtPath };
 	}
