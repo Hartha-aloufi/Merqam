@@ -13,6 +13,8 @@ import {
 	processError,
 } from '../../queue/job-error-utils';
 import { AIServiceFactory } from '../../services/ai/ai-service.factory';
+import { env } from '../env';
+
 /**
  * Result interface for the conversion process
  */
@@ -45,8 +47,8 @@ export class EnhancedTxtToMdxConverter {
 	constructor(options: ConverterOptions = {}) {
 		this.aiService = AIServiceFactory.getService(options.aiServiceType);
 		this.dataPath =
-			options.dataPath || path.join(process.cwd(), 'public', 'data');
-		this.tempDir = options.tempDir || path.join(process.cwd(), 'temp');
+			options.dataPath || env.STORAGE_ROOT_URL;
+		this.tempDir = options.tempDir || env.STORAGE_TEMP_URL || path.join(process.cwd(), 'temp');
 		this.progressReporter = options.progressReporter;
 
 		logger.info('Enhanced TxtToMdxConverter initialized', {
@@ -66,7 +68,6 @@ export class EnhancedTxtToMdxConverter {
 		url: string,
 		playlistId: string
 	): Promise<ConversionResult> {
-		let tempMdxPath: string | undefined;
 		let txtPath: string | undefined;
 		let srtPath: string | undefined;
 
