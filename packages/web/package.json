@@ -17,7 +17,6 @@
 	},
 	"dependencies": {
 		"@floating-ui/react": "^0.26.28",
-		"@google/generative-ai": "^0.21.0",
 		"@hookform/resolvers": "^3.9.1",
 		"@mdxeditor/editor": "^3.17.1",
 		"@prisma/client": "^5.21.1",
@@ -79,8 +78,7 @@
 		"uuid": "^11.0.3",
 		"vaul": "^1.1.0",
 		"ytdl-core": "^4.11.5",
-		"zustand": "^5.0.0",
-		"@merqam/lessons-worker": "workspace:*" 
+		"zustand": "^5.0.0"
 	},
 	"devDependencies": {
 		"@tailwindcss/typography": "^0.5.15",

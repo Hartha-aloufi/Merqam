@@ -1,5 +1,5 @@
 // src/server/services/baheth.service.ts
-import { env } from '../lib/env';
+import { env } from '../config/env';
 
 const BAHETH_API_URL = 'https://baheth.ieasybooks.com/api';
 

@@ -27,6 +27,8 @@ const envSchema = z
 		REDIS_PASSWORD: z.string().optional(),
 		OPENAI_API_KEY: z.string().optional(),
 		GEMINI_API_KEYS: z.array(z.string()).default([]).optional(),
+		STORAGE_ROOT_URL: z.string(),
+		STORAGE_TEMP_URL: z.string().optional(),
 	})
 	.transform((data) => ({
 		...data,

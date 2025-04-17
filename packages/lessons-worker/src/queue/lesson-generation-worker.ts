@@ -10,13 +10,9 @@ import { EnhancedTxtToMdxConverter } from '../lib/txt-to-mdx';
 import { JobProgressReporter } from './job-progress-utils';
 import { processError } from './job-error-utils';
 import { JobLogger, workerLogger } from '../lib/logging/file-logger';
-import path from 'path';
 import { AIServiceType } from '../services/ai/types';
 import { formatErrorForLogging } from '../lib/logging/error-utils';
 
-// Constants for file paths
-const DATA_PATH = path.join(process.cwd(), 'public', 'data');
-const TEMP_PATH = path.join(process.cwd(), 'temp');
 
 /**
  * Process a lesson generation job with enhanced logging
@@ -63,8 +59,6 @@ async function processJob(job: Job<LessonGenerationJobData>) {
 		// Initialize enhanced converter with progress reporting
 		const converter = new EnhancedTxtToMdxConverter({
 			aiServiceType: aiService as AIServiceType,
-			dataPath: DATA_PATH,
-			tempDir: TEMP_PATH,
 			progressReporter,
 		});
 
@@ -266,7 +260,7 @@ export function initializeEnhancedWorker() {
 		processJob,
 		{
 			connection: redisConnection,
-			concurrency: 10, // Process 10 jobs at a time
+			concurrency: 1, // Process 10 jobs at a time
 			removeOnComplete: {
 				age: 60 * 60 * 24 * 7, // Keep completed jobs for 7 days
 				count: 100, // Keep last 100 completed jobs
@@ -294,7 +288,7 @@ export function initializeEnhancedWorker() {
 		});
 	});
 	worker.on('failed', (job, error) => {
-		// Using formatErrorForLogging imported at the top
+		// Using formaErrorFrLogging imported at the top
 		workerLogger.error(`Job ${job?.id} failed with error:`, {
 			jobId: job?.id,
 			error: formatErrorForLogging(error),

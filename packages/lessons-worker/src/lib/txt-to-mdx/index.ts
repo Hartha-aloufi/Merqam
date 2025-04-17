@@ -13,6 +13,8 @@ import {
 	processError,
 } from '../../queue/job-error-utils';
 import { AIServiceFactory } from '../../services/ai/ai-service.factory';
+import { env } from '../env';
+
 /**
  * Result interface for the conversion process
  */
@@ -45,8 +47,8 @@ export class EnhancedTxtToMdxConverter {
 	constructor(options: ConverterOptions = {}) {
 		this.aiService = AIServiceFactory.getService(options.aiServiceType);
 		this.dataPath =
-			options.dataPath || path.join(process.cwd(), 'public', 'data');
-		this.tempDir = options.tempDir || path.join(process.cwd(), 'temp');
+			options.dataPath || env.STORAGE_ROOT_URL;
+		this.tempDir = options.tempDir || env.STORAGE_TEMP_URL || path.join(process.cwd(), 'temp');
 		this.progressReporter = options.progressReporter;
 
 		logger.info('Enhanced TxtToMdxConverter initialized', {
@@ -66,12 +68,12 @@ export class EnhancedTxtToMdxConverter {
 		url: string,
 		playlistId: string
 	): Promise<ConversionResult> {
-		let tempMdxPath: string | undefined;
 		let txtPath: string | undefined;
 		let srtPath: string | undefined;
 
 		try {
 			// Report initialization
+			console.log('Initializing conversion...');
 			await this.progress('INITIALIZED');
 
 			await this.validateInputs(url, playlistId);
@@ -99,6 +101,7 @@ export class EnhancedTxtToMdxConverter {
 
 			// Process the content with AI
 			await this.progress('AI_PROCESSING_STARTED');
+			
 			const processedContent = await this.processWithAI(
 				txtContent,
 				title
@@ -142,9 +145,9 @@ export class EnhancedTxtToMdxConverter {
 			throw jobError;
 		} finally {
 			// Cleanup temporary files
-			await this.cleanup(
-				[tempMdxPath, txtPath, srtPath].filter(Boolean) as string[]
-			);
+			// await this.cleanup(
+			// 	[tempMdxPath, txtPath, srtPath].filter(Boolean) as string[]
+			// );
 		}
 	}
 
@@ -210,7 +213,7 @@ export class EnhancedTxtToMdxConverter {
 			throw new JobError(
 				'Failed to download transcript',
 				JobErrorType.TRANSCRIPT_DOWNLOAD,
-				{ cause: error, details: { url } }
+				{ details: error }
 			);
 		}
 	}
