@@ -67,6 +67,10 @@ export class GeminiService extends BaseAIService {
 				const contents = [
 					{
 						role: 'user',
+						parts: [{ text: SYSTEM_PROMPT_GEMINI }],
+					},
+					{
+						role: 'user',
 						parts: [{ text: content }],
 					},
 				];
@@ -74,14 +78,12 @@ export class GeminiService extends BaseAIService {
 				const response = await model.generateContentStream({
 					model: modelName,
 					contents,
-					// Pass generation config in the expected format
-					generationConfig: {
+					config: {
 						temperature: options?.temperature || 1,
 						maxOutputTokens: options?.maxTokens || 16383,
 						topP: 0.95,
 						topK: 40,
 					},
-					systemInstruction: SYSTEM_PROMPT_GEMINI,
 				});
 
 				let fullResponse = '';
