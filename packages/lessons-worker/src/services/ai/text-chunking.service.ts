@@ -15,7 +15,7 @@ export class TextChunkingService {
 		this.options = {
 			maxChunkLength: options?.maxChunkLength || 20000,
 			delayBetweenChunks: options?.delayBetweenChunks || 500,
-			maxRetries: options?.maxRetries || 3,
+			maxRetries: options?.maxRetries || 7,
 			retryDelay: options?.retryDelay || 1000,
 		};
 	}

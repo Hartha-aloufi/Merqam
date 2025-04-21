@@ -27,7 +27,7 @@ interface ChatInterface {
 export class GeminiService extends BaseAIService {
 	private keyManager: GeminiKeyManager;
 	private genAI!: GoogleGenAI;
-	private defaultModel = 'gemini-2.0-flash-exp-image-generation';
+	private defaultModel = 'gemini-2.0-flash-lite';
 
 	constructor() {
 		super({ maxChunkLength: 20000 });
@@ -67,10 +67,6 @@ export class GeminiService extends BaseAIService {
 				const contents = [
 					{
 						role: 'user',
-						parts: [{ text: SYSTEM_PROMPT_GEMINI }],
-					},
-					{
-						role: 'user',
 						parts: [{ text: content }],
 					},
 				];
@@ -79,8 +75,9 @@ export class GeminiService extends BaseAIService {
 					model: modelName,
 					contents,
 					config: {
-						temperature: options?.temperature || 1,
-						maxOutputTokens: options?.maxTokens || 16383,
+						systemInstruction: SYSTEM_PROMPT_GEMINI,
+						temperature: 1,
+						maxOutputTokens: 16383,
 						topP: 0.95,
 						topK: 40,
 					},

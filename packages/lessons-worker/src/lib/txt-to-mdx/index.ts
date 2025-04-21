@@ -94,10 +94,10 @@ export class EnhancedTxtToMdxConverter {
 			srtPath = files.srt;
 
 			await this.progress('TRANSCRIPT_EXTRACTED');
-			logger.info('Transcript extraction complete', { videoId, title });
+			logger.info(`Transcript extraction complete for video "${title}" (${videoId})`);
 
 			const txtContent = await fs.readFile(txtPath, 'utf-8');
-			logger.info('Text content read', { size: txtContent.length });
+			logger.info(`Text content read: ${txtContent.length} characters`);
 
 			// Process the content with AI
 			await this.progress('AI_PROCESSING_STARTED');

@@ -2,6 +2,7 @@
 import { workerLogger as logger } from '../../lib/logging/file-logger';
 import { TextChunkingService, ChunkingOptions } from './text-chunking.service';
 import { AIService, AIProcessingOptions } from './types';
+import { validateAIResponse } from './validation.service';
 
 export abstract class BaseAIService implements AIService {
 	protected chunkingService: TextChunkingService;
@@ -44,7 +45,9 @@ export abstract class BaseAIService implements AIService {
 					chunkIndex,
 					totalChunks
 				);
-				if (!this.validateChunkResult(result, chunk)) {
+				logger.info(`Result length: ${result.length}`);
+				
+				if (!validateAIResponse(chunk, result)) {
 					throw new Error('Invalid chunk result');
 				}
 
@@ -61,20 +64,6 @@ export abstract class BaseAIService implements AIService {
 			}
 		}
 		throw new Error('All retries failed');
-	}
-
-	protected validateChunkResult(
-		result: string,
-		originalChunk: string
-	): boolean {
-		if (!result || result.length < originalChunk.length * 0.5) {
-			logger.warn(`Suspiciously short response: ${JSON.stringify({
-				inputLength: originalChunk.length,
-				outputLength: result?.length,
-			})}`);
-			return false;
-		}
-		return true;
 	}
 
 	async processContent(
