@@ -2,8 +2,9 @@
 import fs from 'fs';
 import path from 'path';
 import { Exercise } from '@/types/exercise';
+import { env } from '@/server/config/env';
 
-const DATA_PATH = path.join(process.cwd(), "public", "data");
+const DATA_PATH = env.STORAGE_ROOT_URL;
 
 /**
  * Gets exercise data for a specific lesson

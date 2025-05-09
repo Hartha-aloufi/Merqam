@@ -1,8 +1,9 @@
 import { Kysely, sql } from 'kysely';
 import fs from 'fs/promises';
 import path from 'path';
+import { env } from '@/server/config/env';
 
-const DATA_PATH = path.join('public', 'data');
+const DATA_PATH = env.STORAGE_ROOT_URL;
 
 interface MetaJson {
 	title: string;

@@ -32,6 +32,7 @@ const envSchema = z
 		NEXT_PUBLIC_APP_URL: z.string().url(),
 		OPENAI_API_KEY: z.string().optional(),
 		GEMINI_API_KEYS: z.array(z.string()).default([]).optional(),
+		STORAGE_ROOT_URL: z.string().url(),
 	})
 	.transform((data) => ({
 		...data,

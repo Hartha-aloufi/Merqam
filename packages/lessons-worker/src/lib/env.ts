@@ -29,6 +29,9 @@ const envSchema = z
 		GEMINI_API_KEYS: z.array(z.string()).default([]).optional(),
 		STORAGE_ROOT_URL: z.string(),
 		STORAGE_TEMP_URL: z.string().optional(),
+		AWS_REGION: z.string().default('us-east-1'),
+		AWS_ACCESS_KEY_ID: z.string(),
+		AWS_SECRET_ACCESS_KEY: z.string(),
 	})
 	.transform((data) => ({
 		...data,

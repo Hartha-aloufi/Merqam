@@ -12,7 +12,8 @@ import { processError } from './job-error-utils';
 import { JobLogger, workerLogger } from '../lib/logging/file-logger';
 import { AIServiceType } from '../services/ai/types';
 import { formatErrorForLogging } from '../lib/logging/error-utils';
-
+import path from 'path';
+import { uploadLessonContent } from '../lib/storage/s3-utils';
 
 /**
  * Process a lesson generation job with enhanced logging
@@ -73,6 +74,13 @@ async function processJob(job: Job<LessonGenerationJobData>) {
 		// Extract needed information
 		const { videoId, title, mdxPath } = processingResult;
 		logger.info('Content processing completed', { videoId, title });
+		// upload mdx file to storage
+		const contentKey = path.join(
+			playlistId || newPlaylistId || 'new',
+			`${videoId}.mdx`
+		);
+
+		await uploadLessonContent(mdxPath, contentKey);
 
 		// Start database transaction to save results
 		logger.info('Starting database transaction to save results');
@@ -156,7 +164,6 @@ async function processJob(job: Job<LessonGenerationJobData>) {
 
 			// Key example: '/data/playlistId/lessonId.mdx'
 			logger.info('Generating content key from MDX path', { mdxPath });
-			const contentKey = mdxPath.split('data')[1].slice(1);
 			logger.debug('Content key generated', { contentKey });
 
 			// Create lesson

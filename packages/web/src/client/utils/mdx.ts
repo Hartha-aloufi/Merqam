@@ -3,8 +3,9 @@ import fs from 'fs';
 import path from 'path';
 import { Topic, Lesson } from '@/types';
 import { cache } from 'react';
+import { env } from '@/server/config/env';
 
-const DATA_PATH = path.join(process.cwd(), 'public/data');
+const DATA_PATH = env.STORAGE_ROOT_URL;
 
 export const getTopics = cache(async (): Promise<Topic[]> => {
   try {

@@ -27,6 +27,7 @@
 		"postinstall": "tsx scripts/setup-python.ts"
 	},
 	"dependencies": {
+		"@aws-sdk/client-s3": "^3.802.0",
 		"@google/genai": "^0.8.0",
 		"bullmq": "^5.41.7",
 		"dotenv": "^16.4.5",

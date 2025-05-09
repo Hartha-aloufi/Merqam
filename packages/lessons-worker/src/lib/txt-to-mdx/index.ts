@@ -46,9 +46,11 @@ export class EnhancedTxtToMdxConverter {
 
 	constructor(options: ConverterOptions = {}) {
 		this.aiService = AIServiceFactory.getService(options.aiServiceType);
-		this.dataPath =
-			options.dataPath || env.STORAGE_ROOT_URL;
-		this.tempDir = options.tempDir || env.STORAGE_TEMP_URL || path.join(process.cwd(), 'temp');
+		this.dataPath = options.dataPath || env.STORAGE_ROOT_URL;
+		this.tempDir =
+			options.tempDir ||
+			env.STORAGE_TEMP_URL ||
+			path.join(process.cwd(), 'temp');
 		this.progressReporter = options.progressReporter;
 
 		logger.info('Enhanced TxtToMdxConverter initialized', {
@@ -94,14 +96,16 @@ export class EnhancedTxtToMdxConverter {
 			srtPath = files.srt;
 
 			await this.progress('TRANSCRIPT_EXTRACTED');
-			logger.info(`Transcript extraction complete for video "${title}" (${videoId})`);
+			logger.info(
+				`Transcript extraction complete for video "${title}" (${videoId})`
+			);
 
 			const txtContent = await fs.readFile(txtPath, 'utf-8');
 			logger.info(`Text content read: ${txtContent.length} characters`);
 
 			// Process the content with AI
 			await this.progress('AI_PROCESSING_STARTED');
-			
+
 			const processedContent = await this.processWithAI(
 				txtContent,
 				title
@@ -178,6 +182,7 @@ export class EnhancedTxtToMdxConverter {
 	private async setupDirectories(topicId: string) {
 		try {
 			const topicPath = path.join(this.dataPath, topicId);
+
 			await createDir(topicPath);
 			await createDir(this.tempDir);
 
