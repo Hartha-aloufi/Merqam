@@ -120,7 +120,7 @@ async function processJob(job: Job<LessonGenerationJobData>) {
 				playlistId = job.data.playlistId;
 				logger.debug('Using existing playlist', { playlistId });
 			} else if (job.data.newPlaylistId && job.data.newPlaylistTitle) {
-				logger.debug('Creating new playlist', {
+				logger.debug('Creating or updating playlist', {
 					newPlaylistId: job.data.newPlaylistId,
 					newPlaylistTitle: job.data.newPlaylistTitle,
 				});
@@ -131,10 +131,16 @@ async function processJob(job: Job<LessonGenerationJobData>) {
 						title: job.data.newPlaylistTitle,
 						speaker_id: speakerId,
 					})
+					.onConflict((oc) =>
+						oc.column('youtube_playlist_id').doUpdateSet({
+							title: job.data.newPlaylistTitle,
+							speaker_id: speakerId,
+						})
+					)
 					.returning(['youtube_playlist_id'])
 					.execute();
 				playlistId = playlist.youtube_playlist_id;
-				logger.debug('New playlist created', { playlistId });
+				logger.debug('Playlist created or updated', { playlistId });
 			} else {
 				const error =
 					'Either playlistId or newPlaylist details must be provided';

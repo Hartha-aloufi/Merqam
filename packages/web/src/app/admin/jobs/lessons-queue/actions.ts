@@ -10,8 +10,13 @@ import {
 import { AIServiceType } from './temp';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { sql } from 'kysely';
+import fs from 'fs';
+import path from 'path';
 
 const execAsync = promisify(exec);
+const readFileAsync = promisify(fs.readFile);
+const existsAsync = promisify(fs.exists);
 
 export async function extractYoutubeId(url: string): Promise<string> {
 	const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/;
@@ -680,6 +685,213 @@ export async function retryFailedJob(jobId: string, userId: string) {
 		return { success: true };
 	} catch (error) {
 		console.error(`Error retrying job with ID: ${jobId}:`, error);
+		throw error;
+	}
+}
+
+/**
+ * Gets a list of generation jobs grouped by playlist for a user
+ */
+export async function getGroupedGenerationJobs(userId: string) {
+	console.log(`Getting grouped generation jobs for user: ${userId}`);
+
+	try {
+		// Calculate the date 3 days ago
+		const threeDaysAgo = new Date();
+		threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+
+		// First get all jobs that have playlist IDs
+		const jobsWithPlaylist = await db
+			.selectFrom('generation_jobs as gj')
+			.leftJoin('playlists as p', (join) =>
+				join.on((eb) =>
+					eb.or([
+						// Join on either the new_playlist_id or playlist_id field
+						eb.and([
+							eb('gj.new_playlist_id', 'is not', null),
+							eb(
+								'p.youtube_playlist_id',
+								'=',
+								eb.ref('gj.new_playlist_id')
+							),
+						]),
+						eb.and([
+							eb('gj.playlist_id', 'is not', null),
+							eb(
+								'p.youtube_playlist_id',
+								'=',
+								eb.ref('gj.playlist_id')
+							),
+						]),
+					])
+				)
+			)
+			.where('gj.user_id', '=', userId)
+			.where('gj.created_at', '>=', threeDaysAgo) // Only show jobs from the last 3 days
+			.select([
+				// Group key information
+				sql<string>`COALESCE(gj.new_playlist_id, gj.playlist_id)`.as(
+					'playlist_id'
+				),
+				'p.title as playlist_title',
+				// Aggregate job counts
+				sql<number>`COUNT(gj.id)`.as('total_count'),
+				sql<number>`SUM(CASE WHEN gj.status = 'completed' THEN 1 ELSE 0 END)`.as(
+					'completed_count'
+				),
+				sql<number>`SUM(CASE WHEN gj.status = 'failed' THEN 1 ELSE 0 END)`.as(
+					'failed_count'
+				),
+				sql<number>`SUM(CASE WHEN gj.status = 'processing' THEN 1 ELSE 0 END)`.as(
+					'processing_count'
+				),
+				sql<number>`SUM(CASE WHEN gj.status = 'pending' THEN 1 ELSE 0 END)`.as(
+					'pending_count'
+				),
+				sql<number>`SUM(CASE WHEN gj.status = 'cancelled' THEN 1 ELSE 0 END)`.as(
+					'cancelled_count'
+				),
+				// Get the latest job creation date for sorting
+				sql<string>`MAX(gj.created_at)`.as('latest_job_date'),
+				// Aggregate job details as JSON
+				sql<string>`json_agg(
+					json_build_object(
+						'id', gj.id,
+						'url', gj.url,
+						'status', gj.status,
+						'progress', gj.progress,
+						'error', gj.error,
+						'created_at', gj.created_at,
+						'started_at', gj.started_at,
+						'completed_at', gj.completed_at,
+						'new_playlist_title', gj.new_playlist_title
+					) ORDER BY gj.created_at DESC
+				)`.as('jobs'),
+			])
+			.groupBy(['gj.new_playlist_id', 'gj.playlist_id', 'p.title'])
+			.having((eb) =>
+				eb.or([
+					eb(
+						sql`COALESCE(gj.new_playlist_id, gj.playlist_id)`,
+						'is not',
+						null
+					),
+					eb(sql`COUNT(*)`, '>', 1),
+				])
+			)
+			.orderBy('latest_job_date', 'desc')
+			.execute();
+
+		// Now get all jobs that don't have playlist IDs (individual jobs)
+		const individualJobs = await db
+			.selectFrom('generation_jobs')
+			.where('user_id', '=', userId)
+			.where('new_playlist_id', 'is', null)
+			.where('playlist_id', 'is', null)
+			.where('created_at', '>=', threeDaysAgo) // Only show jobs from the last 3 days
+			.select([
+				'id',
+				'url',
+				'new_playlist_title',
+				'status',
+				'progress',
+				'error',
+				'created_at',
+				'started_at',
+				'completed_at',
+			])
+			.orderBy('created_at', 'desc')
+			.execute();
+
+		// Combine the results
+		const result = {
+			jobsWithPlaylist,
+			individualJobs,
+			total:
+				jobsWithPlaylist.reduce(
+					(sum, group) => sum + Number(group.total_count),
+					0
+				) + individualJobs.length,
+		};
+
+		console.log(
+			`Found ${result.jobsWithPlaylist.length} playlist groups and ${result.individualJobs.length} individual jobs`
+		);
+
+		return result;
+	} catch (error) {
+		console.error('Error getting grouped generation jobs:', error);
+		throw error;
+	}
+}
+
+/**
+ * Gets detailed logs for a specific job
+ */
+export async function getJobLogs(jobId: string, userId: string) {
+	console.log(`Getting detailed logs for job: ${jobId} for user: ${userId}`);
+
+	try {
+		// First verify the user has access to this job
+		const job = await db
+			.selectFrom('generation_jobs')
+			.where('id', '=', jobId)
+			.where('user_id', '=', userId) // Security: only allow access to own jobs
+			.select(['id'])
+			.executeTakeFirst();
+
+		if (!job) {
+			throw new Error('Job not found or access denied');
+		}
+
+		// Define the log file path
+		const logsDir = path.join(
+			process.cwd(),
+			'..',
+			'lessons-worker',
+			'logs'
+		);
+		const logFilePath = path.join(logsDir, `job-${jobId}.log`);
+
+		// Check if the log file exists
+		const fileExists = await existsAsync(logFilePath);
+		if (!fileExists) {
+			console.log(
+				`Log file not found for job ${jobId} at path ${logFilePath}`
+			);
+			return { logs: [], fileExists: false };
+		}
+
+		// Read the file
+		const fileContents = await readFileAsync(logFilePath, 'utf8');
+
+		// Parse the logs (each line is a JSON object)
+		const logs = fileContents
+			.split('\n')
+			.filter(Boolean) // Remove empty lines
+			.map((line) => {
+				try {
+					return JSON.parse(line);
+				} catch {
+					return {
+						level: 'error',
+						message: `Failed to parse log line: ${line}`,
+						timestamp: new Date().toISOString(),
+					};
+				}
+			})
+			.filter(
+				(log) =>
+					log.level === 'error' ||
+					(log.metadata && log.metadata.error) ||
+					log.message.includes('failed')
+			);
+
+		console.log(`Found ${logs.length} error logs for job ${jobId}`);
+
+		return { logs, fileExists: true };
+	} catch (error) {
+		console.error(`Error getting logs for job with ID: ${jobId}:`, error);
 		throw error;
 	}
 }

@@ -7,6 +7,8 @@ import {
 	getGenerationJobById,
 	cancelGenerationJob,
 	retryFailedJob,
+	getGroupedGenerationJobs,
+	getJobLogs,
 } from '@/app/admin/jobs/lessons-queue/actions';
 import { JobStatus } from '@/types/db';
 
@@ -17,6 +19,7 @@ export const JOB_KEYS = {
 	list: (userId: string) => [...JOB_KEYS.lists(), userId] as const,
 	details: () => [...JOB_KEYS.all, 'detail'] as const,
 	detail: (jobId: string) => [...JOB_KEYS.details(), jobId] as const,
+	logs: (jobId: string) => [...JOB_KEYS.detail(jobId), 'logs'] as const,
 };
 
 /**
@@ -177,5 +180,35 @@ export function useRetryFailedJob() {
 				}`
 			);
 		},
+	});
+}
+
+/**
+ * Hook for fetching jobs grouped by playlist
+ */
+export function useGroupedGenerationJobs(userId: string) {
+	return useQuery({
+		queryKey: [...JOB_KEYS.list(userId), 'grouped'],
+		queryFn: () => getGroupedGenerationJobs(userId),
+		staleTime: 15000, // 15 seconds
+		refetchInterval: (query) => {
+			// Refetch more frequently if there are active jobs
+			const hasActiveJobs = query.state.data?.jobsWithPlaylist.some(
+				(group) => group.processing_count > 0 || group.pending_count > 0
+			);
+			return hasActiveJobs ? 5000 : 30000; // 5 seconds if active, 30 seconds otherwise
+		},
+	});
+}
+
+/**
+ * Hook for fetching detailed logs for a job
+ */
+export function useJobLogs(jobId: string, userId: string, enabled = false) {
+	return useQuery({
+		queryKey: JOB_KEYS.logs(jobId),
+		queryFn: () => getJobLogs(jobId, userId),
+		enabled,
+		staleTime: 60000, // Logs don't change often once job is failed
 	});
 }

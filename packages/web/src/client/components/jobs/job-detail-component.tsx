@@ -5,6 +5,7 @@ import {
 	useGenerationJobById,
 	useCancelGenerationJob,
 	useRetryFailedJob,
+	useJobLogs,
 } from '@/client/hooks/use-job-query';
 import {
 	Card,
@@ -31,6 +32,7 @@ import {
 	ArrowLeft,
 	Loader2,
 	RefreshCw,
+	Code,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Skeleton } from '@/client/components/ui/skeleton';
@@ -49,6 +51,12 @@ import {
 import { Separator } from '@/client/components/ui/separator';
 import { cn, formatDate } from '@/client/lib/utils';
 import { JobStatus } from '@/types/db';
+import { ScrollArea } from '@/client/components/ui/scroll-area';
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from '@/client/components/ui/collapsible';
 
 interface JobDetailProps {
 	jobId: string;
@@ -66,6 +74,12 @@ export function JobDetail({ jobId, userId }: JobDetailProps) {
 	const { mutate: cancelJob, isPending: isCancelling } =
 		useCancelGenerationJob();
 	const { mutate: retryJob, isPending: isRetrying } = useRetryFailedJob();
+	const {
+		data: jobLogs,
+		isLoading: isLoadingLogs,
+		isError: isLogsError,
+		refetch: refetchLogs,
+	} = useJobLogs(jobId, userId, job?.status === 'failed');
 
 	// Auto-refresh for in-progress jobs
 	const [lastRefreshTime, setLastRefreshTime] = useState(Date.now());
@@ -407,6 +421,86 @@ export function JobDetail({ jobId, userId }: JobDetailProps) {
 							<AlertTitle>فشلت المعالجة</AlertTitle>
 							<AlertDescription>{job.error}</AlertDescription>
 						</Alert>
+
+						<Collapsible>
+							<CollapsibleTrigger asChild>
+								<Button
+									variant="outline"
+									className="w-full flex justify-between items-center"
+								>
+									<div className="flex items-center">
+										<Code className="h-4 w-4 mr-2" />
+										<span>عرض سجلات الخطأ المفصلة</span>
+									</div>
+									{isLoadingLogs && (
+										<Loader2 className="h-4 w-4 animate-spin" />
+									)}
+								</Button>
+							</CollapsibleTrigger>
+							<CollapsibleContent className="mt-2">
+								{isLogsError ? (
+									<Alert variant="destructive">
+										<AlertCircle className="h-4 w-4" />
+										<AlertTitle>خطأ</AlertTitle>
+										<AlertDescription>
+											فشل في تحميل سجلات الخطأ
+											<Button
+												variant="outline"
+												size="sm"
+												onClick={() => refetchLogs()}
+												className="mt-2"
+											>
+												<RefreshCw className="h-3 w-3 mr-1" />
+												إعادة المحاولة
+											</Button>
+										</AlertDescription>
+									</Alert>
+								) : jobLogs?.logs?.length ? (
+									<ScrollArea className="h-80 w-full rounded-md border p-4 bg-black text-white font-mono text-sm">
+										{jobLogs.logs.map((log, i) => (
+											<div
+												key={i}
+												className="mb-2 pb-2 border-b border-gray-700"
+											>
+												<div className="text-gray-400">
+													{new Date(
+														log.timestamp
+													).toLocaleString('ar-SA')}
+												</div>
+												<div
+													className={`${
+														log.level === 'error'
+															? 'text-red-400'
+															: 'text-white'
+													}`}
+												>
+													{log.message}
+												</div>
+												{log.metadata?.error && (
+													<div className="text-orange-400 mt-1">
+														{typeof log.metadata
+															.error === 'string'
+															? log.metadata.error
+															: JSON.stringify(
+																	log.metadata
+																		.error,
+																	null,
+																	2
+															  )}
+													</div>
+												)}
+											</div>
+										))}
+									</ScrollArea>
+								) : (
+									<div className="text-center p-4 text-muted-foreground">
+										{jobLogs?.fileExists === false
+											? 'ملف السجل غير موجود. قد تكون السجلات قد انتهت صلاحيتها أو تمت إزالتها.'
+											: 'لا توجد سجلات خطأ متاحة لهذه المهمة.'}
+									</div>
+								)}
+							</CollapsibleContent>
+						</Collapsible>
 					</div>
 				)}
 
