@@ -145,10 +145,91 @@ export class JobProgressReporter {
 	 */
 	async reportFailure(error: Error | string): Promise<void> {
 		const errorMessage = error instanceof Error ? error.message : error;
-		await this.reportProgress(
-			this.lastReportedProgress, // Keep the last progress
-			'failed',
-			{ error: errorMessage }
-		);
+		const errorString =
+			typeof errorMessage === 'string'
+				? errorMessage
+				: JSON.stringify(errorMessage);
+
+		// For failure updates, we need to make sure they succeed
+		const maxRetries = 3;
+		let retryCount = 0;
+		let updateSuccessful = false;
+
+		while (!updateSuccessful && retryCount < maxRetries) {
+			try {
+				console.log(
+					`Updating job ${this.jobId} status to 'failed' (attempt ${
+						retryCount + 1
+					}/${maxRetries})`
+				);
+
+				// Update BullMQ job progress if available (outside of reportProgress to ensure it happens)
+				if (this.bullMQJob) {
+					try {
+						await this.bullMQJob.updateProgress({
+							progress: this.lastReportedProgress,
+							message: `Failed: ${errorString.substring(
+								0,
+								100
+							)}...`,
+							status: 'failed',
+							timestamp: new Date().toISOString(),
+						});
+					} catch (bullMqError) {
+						console.warn(
+							`Failed to update BullMQ job progress for failed job ${this.jobId}:`,
+							bullMqError
+						);
+					}
+				}
+
+				// Direct database update for failures to ensure it happens
+				const updates = {
+					status: 'failed' as JobStatus,
+					error: errorString,
+					updated_at: new Date(),
+				};
+
+				const result = await db
+					.updateTable('generation_jobs')
+					.set(updates)
+					.where('id', '=', this.jobId)
+					.execute();
+
+				// Check if the update was successful
+				updateSuccessful = true;
+				console.log(
+					`Successfully updated job ${this.jobId} status to 'failed'`
+				);
+
+				// Also call the regular progress method as a backup
+				await this.reportProgress(
+					this.lastReportedProgress, // Keep the last progress
+					'failed',
+					{ error: errorString }
+				);
+
+				return;
+			} catch (dbError) {
+				retryCount++;
+				console.error(
+					`Failed to update status for failed job ${this.jobId} (attempt ${retryCount}/${maxRetries}):`,
+					dbError
+				);
+
+				// Wait before retrying
+				if (retryCount < maxRetries) {
+					const delay = 1000 * Math.pow(2, retryCount); // Exponential backoff
+					await new Promise((resolve) => setTimeout(resolve, delay));
+				}
+			}
+		}
+
+		if (!updateSuccessful) {
+			// Last resort - log a critical error that the job status couldn't be updated
+			console.error(
+				`CRITICAL: Failed to update job ${this.jobId} status to 'failed' after ${maxRetries} attempts`
+			);
+		}
 	}
 }
