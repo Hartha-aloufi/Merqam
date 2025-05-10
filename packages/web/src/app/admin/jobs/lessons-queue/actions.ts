@@ -8,13 +8,13 @@ import {
 	LessonGenerationJobData,
 } from './queue-config';
 import { AIServiceType } from './temp';
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { sql } from 'kysely';
 import fs from 'fs';
 import path from 'path';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 const readFileAsync = promisify(fs.readFile);
 const existsAsync = promisify(fs.exists);
 
@@ -47,8 +47,13 @@ export async function getPlaylistVideos(
 ): Promise<PlaylistVideo[]> {
 	try {
 		// Use yt-dlp to get video IDs from the playlist
-		const command = `yt-dlp --flat-playlist --print "%(id)s|%(title)s|%(webpage_url)s" "https://www.youtube.com/playlist?list=${playlistId}"`;
-		const { stdout } = await execAsync(command);
+		// Fix command injection by using execFile with an array of arguments
+		const { stdout } = await execFileAsync('yt-dlp', [
+			'--flat-playlist',
+			'--print',
+			'%(id)s|%(title)s|%(webpage_url)s',
+			`https://www.youtube.com/playlist?list=${playlistId}`,
+		]);
 
 		console.log(
 			'Raw yt-dlp output sample:',
@@ -573,11 +578,11 @@ export async function createPlaylistJobsAction(formData: CreateJobInput) {
 }
 
 /**
- * Server action to test if yt-dlp is installed and working
+ * Test if yt-dlp is installed and working
  */
 export async function testYtDlp() {
 	try {
-		const { stdout } = await execAsync('yt-dlp --version');
+		const { stdout } = await execFileAsync('yt-dlp', ['--version']);
 
 		return {
 			status: 'success',

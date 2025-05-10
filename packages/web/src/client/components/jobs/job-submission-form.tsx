@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -146,6 +146,9 @@ export function JobSubmissionForm({
 
 	const [error, setError] = useState<string | null>(null);
 
+	// Add ref to track current token
+	const activeToken = useRef<symbol | null>(null);
+
 	// Check for playlist URLs when URL changes
 	const urlValue = form.watch('url');
 	useEffect(() => {
@@ -161,25 +164,41 @@ export function JobSubmissionForm({
 				// Use server action directly instead of fetch
 				const result = await checkPlaylistVideos({ url });
 
-				if (result.isPlaylist && result.videos?.length > 0) {
+				// Check if this response is stale
+				if (activeToken.current !== currentToken) return;
+
+				if (
+					result.isPlaylist &&
+					result.videos &&
+					result.videos.length > 0
+				) {
 					setIsPlaylist(true);
-					setPlaylistVideos(result.videos);
+					setPlaylistVideos(result.videos || []);
 				} else {
 					setIsPlaylist(false);
 					setPlaylistVideos([]);
 				}
 			} catch (error) {
+				// Check if this response is stale
+				if (activeToken.current !== currentToken) return;
+
 				console.error('Error checking playlist:', error);
 				setIsPlaylist(false);
 				setPlaylistVideos([]);
 			} finally {
+				// Check if this response is stale
+				if (activeToken.current !== currentToken) return;
+
 				setIsLoadingPlaylist(false);
 			}
 		};
 
 		// Debounce the check to avoid too many requests
-		const timeoutId = setTimeout(() => {
-			checkForPlaylist(urlValue);
+		const currentToken = Symbol();
+		activeToken.current = currentToken;
+
+		const timeoutId = setTimeout(async () => {
+			await checkForPlaylist(urlValue);
 		}, 500);
 
 		return () => clearTimeout(timeoutId);

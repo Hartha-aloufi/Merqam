@@ -17,7 +17,7 @@ const s3Client = new S3Client({
 	},
 });
 
-const BUCKET_NAME = 'merqam-lessons';
+const BUCKET_NAME = env.AWS_BUCKET_NAME;
 
 /**
  * Uploads a lesson content file to S3 storage

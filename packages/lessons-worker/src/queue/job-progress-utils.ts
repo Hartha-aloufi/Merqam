@@ -22,13 +22,19 @@ export const PROGRESS_STAGES = {
 	COMPLETED: { progress: 100, message: 'Job completed' },
 };
 
+interface ProgressDetails {
+	message?: string;
+	error?: string;
+	result?: unknown;
+}
+
 /**
  * Job progress reporter that handles updating both the database and BullMQ job
  */
 export class JobProgressReporter {
 	private jobId: string;
 	private bullMQJob?: Job<LessonGenerationJobData>;
-	private lastReportedProgress: number = -1;
+	private lastReportedProgress: number = 0;
 	private startTime: number;
 
 	constructor(jobId: string, bullMQJob?: Job<LessonGenerationJobData>) {
@@ -45,7 +51,7 @@ export class JobProgressReporter {
 	async reportProgress(
 		progress: number,
 		status: JobStatus = 'processing',
-		details?: { message?: string; error?: string; result?: any }
+		details?: ProgressDetails
 	): Promise<void> {
 		// Skip if progress hasn't changed significantly (at least 5%)
 		if (
@@ -82,7 +88,7 @@ export class JobProgressReporter {
 
 		// Update database
 		try {
-			const updates: any = {
+			const updates: Record<string, unknown> = {
 				progress,
 				status,
 				updated_at: new Date(),
@@ -124,7 +130,7 @@ export class JobProgressReporter {
 	async reportStage(
 		stage: keyof typeof PROGRESS_STAGES,
 		status: JobStatus = 'processing',
-		additionalDetails?: { error?: string; result?: any }
+		additionalDetails?: { error?: string; result?: unknown }
 	): Promise<void> {
 		const { progress, message } = PROGRESS_STAGES[stage];
 		await this.reportProgress(progress, status, {
@@ -136,7 +142,7 @@ export class JobProgressReporter {
 	/**
 	 * Report job completion with result
 	 */
-	async reportCompletion(result: any): Promise<void> {
+	async reportCompletion(result: unknown): Promise<void> {
 		await this.reportStage('COMPLETED', 'completed', { result });
 	}
 
@@ -166,12 +172,15 @@ export class JobProgressReporter {
 				// Update BullMQ job progress if available (outside of reportProgress to ensure it happens)
 				if (this.bullMQJob) {
 					try {
+						// Fix: Only add ellipsis when message is actually truncated
+						const truncatedMessage =
+							errorString.length > 100
+								? `${errorString.substring(0, 100)}...`
+								: errorString;
+
 						await this.bullMQJob.updateProgress({
-							progress: this.lastReportedProgress,
-							message: `Failed: ${errorString.substring(
-								0,
-								100
-							)}...`,
+							progress: Math.max(this.lastReportedProgress, 0), // Ensure progress is never negative
+							message: `Failed: ${truncatedMessage}`,
 							status: 'failed',
 							timestamp: new Date().toISOString(),
 						});
@@ -190,7 +199,7 @@ export class JobProgressReporter {
 					updated_at: new Date(),
 				};
 
-				const result = await db
+				await db
 					.updateTable('generation_jobs')
 					.set(updates)
 					.where('id', '=', this.jobId)
@@ -204,7 +213,7 @@ export class JobProgressReporter {
 
 				// Also call the regular progress method as a backup
 				await this.reportProgress(
-					this.lastReportedProgress, // Keep the last progress
+					Math.max(this.lastReportedProgress, 0), // Ensure progress is never negative
 					'failed',
 					{ error: errorString }
 				);
