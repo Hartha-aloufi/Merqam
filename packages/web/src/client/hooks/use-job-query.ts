@@ -6,6 +6,7 @@ import {
 	getGenerationJobs,
 	getGenerationJobById,
 	cancelGenerationJob,
+	retryFailedJob,
 } from '@/app/admin/jobs/lessons-queue/actions';
 import { JobStatus } from '@/types/db';
 
@@ -131,6 +132,48 @@ export function useCancelGenerationJob() {
 					error instanceof Error
 						? error.message
 						: 'حدث خطأ أثناء إلغاء المهمة'
+				}`
+			);
+		},
+	});
+}
+
+/**
+ * Hook for retrying a failed job
+ */
+export function useRetryFailedJob() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: ({ jobId, userId }: { jobId: string; userId: string }) =>
+			retryFailedJob(jobId, userId),
+		onSuccess: (_, variables) => {
+			// Invalidate affected queries
+			queryClient.invalidateQueries({ queryKey: JOB_KEYS.lists() });
+			queryClient.invalidateQueries({
+				queryKey: JOB_KEYS.detail(variables.jobId),
+			});
+
+			// Show success notification
+			toast.success('تم إعادة المهمة بنجاح');
+
+			// Update job status optimistically
+			queryClient.setQueryData(
+				JOB_KEYS.detail(variables.jobId),
+				(oldData: any) => ({
+					...oldData,
+					status: 'pending' as JobStatus,
+					progress: 0,
+					error: null,
+				})
+			);
+		},
+		onError: (error) => {
+			toast.error(
+				`خطأ: ${
+					error instanceof Error
+						? error.message
+						: 'حدث خطأ أثناء إعادة المهمة'
 				}`
 			);
 		},

@@ -3,6 +3,7 @@
 import {
 	useGenerationJobs,
 	useCancelGenerationJob,
+	useRetryFailedJob,
 } from '@/client/hooks/use-job-query';
 import { Button } from '@/client/components/ui/button';
 import {
@@ -38,6 +39,8 @@ import {
 	Clock,
 	ExternalLink,
 	StopCircle,
+	RefreshCw,
+	Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -70,11 +73,18 @@ export function JobsList({ userId, pageSize = 10 }: JobsListProps) {
 	);
 	const { mutate: cancelJob, isPending: isCancelling } =
 		useCancelGenerationJob();
+	const { mutate: retryJob, isPending: isRetrying } = useRetryFailedJob();
 	const [jobToCancelId, setJobToCancelId] = useState<string | null>(null);
+	const [jobToRetryId, setJobToRetryId] = useState<string | null>(null);
 
 	const handleCancelJob = (jobId: string) => {
 		cancelJob({ jobId, userId });
 		setJobToCancelId(null);
+	};
+
+	const handleRetryJob = (jobId: string) => {
+		retryJob({ jobId, userId });
+		setJobToRetryId(null);
 	};
 
 	const totalPages = data ? Math.ceil(data.total / pageSize) : 0;
@@ -259,22 +269,80 @@ export function JobsList({ userId, pageSize = 10 }: JobsListProps) {
 											)}
 										</div>
 									</TableCell>
-									<TableCell>
+									<TableCell className="text-left">
 										<div className="flex items-center gap-2">
-											<Button
-												variant="ghost"
-												size="sm"
-												asChild
+											<Link
+												href={`/admin/jobs/${job.id}`}
 											>
-												<Link
-													href={`/admin/jobs/${job.id}`}
+												<Button
+													variant="outline"
+													size="sm"
 												>
 													<ExternalLink className="h-4 w-4" />
 													<span className="sr-only">
-														تفاصيل
+														عرض
 													</span>
-												</Link>
-											</Button>
+												</Button>
+											</Link>
+
+											{job.status === 'failed' && (
+												<AlertDialog>
+													<AlertDialogTrigger asChild>
+														<Button
+															variant="outline"
+															size="sm"
+															onClick={() =>
+																setJobToRetryId(
+																	job.id
+																)
+															}
+															disabled={
+																isRetrying &&
+																jobToRetryId ===
+																	job.id
+															}
+														>
+															{isRetrying &&
+															jobToRetryId ===
+																job.id ? (
+																<Loader2 className="h-4 w-4 animate-spin" />
+															) : (
+																<RefreshCw className="h-4 w-4" />
+															)}
+															<span className="sr-only">
+																إعادة المهمة
+															</span>
+														</Button>
+													</AlertDialogTrigger>
+													<AlertDialogContent>
+														<AlertDialogHeader>
+															<AlertDialogTitle>
+																تأكيد إعادة
+																المهمة
+															</AlertDialogTitle>
+															<AlertDialogDescription>
+																هل أنت متأكد من
+																رغبتك في إعادة
+																هذه المهمة؟
+															</AlertDialogDescription>
+														</AlertDialogHeader>
+														<AlertDialogFooter>
+															<AlertDialogCancel>
+																إلغاء
+															</AlertDialogCancel>
+															<AlertDialogAction
+																onClick={() =>
+																	handleRetryJob(
+																		job.id
+																	)
+																}
+															>
+																إعادة المهمة
+															</AlertDialogAction>
+														</AlertDialogFooter>
+													</AlertDialogContent>
+												</AlertDialog>
+											)}
 
 											{(job.status === 'pending' ||
 												job.status ===

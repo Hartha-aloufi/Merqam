@@ -589,3 +589,97 @@ export async function testYtDlp() {
 		};
 	}
 }
+
+/**
+ * Retries a failed generation job
+ */
+export async function retryFailedJob(jobId: string, userId: string) {
+	console.log(`Retrying failed job with ID: ${jobId} for user: ${userId}`);
+
+	try {
+		// Check if the job exists, belongs to the user, and is in failed status
+		const job = await db
+			.selectFrom('generation_jobs')
+			.where('id', '=', jobId)
+			.where('user_id', '=', userId)
+			.where('status', '=', 'failed')
+			.select([
+				'id',
+				'url',
+				'playlist_id',
+				'new_playlist_id',
+				'new_playlist_title',
+				'speaker_id',
+				'new_speaker_name',
+				'ai_service',
+				'priority',
+			])
+			.executeTakeFirst();
+
+		if (!job) {
+			throw new Error('Job not found or cannot be retried');
+		}
+
+		// Get the queue instance
+		const queue = getLessonGenerationQueue();
+
+		// Try to remove the job from the queue if it's still there
+		try {
+			console.log(`Removing job ${jobId} from queue before retrying`);
+			await queue.remove(jobId);
+		} catch (error) {
+			// It's okay if this fails - the job might not be in the queue anymore
+			console.log(
+				`Note: Could not remove job ${jobId} from queue: ${error}`
+			);
+		}
+
+		// Update the job status in the database to pending
+		await db
+			.updateTable('generation_jobs')
+			.set({
+				status: 'pending',
+				progress: 0,
+				error: null, // Clear previous error
+				started_at: null, // Reset timestamp
+				completed_at: null, // Reset timestamp
+				updated_at: new Date(),
+			})
+			.where('id', '=', jobId)
+			.execute();
+
+		// Prepare job data
+		const jobData: LessonGenerationJobData = {
+			url: job.url,
+			userId: userId,
+			aiService: job.ai_service as AIServiceType,
+			playlistId: job.playlist_id || undefined,
+			speakerId: job.speaker_id || undefined,
+			newPlaylistId: job.new_playlist_id || undefined,
+			newPlaylistTitle: job.new_playlist_title || undefined,
+			newSpeakerName: job.new_speaker_name || undefined,
+			priority: job.priority,
+		};
+
+		// Use database ID as job ID for easy correlation
+		// Make sure to set removeOnFail to false so we can retry again if needed
+		const queuedJob = await queue.add('generate-lesson', jobData, {
+			jobId: job.id,
+			priority: job.priority || undefined,
+			attempts: 1,
+			removeOnFail: false,
+		});
+
+		console.log(
+			`Job ${jobId} requeued successfully with ID: ${queuedJob.id}`
+		);
+
+		// Revalidate related paths
+		revalidatePath('/admin/jobs');
+
+		return { success: true };
+	} catch (error) {
+		console.error(`Error retrying job with ID: ${jobId}:`, error);
+		throw error;
+	}
+}
