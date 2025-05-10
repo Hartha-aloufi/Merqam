@@ -8,11 +8,88 @@ import {
 	LessonGenerationJobData,
 } from './queue-config';
 import { AIServiceType } from './temp';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 export async function extractYoutubeId(url: string): Promise<string> {
 	const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/;
 	const match = url.match(regex);
 	return match?.[1] ?? '';
+}
+
+export async function extractYoutubePlaylistId(
+	url: string
+): Promise<string | null> {
+	// Match YouTube playlist URLs like:
+	// https://www.youtube.com/playlist?list=PLxxxxxx
+	// https://www.youtube.com/watch?v=xxxxx&list=PLxxxxxx
+	const regex =
+		/(?:youtube\.com\/(?:playlist\?list=|watch\?.*?list=))(PL[a-zA-Z0-9_-]+)/;
+	const match = url.match(regex);
+	return match?.[1] || null;
+}
+
+interface PlaylistVideo {
+	id: string;
+	title: string;
+	url: string;
+}
+
+export async function getPlaylistVideos(
+	playlistId: string
+): Promise<PlaylistVideo[]> {
+	try {
+		// Use yt-dlp to get video IDs from the playlist
+		const command = `yt-dlp --flat-playlist --print "%(id)s|%(title)s|%(webpage_url)s" "https://www.youtube.com/playlist?list=${playlistId}"`;
+		const { stdout } = await execAsync(command);
+
+		console.log(
+			'Raw yt-dlp output sample:',
+			stdout.split('\n').slice(0, 2)
+		);
+
+		// Parse the output into video objects
+		const videos = stdout
+			.trim()
+			.split('\n')
+			.map((line) => {
+				const [id, title, url] = line.split('|');
+
+				// Ensure we have a valid YouTube video ID
+				if (!id) {
+					console.warn('Missing video ID in yt-dlp output:', line);
+					return null;
+				}
+
+				// Normalize URL to ensure it's in the format expected by extractYoutubeId
+				const normalizedUrl = `https://www.youtube.com/watch?v=${id}`;
+
+				console.log(
+					`Normalized video URL: ${normalizedUrl} (Original: ${url})`
+				);
+
+				return {
+					id,
+					title: title || `Video ${id}`,
+					url: normalizedUrl,
+				};
+			})
+			.filter(Boolean) as PlaylistVideo[];
+
+		console.log(
+			`Extracted ${videos.length} videos from playlist ${playlistId}`
+		);
+		return videos;
+	} catch (error) {
+		console.error('Error fetching playlist videos:', error);
+		throw new Error(
+			`Failed to fetch playlist videos: ${
+				error instanceof Error ? error.message : String(error)
+			}`
+		);
+	}
 }
 
 export const validateIsVideoNotInDatabase = async (url: string) => {
@@ -297,5 +374,128 @@ export async function cancelGenerationJob(jobId: string, userId: string) {
 			error
 		);
 		throw error;
+	}
+}
+
+/**
+ * Creates jobs for all videos in a YouTube playlist
+ */
+export async function createPlaylistJobs(input: CreateJobInput): Promise<{
+	success: boolean;
+	jobIds: string[];
+	skippedVideos: Array<{ id: string; title: string; reason: string }>;
+	message?: string;
+}> {
+	const jobIds: string[] = [];
+	const skippedVideos: Array<{ id: string; title: string; reason: string }> =
+		[];
+
+	try {
+		// Validate input
+		validateInput(input);
+
+		// Extract playlist ID
+		const playlistId = await extractYoutubePlaylistId(input.url);
+
+		if (!playlistId) {
+			throw new Error('Invalid YouTube playlist URL');
+		}
+
+		// Get playlist videos
+		const videos = await getPlaylistVideos(playlistId);
+
+		if (videos.length === 0) {
+			throw new Error('No videos found in playlist');
+		}
+
+		console.log(
+			`Creating jobs for ${videos.length} videos from playlist ${playlistId}`
+		);
+
+		// Create jobs for each video
+		for (const video of videos) {
+			// Check if video already exists
+			try {
+				console.log(
+					`Processing video: ID=${video.id}, URL=${video.url}, Title=${video.title}`
+				);
+
+				// Verify we can extract a video ID
+				const videoId = await extractYoutubeId(video.url);
+				if (!videoId) {
+					console.error(
+						`Failed to extract YouTube ID from URL: ${video.url}`
+					);
+					skippedVideos.push({
+						id: video.id,
+						title: video.title,
+						reason: 'Invalid YouTube URL format',
+					});
+					continue;
+				}
+
+				await validateIsVideoNotInDatabase(video.url);
+
+				// Create job for this video
+				const result = await createGenerationJob({
+					...input,
+					url: video.url,
+				});
+
+				jobIds.push(result.jobId);
+				console.log(
+					`Created job ${result.jobId} for video ${video.id}: ${video.title}`
+				);
+			} catch (error) {
+				const errorMessage =
+					error instanceof Error ? error.message : String(error);
+				console.warn(
+					`Skipping video ${video.title} (${video.id}): ${errorMessage}`
+				);
+				skippedVideos.push({
+					id: video.id,
+					title: video.title,
+					reason: errorMessage,
+				});
+				// Continue with other videos if one fails
+				continue;
+			}
+		}
+
+		// Revalidate related paths
+		revalidatePath('/admin/jobs');
+
+		console.log(
+			`Created ${jobIds.length} jobs, skipped ${skippedVideos.length} videos`
+		);
+
+		if (jobIds.length === 0 && skippedVideos.length > 0) {
+			return {
+				success: false,
+				jobIds,
+				skippedVideos,
+				message: `No jobs created. All videos were skipped: ${skippedVideos
+					.map((v) => `"${v.title}" (${v.reason})`)
+					.join(', ')}`,
+			};
+		}
+
+		return {
+			success: true,
+			jobIds,
+			skippedVideos,
+		};
+	} catch (error) {
+		const errorMessage =
+			error instanceof Error ? error.message : String(error);
+		console.error('Error creating playlist jobs:', error);
+
+		// Return both the error and any information we've gathered
+		return {
+			success: false,
+			jobIds,
+			skippedVideos,
+			message: errorMessage,
+		};
 	}
 }

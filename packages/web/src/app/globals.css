@@ -179,7 +179,27 @@ html {
 		clip-path: inset(0 calc(100% - var(--progress)) 0 0);
 		transition: clip-path 0.2s linear;
 	}
-} /* Print-specific styles */
+}
+
+@layer utilities {
+	.video-progress-button::before {
+		clip-path: inset(0 calc(100% - var(--progress)) 0 0);
+		transition: clip-path 0.2s linear;
+	}
+
+	/* Direction utilities */
+	.dir-ltr {
+		direction: ltr;
+		text-align: left;
+	}
+
+	.dir-rtl {
+		direction: rtl;
+		text-align: right;
+	}
+}
+
+/* Print-specific styles */
 @media print {
 	/* Hide non-printable elements */
 	/* Hide UI elements */

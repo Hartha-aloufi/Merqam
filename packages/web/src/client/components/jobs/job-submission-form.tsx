@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -48,6 +48,11 @@ import {
 import { useRouter } from 'next/navigation';
 import { useSubmitGenerationJob } from '@/client/hooks/use-job-query';
 import Link from 'next/link';
+import { Badge } from '@/client/components/ui/badge';
+
+// Add a global style for LTR text
+import { cn } from '@/client/lib/utils';
+import '@/app/globals.css';
 
 const urlSchema = z.string().url('الرجاء إدخال رابط صحيح');
 
@@ -102,6 +107,20 @@ export function JobSubmissionForm({
 	const [searchQuery, setSearchQuery] = useState('');
 	const router = useRouter();
 
+	// Playlist related states
+	const [isPlaylist, setIsPlaylist] = useState(false);
+	const [playlistVideos, setPlaylistVideos] = useState<
+		Array<{ id: string; title: string; url: string }>
+	>([]);
+	const [isLoadingPlaylist, setIsLoadingPlaylist] = useState(false);
+	const [multipleJobsResult, setMultipleJobsResult] = useState<{
+		success: boolean;
+		jobIds: string[];
+		skippedVideos?: Array<{ id: string; title: string; reason: string }>;
+		message?: string;
+	} | null>(null);
+	const [isCreatingPlaylistJobs, setIsCreatingPlaylistJobs] = useState(false);
+
 	// Use our custom hook
 	const {
 		mutate: submitJob,
@@ -124,6 +143,50 @@ export function JobSubmissionForm({
 	});
 
 	const [error, setError] = useState<string | null>(null);
+
+	// Check for playlist URLs when URL changes
+	const urlValue = form.watch('url');
+	useEffect(() => {
+		const checkForPlaylist = async (url: string) => {
+			if (!url) {
+				setIsPlaylist(false);
+				setPlaylistVideos([]);
+				return;
+			}
+
+			try {
+				setIsLoadingPlaylist(true);
+				const response = await fetch('/api/admin/check-playlist', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ url }),
+				});
+
+				const data = await response.json();
+
+				if (data.isPlaylist && data.videos?.length > 0) {
+					setIsPlaylist(true);
+					setPlaylistVideos(data.videos);
+				} else {
+					setIsPlaylist(false);
+					setPlaylistVideos([]);
+				}
+			} catch (error) {
+				console.error('Error checking playlist:', error);
+				setIsPlaylist(false);
+				setPlaylistVideos([]);
+			} finally {
+				setIsLoadingPlaylist(false);
+			}
+		};
+
+		// Debounce the check to avoid too many requests
+		const timeoutId = setTimeout(() => {
+			checkForPlaylist(urlValue);
+		}, 500);
+
+		return () => clearTimeout(timeoutId);
+	}, [urlValue]);
 
 	async function onSubmit(data: FormData) {
 		setError(null);
@@ -148,8 +211,74 @@ export function JobSubmissionForm({
 					  }),
 			};
 
-			// Submit the job using our hook
-			submitJob(inputData);
+			// Check if this is a playlist URL
+			if (isPlaylist && playlistVideos.length > 0) {
+				// Submit playlist jobs
+				setIsCreatingPlaylistJobs(true);
+				try {
+					const response = await fetch(
+						'/api/admin/create-playlist-jobs',
+						{
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify(inputData),
+						}
+					);
+
+					const result = await response.json();
+
+					// We can show partial success even with errors
+					if (result.jobIds && result.jobIds.length > 0) {
+						// Update UI to show created jobs and any skipped videos
+						setMultipleJobsResult(result);
+
+						// Show a warning if some videos were skipped
+						if (
+							result.skippedVideos &&
+							result.skippedVideos.length > 0
+						) {
+							setError(
+								result.message ||
+									`تم تخطي ${result.skippedVideos.length} فيديو`
+							);
+						}
+					} else if (!response.ok) {
+						// Complete failure
+						console.error(
+							'Failed to create playlist jobs:',
+							result
+						);
+						throw new Error(
+							result.error ||
+								result.message ||
+								'حدث خطأ أثناء إنشاء المهام'
+						);
+					} else if (
+						result.skippedVideos &&
+						result.skippedVideos.length > 0
+					) {
+						// All videos were skipped
+						throw new Error(
+							result.message ||
+								'لم يتم إنشاء أي مهام، قد تكون الفيديوهات موجودة بالفعل'
+						);
+					} else {
+						throw new Error('لم يتم إنشاء أي مهام');
+					}
+				} catch (err) {
+					console.error('Error creating playlist jobs:', err);
+					setError(
+						err instanceof Error
+							? err.message
+							: 'حدث خطأ أثناء إنشاء المهام من قائمة التشغيل'
+					);
+				} finally {
+					setIsCreatingPlaylistJobs(false);
+				}
+			} else {
+				// Submit a single job using our hook
+				submitJob(inputData);
+			}
 		} catch (err) {
 			console.error('Error submitting job:', err);
 			setError(
@@ -171,12 +300,14 @@ export function JobSubmissionForm({
 
 	return (
 		<Card className="border-2 relative">
-			{isPending && (
+			{(isPending || isCreatingPlaylistJobs) && (
 				<div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center z-50">
 					<div className="text-center space-y-4">
 						<Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
 						<p className="text-lg font-medium">
-							جاري إنشاء المهمة...
+							{isCreatingPlaylistJobs
+								? `جاري إنشاء ${playlistVideos.length} مهمة...`
+								: 'جاري إنشاء المهمة...'}
 						</p>
 						<p className="text-sm text-muted-foreground">
 							سيتم وضع المهمة في قائمة الانتظار
@@ -206,19 +337,95 @@ export function JobSubmissionForm({
 							name="url"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>رابط النص المفرغ</FormLabel>
+									<FormLabel>
+										رابط النص المفرغ أو قائمة التشغيل
+									</FormLabel>
 									<FormControl>
 										<Input
 											dir="ltr"
-											disabled={isPending}
+											disabled={
+												isPending ||
+												isCreatingPlaylistJobs
+											}
 											placeholder="https://..."
 											className="font-mono text-sm text-left"
 											{...field}
 										/>
 									</FormControl>
 									<FormDescription>
-										أدخل رابط صفحة النص المفرغ
+										أدخل رابط صفحة النص المفرغ أو رابط قائمة
+										تشغيل يوتيوب
 									</FormDescription>
+									{isLoadingPlaylist && (
+										<div className="mt-2 flex items-center text-sm text-muted-foreground">
+											<Loader2 className="h-4 w-4 animate-spin mr-2" />
+											جاري التحقق من قائمة التشغيل...
+										</div>
+									)}
+									{isPlaylist &&
+										playlistVideos.length > 0 && (
+											<div className="mt-4 p-4 border rounded-md bg-muted/30">
+												<div className="flex items-center justify-between mb-3">
+													<div>
+														<h3 className="font-medium text-sm">
+															تم اكتشاف قائمة
+															تشغيل
+														</h3>
+														<p className="text-sm text-muted-foreground">
+															سيتم إنشاء{' '}
+															{
+																playlistVideos.length
+															}{' '}
+															مهمة، واحدة لكل
+															فيديو
+														</p>
+													</div>
+													<Badge variant="outline">
+														{playlistVideos.length}{' '}
+														فيديو
+													</Badge>
+												</div>
+
+												<div className="max-h-48 overflow-y-auto space-y-2 mt-2">
+													{playlistVideos
+														.slice(0, 5)
+														.map((video) => (
+															<div
+																key={video.id}
+																className="text-sm py-1 border-b"
+															>
+																<div className="font-medium">
+																	{
+																		video.title
+																	}
+																</div>
+																<a
+																	href={
+																		video.url
+																	}
+																	target="_blank"
+																	rel="noopener noreferrer"
+																	className={cn(
+																		'text-xs text-blue-600 hover:underline break-all font-mono',
+																		'block dir-ltr'
+																	)}
+																>
+																	{video.url}
+																</a>
+															</div>
+														))}
+													{playlistVideos.length >
+														5 && (
+														<div className="text-sm text-muted-foreground text-center pt-2">
+															+{' '}
+															{playlistVideos.length -
+																5}{' '}
+															فيديو آخر
+														</div>
+													)}
+												</div>
+											</div>
+										)}
 									<FormMessage />
 								</FormItem>
 							)}
@@ -550,6 +757,7 @@ export function JobSubmissionForm({
 							)}
 						/>
 
+						{/* Submit Button */}
 						{error && (
 							<Alert variant="destructive">
 								<AlertDescription>{error}</AlertDescription>
@@ -559,14 +767,18 @@ export function JobSubmissionForm({
 						<div className="flex gap-4 flex-col sm:flex-row">
 							<Button
 								type="submit"
-								disabled={isPending}
+								disabled={isPending || isCreatingPlaylistJobs}
 								className="min-w-[140px]"
 							>
-								{isPending ? (
+								{isPending || isCreatingPlaylistJobs ? (
 									<>
 										<Loader2 className="ml-2 h-4 w-4 animate-spin" />
-										جاري الإنشاء...
+										{isPlaylist && playlistVideos.length > 0
+											? 'جاري إنشاء المهام...'
+											: 'جاري الإنشاء...'}
 									</>
+								) : isPlaylist && playlistVideos.length > 0 ? (
+									`إنشاء ${playlistVideos.length} مهمة`
 								) : (
 									'إنشاء المهمة'
 								)}
@@ -602,6 +814,82 @@ export function JobSubmissionForm({
 							<Link href={`/admin/jobs/${jobResult.jobId}`}>
 								<ExternalLink className="ml-2 h-4 w-4" />
 								مشاهدة المهمة
+							</Link>
+						</Button>
+					</div>
+				</CardFooter>
+			)}
+
+			{multipleJobsResult && (
+				<CardFooter className="border-t bg-muted/50 flex flex-col items-start gap-4 px-6 py-4">
+					<div>
+						<h3 className="font-medium text-sm">
+							تم إنشاء {multipleJobsResult.jobIds.length} مهمة
+							بنجاح!
+						</h3>
+						<p className="text-sm text-muted-foreground">
+							سيتم معالجة المهام في الخلفية. يمكنك متابعة التقدم
+							من خلال صفحة المهام.
+						</p>
+
+						{multipleJobsResult.skippedVideos &&
+							multipleJobsResult.skippedVideos.length > 0 && (
+								<div className="mt-3 p-3 border rounded-md bg-amber-50 text-amber-800">
+									<h4 className="text-sm font-medium mb-1">
+										تم تخطي{' '}
+										{
+											multipleJobsResult.skippedVideos
+												.length
+										}{' '}
+										فيديو:
+									</h4>
+									<ul className="text-xs space-y-1 mt-2">
+										{multipleJobsResult.skippedVideos
+											.slice(0, 5)
+											.map((video) => (
+												<li
+													key={video.id}
+													className="border-b border-amber-200 pb-1"
+												>
+													<span className="font-medium">
+														{video.title}
+													</span>
+													<br />
+													<span className="text-amber-700">
+														{video.reason}
+													</span>
+												</li>
+											))}
+										{multipleJobsResult.skippedVideos
+											.length > 5 && (
+											<li className="text-center text-amber-700">
+												+
+												{multipleJobsResult
+													.skippedVideos.length -
+													5}{' '}
+												فيديو آخر
+											</li>
+										)}
+									</ul>
+								</div>
+							)}
+					</div>
+					<div className="flex gap-2">
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => {
+								form.reset();
+								setMultipleJobsResult(null);
+								router.refresh();
+							}}
+						>
+							إنشاء مهمة جديدة
+						</Button>
+						<Button size="sm" asChild>
+							<Link href="/admin/jobs">
+								<ExternalLink className="ml-2 h-4 w-4" />
+								مشاهدة المهام
 							</Link>
 						</Button>
 					</div>
