@@ -49,10 +49,12 @@ import { useRouter } from 'next/navigation';
 import { useSubmitGenerationJob } from '@/client/hooks/use-job-query';
 import Link from 'next/link';
 import { Badge } from '@/client/components/ui/badge';
-
-// Add a global style for LTR text
 import { cn } from '@/client/lib/utils';
 import '@/app/globals.css';
+import {
+	checkPlaylistVideos,
+	createPlaylistJobsAction,
+} from '@/app/admin/jobs/lessons-queue/actions';
 
 const urlSchema = z.string().url('الرجاء إدخال رابط صحيح');
 
@@ -156,17 +158,12 @@ export function JobSubmissionForm({
 
 			try {
 				setIsLoadingPlaylist(true);
-				const response = await fetch('/api/admin/check-playlist', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ url }),
-				});
+				// Use server action directly instead of fetch
+				const result = await checkPlaylistVideos({ url });
 
-				const data = await response.json();
-
-				if (data.isPlaylist && data.videos?.length > 0) {
+				if (result.isPlaylist && result.videos?.length > 0) {
 					setIsPlaylist(true);
-					setPlaylistVideos(data.videos);
+					setPlaylistVideos(result.videos);
 				} else {
 					setIsPlaylist(false);
 					setPlaylistVideos([]);
@@ -213,19 +210,11 @@ export function JobSubmissionForm({
 
 			// Check if this is a playlist URL
 			if (isPlaylist && playlistVideos.length > 0) {
-				// Submit playlist jobs
+				// Submit playlist jobs using server action directly
 				setIsCreatingPlaylistJobs(true);
 				try {
-					const response = await fetch(
-						'/api/admin/create-playlist-jobs',
-						{
-							method: 'POST',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify(inputData),
-						}
-					);
-
-					const result = await response.json();
+					// Call server action directly
+					const result = await createPlaylistJobsAction(inputData);
 
 					// We can show partial success even with errors
 					if (result.jobIds && result.jobIds.length > 0) {
@@ -242,16 +231,14 @@ export function JobSubmissionForm({
 									`تم تخطي ${result.skippedVideos.length} فيديو`
 							);
 						}
-					} else if (!response.ok) {
+					} else if (!result.success) {
 						// Complete failure
 						console.error(
 							'Failed to create playlist jobs:',
 							result
 						);
 						throw new Error(
-							result.error ||
-								result.message ||
-								'حدث خطأ أثناء إنشاء المهام'
+							result.message || 'حدث خطأ أثناء إنشاء المهام'
 						);
 					} else if (
 						result.skippedVideos &&

@@ -499,3 +499,93 @@ export async function createPlaylistJobs(input: CreateJobInput): Promise<{
 		};
 	}
 }
+
+/**
+ * Server action to check if a URL is a playlist and return its videos
+ */
+export async function checkPlaylistVideos(formData: { url: string }) {
+	try {
+		const { url } = formData;
+
+		if (!url) {
+			return { isPlaylist: false, error: 'URL is required' };
+		}
+
+		// Check if this is a playlist URL
+		const playlistId = await extractYoutubePlaylistId(url);
+
+		if (!playlistId) {
+			return { isPlaylist: false };
+		}
+
+		// Get playlist videos
+		const videos = await getPlaylistVideos(playlistId);
+
+		return {
+			isPlaylist: true,
+			playlistId,
+			videos,
+		};
+	} catch (error) {
+		console.error('Error checking playlist:', error);
+		return {
+			isPlaylist: false,
+			error:
+				error instanceof Error
+					? error.message
+					: 'Failed to check playlist',
+		};
+	}
+}
+
+/**
+ * Server action to create jobs for videos in a playlist
+ */
+export async function createPlaylistJobsAction(formData: CreateJobInput) {
+	try {
+		if (!formData.url || !formData.userId) {
+			return {
+				success: false,
+				jobIds: [],
+				skippedVideos: [],
+				message: 'URL and userId are required',
+			};
+		}
+
+		const result = await createPlaylistJobs(formData);
+
+		// Return the result directly
+		return result;
+	} catch (error) {
+		console.error('Error creating playlist jobs:', error);
+		return {
+			success: false,
+			jobIds: [],
+			skippedVideos: [],
+			message: error instanceof Error ? error.message : 'Unknown error',
+		};
+	}
+}
+
+/**
+ * Server action to test if yt-dlp is installed and working
+ */
+export async function testYtDlp() {
+	try {
+		const { stdout } = await execAsync('yt-dlp --version');
+
+		return {
+			status: 'success',
+			message: 'yt-dlp is installed',
+			version: stdout.trim(),
+		};
+	} catch (error) {
+		console.error('Error checking for yt-dlp:', error);
+		return {
+			status: 'error',
+			message:
+				'yt-dlp is not installed or not accessible. Please install yt-dlp first.',
+			error: error instanceof Error ? error.message : String(error),
+		};
+	}
+}
