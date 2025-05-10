@@ -211,13 +211,7 @@ export class JobProgressReporter {
 					`Successfully updated job ${this.jobId} status to 'failed'`
 				);
 
-				// Also call the regular progress method as a backup
-				await this.reportProgress(
-					Math.max(this.lastReportedProgress, 0), // Ensure progress is never negative
-					'failed',
-					{ error: errorString }
-				);
-
+				// No need to call reportProgress again - we've already updated the database
 				return;
 			} catch (dbError) {
 				retryCount++;
@@ -235,10 +229,20 @@ export class JobProgressReporter {
 		}
 
 		if (!updateSuccessful) {
-			// Last resort - log a critical error that the job status couldn't be updated
-			console.error(
-				`CRITICAL: Failed to update job ${this.jobId} status to 'failed' after ${maxRetries} attempts`
-			);
+			// Last resort - try to update via reportProgress as a fallback
+			try {
+				await this.reportProgress(
+					Math.max(this.lastReportedProgress, 0),
+					'failed',
+					{ error: errorString }
+				);
+			} catch (fallbackError) {
+				// Last resort - log a critical error that the job status couldn't be updated
+				console.error(
+					`CRITICAL: Failed to update job ${this.jobId} status to 'failed' after ${maxRetries} attempts and fallback`,
+					fallbackError
+				);
+			}
 		}
 	}
 }

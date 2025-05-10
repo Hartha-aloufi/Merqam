@@ -11,12 +11,11 @@ import { AIServiceType } from './temp';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { sql } from 'kysely';
-import fs from 'fs';
+import { readFile } from 'fs/promises';
+import { access } from 'fs/promises';
 import path from 'path';
 
 const execFileAsync = promisify(execFile);
-const readFileAsync = promisify(fs.readFile);
-const existsAsync = promisify(fs.exists);
 
 export async function extractYoutubeId(url: string): Promise<string> {
 	const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/;
@@ -169,71 +168,99 @@ export async function createGenerationJob(input: CreateJobInput) {
 		// Validate video is not already in the database
 		await validateIsVideoNotInDatabase(input.url);
 
-		// Start database transaction to create the job record
-		const [jobRecord] = await db
-			.insertInto('generation_jobs')
-			.values({
-				user_id: input.userId,
+		// Wrap the entire job creation and queue submission in a transaction
+		const result = await db.transaction().execute(async (trx) => {
+			// Create job record in transaction
+			const [jobRecord] = await trx
+				.insertInto('generation_jobs')
+				.values({
+					user_id: input.userId,
+					url: input.url,
+					playlist_id: input.playlistId || null,
+					new_playlist_id: input.newPlaylistId || null,
+					new_playlist_title: input.newPlaylistTitle || null,
+					speaker_id: input.speakerId || null,
+					new_speaker_name: input.newSpeakerName || null,
+					ai_service: input.aiService || 'gemini',
+					priority: input.priority || 0,
+					status: 'pending',
+					progress: 0,
+				})
+				.returning([
+					'id',
+					'user_id',
+					'url',
+					'playlist_id',
+					'new_playlist_id',
+					'new_playlist_title',
+					'speaker_id',
+					'new_speaker_name',
+					'ai_service',
+					'priority',
+					'status',
+					'created_at',
+				])
+				.execute();
+
+			console.log('Job record created in transaction:', jobRecord);
+
+			// Prepare job data for the queue
+			const jobData: LessonGenerationJobData = {
 				url: input.url,
-				playlist_id: input.playlistId || null,
-				new_playlist_id: input.newPlaylistId || null,
-				new_playlist_title: input.newPlaylistTitle || null,
-				speaker_id: input.speakerId || null,
-				new_speaker_name: input.newSpeakerName || null,
-				ai_service: input.aiService || 'gemini',
-				priority: input.priority || 0,
-				status: 'pending',
-				progress: 0,
-			})
-			.returning([
-				'id',
-				'user_id',
-				'url',
-				'playlist_id',
-				'new_playlist_id',
-				'new_playlist_title',
-				'speaker_id',
-				'new_speaker_name',
-				'ai_service',
-				'priority',
-				'status',
-				'created_at',
-			])
-			.execute();
+				userId: input.userId,
+				aiService: input.aiService,
+				playlistId: input.playlistId,
+				speakerId: input.speakerId,
+				newPlaylistId: input.newPlaylistId,
+				newPlaylistTitle: input.newPlaylistTitle,
+				newSpeakerName: input.newSpeakerName,
+				priority: input.priority,
+			};
 
-		console.log('Job record created:', jobRecord);
+			try {
+				// Add job to queue
+				const queue = getLessonGenerationQueue();
+				const job = await queue.add('generate-lesson', jobData, {
+					jobId: jobRecord.id,
+					priority: input.priority || undefined,
+					attempts: 1,
+				});
 
-		// Add job to queue
-		const queue = getLessonGenerationQueue();
+				console.log('Job added to queue with ID:', job.id);
 
-		const jobData: LessonGenerationJobData = {
-			url: input.url,
-			userId: input.userId,
-			aiService: input.aiService,
-			playlistId: input.playlistId,
-			speakerId: input.speakerId,
-			newPlaylistId: input.newPlaylistId,
-			newPlaylistTitle: input.newPlaylistTitle,
-			newSpeakerName: input.newSpeakerName,
-			priority: input.priority,
-		};
+				// Return job information
+				return {
+					success: true,
+					jobId: jobRecord.id,
+				};
+			} catch (queueError) {
+				// If queue.add fails, update the job status to failed
+				console.error('Failed to add job to queue:', queueError);
 
-		// Use database ID as job ID for easy correlation
-		const job = await queue.add('generate-lesson', jobData, {
-			jobId: jobRecord.id,
-			priority: input.priority || undefined,
-			attempts: 1,
+				// Update job status in the transaction
+				await trx
+					.updateTable('generation_jobs')
+					.set({
+						status: 'failed',
+						error: `Failed to add job to queue: ${
+							queueError instanceof Error
+								? queueError.message
+								: String(queueError)
+						}`,
+						updated_at: new Date(),
+					})
+					.where('id', '=', jobRecord.id)
+					.execute();
+
+				// Rethrow the error to be caught by the outer catch block
+				throw queueError;
+			}
 		});
-
-		console.log('Job added to queue with ID:', job.id);
 
 		// Revalidate related paths
 		revalidatePath('/admin/jobs');
 
-		return {
-			success: true,
-			jobId: jobRecord.id,
-		};
+		return result;
 	} catch (error) {
 		console.error('Error creating generation job:', error);
 		throw error;
@@ -858,8 +885,10 @@ export async function getJobLogs(jobId: string, userId: string) {
 		);
 		const logFilePath = path.join(logsDir, `job-${jobId}.log`);
 
-		// Check if the log file exists
-		const fileExists = await existsAsync(logFilePath);
+		// Check if the log file exists using access instead of existsAsync
+		const fileExists = await access(logFilePath)
+			.then(() => true)
+			.catch(() => false);
 		if (!fileExists) {
 			console.log(
 				`Log file not found for job ${jobId} at path ${logFilePath}`
@@ -868,7 +897,7 @@ export async function getJobLogs(jobId: string, userId: string) {
 		}
 
 		// Read the file
-		const fileContents = await readFileAsync(logFilePath, 'utf8');
+		const fileContents = await readFile(logFilePath, 'utf8');
 
 		// Parse the logs (each line is a JSON object)
 		const logs = fileContents
