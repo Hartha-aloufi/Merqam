@@ -1,22 +1,5 @@
 # docker-compose.yml
-version: '3.8'
-
 services:
-  web:
-    build: .
-    ports:
-      - '3000:3000'
-    environment:
-      - NODE_ENV=production
-    depends_on:
-      - postgres
-    networks:
-      - my_network
-    env_file:
-      - .env
-      - .env.production
-
-
   postgres:
     image: postgres:16-alpine
     container_name: merqam_db
@@ -38,7 +21,7 @@ services:
   
   redis:
     image: redis:7-alpine
-    container_name: mirqam_redis
+    container_name: merqam_redis
     ports:
       - "6379:6379"
     volumes:
@@ -51,25 +34,6 @@ services:
       retries: 5
     networks:
       - my_network
-
-  worker:
-    build:
-      context: .
-      dockerfile: Dockerfile.worker
-    container_name: mirqam_worker
-    volumes:
-      - worker_logs:/app/logs
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    restart: unless-stopped
-    networks:
-      - my_network
-    env_file:
-      - .env
-      - .env.production
 
 volumes:
   postgres_data:      
