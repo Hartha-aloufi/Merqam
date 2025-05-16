@@ -1,31 +1,51 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Search from '@/client/components/ui/search';
-import { useRouter } from 'next/navigation';
-import { findAndRedirectToLesson } from '@/app/actions/findAndRedirectToLesson';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 
 export default function YouTubeSearch() {
 	const [isSearching, setIsSearching] = useState(false);
 	const router = useRouter();
+	const searchParams = useSearchParams();
+
+	useEffect(() => {
+		const error = searchParams.get('error');
+		if (error) {
+			toast.error(decodeURIComponent(error));
+		}
+	}, [searchParams]);
+
+	const extractVideoId = (url: string) => {
+		// If it's just a video ID, return it directly
+		if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
+			return url;
+		}
+
+		// Handle youtu.be URLs
+		if (url.includes('youtu.be')) {
+			return url.split('/').pop()?.split('?')[0];
+		}
+
+		// Handle youtube.com URLs
+		const urlObj = new URL(url);
+		return urlObj.searchParams.get('v');
+	};
 
 	const handleSearch = async (value: string) => {
 		setIsSearching(true);
 
 		try {
-			const formData = new FormData();
-			formData.set('youtubeUrl', value);
+			const videoId = extractVideoId(value);
 
-			const result = await findAndRedirectToLesson(formData);
-
-			if (result?.error) {
-				toast.error(result.error);
-			} else if (result?.redirectUrl) {
-				router.push(result.redirectUrl);
-			} else {
-				toast.error(result.error || 'حصلت مشكلة ما, حاول مرة اخرى');
+			if (!videoId) {
+				toast.error('الرجاء إدخال رابط يوتيوب صحيح');
+				return;
 			}
+
+			// Redirect to the request page with the video ID
+			router.push(`/request/${videoId}`);
 		} catch (error) {
 			console.log('Search error:', error);
 			toast.error('حدث خطأ أثناء البحث');
@@ -37,12 +57,13 @@ export default function YouTubeSearch() {
 	return (
 		<div className="w-full max-w-xl mx-auto">
 			<Search
-				placeholder="ادخل رابط فيديو يوتيوب"
+				placeholder="ادخل رابط فيديو يوتيوب أو معرف الفيديو"
 				onSearch={handleSearch}
 				isLoading={isSearching}
 			/>
 			<p className="text-sm text-muted-foreground mt-2 text-center">
-				أدخل رابط فيديو يوتيوب للعثور على الدرس المرتبط به
+				أدخل رابط فيديو يوتيوب أو معرف الفيديو للعثور على الدرس المرتبط
+				به
 			</p>
 		</div>
 	);
