@@ -1,56 +1,34 @@
 'use client';
 
-import Link from 'next/link';
-import { Button } from '@/client/components/ui/button';
-import { Video, BookOpen, Clock } from 'lucide-react';
+import { Clock } from 'lucide-react';
 
 interface LessonHeaderProps {
 	title: string;
 	readingTime: number;
-	youtubeUrl: string | null;
-	lessonId: string;
+	speakerName?: string;
 }
 
 export function LessonHeader({
+	title,
 	readingTime,
-	youtubeUrl,
-	lessonId,
+	speakerName,
 }: LessonHeaderProps) {
 	return (
-		<div className="mb-8">
-			<div className="flex flex-wrap items-center gap-4 text-muted-foreground mb-6">
-				<div className="flex items-center gap-1">
-					<Clock className="h-4 w-4" />
-					<span>{readingTime} دقائق للقراءة</span>
-				</div>
+		<div className="border-b pb-4">
+			<h1 className="text-2xl sm:text-3xl font-bold mb-2">{title}</h1>
 
-				{youtubeUrl && (
-					<div className="flex items-center gap-1">
-						<Video className="h-4 w-4" />
-						<span>تفريغ مقطع مرئي</span>
+			<div className="flex flex-wrap gap-4 text-sm text-muted-foreground mt-2">
+				{speakerName && (
+					<div>
+						المتحدث:{' '}
+						<span className="text-foreground">{speakerName}</span>
 					</div>
 				)}
-			</div>
 
-			<div className="flex flex-wrap gap-3">
-				{youtubeUrl && (
-					<Link
-						href={youtubeUrl}
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						<Button variant="outline" className="gap-2">
-							<Video className="h-4 w-4" />
-							شاهد المقطع المرئي
-						</Button>
-					</Link>
-				)}
-				<Link href={`/playlists/${lessonId}/exercise`}>
-					<Button variant="secondary" className="gap-2">
-						<BookOpen className="h-4 w-4" />
-						حل التمارين
-					</Button>
-				</Link>
+				<div className="flex items-center">
+					<Clock className="h-4 w-4 mr-1" />
+					<span>{readingTime} دقيقة قراءة</span>
+				</div>
 			</div>
 		</div>
 	);

@@ -12,6 +12,7 @@ import {
 import type { BahethMedium } from '@/server/services/baheth.service';
 import { Eye, Plus } from 'lucide-react';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface LessonNotFoundProps {
 	youtubeId: string;
@@ -23,12 +24,11 @@ export function LessonNotFound({
 	bahethMedium,
 }: LessonNotFoundProps) {
 	const [isProcessing, setIsProcessing] = useState(false);
+	const router = useRouter();
 
 	const handleViewOnly = () => {
 		setIsProcessing(true);
-		// To be implemented later
-		console.log('View only mode requested for', youtubeId);
-		setIsProcessing(false);
+		router.push(`/external/lessons/${youtubeId}`);
 	};
 
 	const handleRequestToAdd = () => {

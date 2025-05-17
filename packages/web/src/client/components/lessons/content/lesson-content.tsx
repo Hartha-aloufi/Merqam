@@ -1,16 +1,16 @@
 // Server component that handles MDX rendering
-import { MDXRemote } from "next-mdx-remote/rsc";
-import rehypeHighlight from "rehype-highlight";
-import rehypeSlug from "rehype-slug";
-import remarkGfm from "remark-gfm";
-import { MDXClientWrapper } from "./client-mdx-wrapper";
-import { createMDXComponents } from "./mdx-components";
+import { MDXRemote } from 'next-mdx-remote/rsc';
+import rehypeHighlight from 'rehype-highlight';
+import rehypeSlug from 'rehype-slug';
+import remarkGfm from 'remark-gfm';
+import { MDXClientWrapper } from './client-mdx-wrapper';
+import { createMDXComponents } from './mdx-components';
 
 const options = {
-  mdxOptions: {
-    remarkPlugins: [remarkGfm],
-    rehypePlugins: [rehypeSlug, [rehypeHighlight, { ignoreMissing: true }]],
-  },
+	mdxOptions: {
+		remarkPlugins: [remarkGfm],
+		rehypePlugins: [rehypeSlug, [rehypeHighlight, { ignoreMissing: true }]],
+	},
 };
 
 interface LessonContentProps {
@@ -23,11 +23,11 @@ interface LessonContentProps {
  * A generator that increments a counter each time it is called
  */
 function* incrementingGenerator() {
-  let count = 0;
-  while (true) {
-    yield count;
-    count++;
-  }
+	let count = 0;
+	while (true) {
+		yield count;
+		count++;
+	}
 }
 
 /**
@@ -38,14 +38,14 @@ function* incrementingGenerator() {
  * - Client-side features (highlighting, font size, etc.)
  */
 export function LessonContent({
-  content,
-  playlistId,
-  lessonId,
+	content,
+	playlistId,
+	lessonId,
 }: LessonContentProps) {
-  const paragraphIndexGen = incrementingGenerator();
-  const mdxComponents = createMDXComponents(paragraphIndexGen);
+	const paragraphIndexGen = incrementingGenerator();
+	const mdxComponents = createMDXComponents(paragraphIndexGen);
 
-  return (
+	return (
 		<MDXClientWrapper topicId={playlistId} lessonId={lessonId}>
 			<MDXRemote
 				source={content}
@@ -53,5 +53,5 @@ export function LessonContent({
 				options={options}
 			/>
 		</MDXClientWrapper>
-  );
+	);
 }
