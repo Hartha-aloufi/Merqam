@@ -54,11 +54,11 @@ export async function findAndRedirectToLesson(
 				};
 			} else {
 				// Lesson not found in either system
-				return {
+			return {
 					notFound: true,
 					bahethAvailable: false,
 					videoId,
-				};
+			};
 			}
 		}
 	} catch (error) {

@@ -12,6 +12,9 @@ import {
 import type { BahethMedium } from '@/server/services/baheth.service';
 import { Eye, Plus } from 'lucide-react';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { requestLessonGeneration } from '@/app/actions/requestLessonGeneration';
+import { toast } from 'sonner';
 
 interface LessonNotFoundProps {
 	youtubeId: string;
@@ -23,19 +26,32 @@ export function LessonNotFound({
 	bahethMedium,
 }: LessonNotFoundProps) {
 	const [isProcessing, setIsProcessing] = useState(false);
+	const router = useRouter();
 
 	const handleViewOnly = () => {
 		setIsProcessing(true);
-		// To be implemented later
-		console.log('View only mode requested for', youtubeId);
-		setIsProcessing(false);
+		router.push(`/external/lessons/${youtubeId}`);
 	};
 
-	const handleRequestToAdd = () => {
+	const handleRequestToAdd = async () => {
 		setIsProcessing(true);
-		// To be implemented later
-		console.log('Request to add to Merqam for', youtubeId);
-		setIsProcessing(false);
+		try {
+			const result = await requestLessonGeneration(
+				youtubeId,
+				bahethMedium
+			);
+
+			if (result.success && result.redirectUrl) {
+				router.push(result.redirectUrl);
+			} else {
+				toast.error(result.error || 'حدث خطأ أثناء طلب إضافة الدرس');
+				setIsProcessing(false);
+			}
+		} catch (error) {
+			toast.error('حدث خطأ أثناء طلب إضافة الدرس');
+			console.error('Error requesting lesson addition:', error);
+			setIsProcessing(false);
+		}
 	};
 
 	return (
