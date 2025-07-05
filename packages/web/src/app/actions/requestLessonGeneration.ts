@@ -100,8 +100,14 @@ export async function requestLessonGeneration(
 				url: `https://www.youtube.com/watch?v=${youtubeId}`,
 				userId: adminUser.id,
 				aiService: 'gemini',
-				// We don't have playlist or speaker info for user requests,
-				// so those fields will be undefined
+				// Add speaker information if available from Baheth
+				...(bahethMedium?.speakers?.[0] && {
+					speakerId: String(bahethMedium.speakers[0].id),
+				}),
+				// Add playlist information if available from Baheth
+				...(bahethMedium?.playlist && {
+					playlistId: String(bahethMedium.playlist.id),
+				}),
 			};
 
 			try {

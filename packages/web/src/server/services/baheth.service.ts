@@ -1,11 +1,13 @@
 // src/server/services/baheth.service.ts
 import { env } from '../config/env';
-import type { paths } from '@/types/baheth-api';
+import type { components } from '@/types/baheth-api';
 
 export type BahethMedium =
-	paths['/api/medium']['get']['responses']['200']['content']['application/json'];
-export type BahethMediumParams =
-	paths['/api/medium']['get']['parameters']['query'];
+	components['schemas']['medium_with_required_fields'] & {
+		cues?: components['schemas']['cue'][];
+		playlist: components['schemas']['playlist'];
+		speakers: components['schemas']['speaker'][];
+	};
 
 export class BahethService {
 	private token: string;
@@ -58,21 +60,12 @@ export class BahethService {
 	async getMediumByYoutubeId(
 		youtubeId: string
 	): Promise<BahethMedium | null> {
-		const params = {
-			reference_id: `https://www.youtube.com/watch?v=${youtubeId}`,
-			reference_type: 'youtube_link',
-		} as const;
-
-		const searchParams = new URLSearchParams(params);
-		// Add expand parameters separately to handle array properly
-		searchParams.append('expand[]', 'speakers');
-		// searchParams.append('expand[]', 'playlist');
-
 		try {
-			return (await this.fetchFromBaheth(
-				'/medium',
-				Object.fromEntries(searchParams)
-			)) as Promise<BahethMedium>;
+			return (await this.fetchFromBaheth('/medium', {
+				reference_id: `https://www.youtube.com/watch?v=${youtubeId}`,
+				reference_type: 'youtube_link',
+				'expand[]': 'cues,playlist,speakers',
+			})) as Promise<BahethMedium>;
 		} catch (error) {
 			console.error('Error fetching medium from Baheth:', error);
 			return null;
