@@ -108,6 +108,14 @@ export async function requestLessonGeneration(
 				...(bahethMedium?.playlist && {
 					playlistId: String(bahethMedium.playlist.id),
 				}),
+				// Pass Baheth medium data to worker for direct transcript download
+				bahethMedium: bahethMedium ? {
+					id: bahethMedium.id,
+					title: bahethMedium.title,
+					link: bahethMedium.link,
+					transcription_txt_link: bahethMedium.transcription_txt_link,
+					transcription_srt_link: bahethMedium.transcription_srt_link,
+				} : undefined,
 			};
 
 			try {

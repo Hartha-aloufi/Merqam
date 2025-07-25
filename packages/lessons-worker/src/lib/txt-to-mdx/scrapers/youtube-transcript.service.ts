@@ -1,5 +1,5 @@
 import { TranscriptScraper } from './base-scraper';
-import { logger } from './logger';
+import { workerLogger as logger } from '../../lib/logging/file-logger';
 import { TranscriptResult } from '../types';
 import { Page } from 'puppeteer';
 import { YtDlpWrapper } from '../../../utils/download-subtitle';

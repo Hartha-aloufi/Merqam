@@ -34,19 +34,27 @@ winston.addColors(colors);
 
 // Determine the log level based on environment
 const level = () => {
-	return env.NODE_ENV === 'production' ? 'info' : 'debug';
+	return env.LOG_LEVEL || (env.NODE_ENV === 'production' ? 'info' : 'debug');
 };
 
-// Format for console output
+// Log level emojis for better visual identification
+const levelEmojis = {
+	error: '❌',
+	warn: '⚠️',
+	info: 'ℹ️',
+	http: '🌐',
+	debug: '🔍',
+};
+
+// Format for console output with emojis and better readability
 const consoleFormat = winston.format.combine(
 	winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
 	winston.format.colorize({ all: true }),
-	winston.format.printf(
-		(info) =>
-			`${info.timestamp} ${info.level}: ${info.message} ${
-				info.metadata ? JSON.stringify(info.metadata) : ''
-			}`
-	)
+	winston.format.printf((info) => {
+		const emoji = levelEmojis[info.level.replace(/\u001b\[[0-9;]*m/g, '') as keyof typeof levelEmojis] || '';
+		const metadata = info.metadata ? ` ${JSON.stringify(info.metadata, null, 2)}` : '';
+		return `${info.timestamp} ${emoji} ${info.level}: ${info.message}${metadata}`;
+	})
 );
 
 // JSON format for file output
@@ -61,12 +69,7 @@ export const createLogger = (name: string) => {
 	const logFilePath = path.join(LOG_DIR, `${name}.log`);
 
 	const transports = [
-		// Console transport
-		new winston.transports.Console({
-			format: consoleFormat,
-		}),
-
-		// File transports
+		// File transports (always enabled)
 		new winston.transports.File({
 			filename: path.join(LOG_DIR, 'error.log'),
 			level: 'error',
@@ -77,6 +80,13 @@ export const createLogger = (name: string) => {
 			format: fileFormat,
 		}),
 	];
+
+	// Conditionally add console transport based on environment
+	if (env.LOG_TO_CONSOLE) {
+		transports.unshift(new winston.transports.Console({
+			format: consoleFormat,
+		}));
+	}
 
 	return winston.createLogger({
 		level: level(),

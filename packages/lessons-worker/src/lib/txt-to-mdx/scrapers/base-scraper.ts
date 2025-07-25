@@ -1,7 +1,7 @@
 // src/lib/txt-to-mdx/scrapers/base-scraper.ts
 import puppeteer, { Page } from "puppeteer";
 import { TranscriptResult } from "../types";
-import { logger } from "./logger";
+import { workerLogger as logger } from '../../../lib/logging/file-logger';
 import path from "path";
 import fs from "fs/promises";
 

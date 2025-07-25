@@ -5,12 +5,13 @@ import { LessonNotFound } from '@/client/components/lessonNotFound';
 export default async function RequestPage({
 	params,
 }: {
-	params: { youtube_video_id: string };
+	params: Promise<{ youtube_video_id: string }>;
 }) {
+	const { youtube_video_id } = await params;
 	const formData = new FormData();
 	formData.set(
 		'youtubeUrl',
-		`https://www.youtube.com/watch?v=${params.youtube_video_id}`
+		`https://www.youtube.com/watch?v=${youtube_video_id}`
 	);
 
 	const result = await findAndRedirectToLesson(formData);
@@ -29,7 +30,7 @@ export default async function RequestPage({
 		// Lesson exists in Baheth but not in Merqam
 		return (
 			<LessonNotFound
-				youtubeId={params.youtube_video_id}
+				youtubeId={youtube_video_id}
 				bahethMedium={result.bahethMedium}
 			/>
 		);

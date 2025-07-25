@@ -25,6 +25,10 @@ const envSchema = z
 		REDIS_HOST: z.string(),
 		REDIS_PORT: z.coerce.number().default(6379),
 		REDIS_PASSWORD: z.string().optional(),
+		NODE_ENV: z.string().optional(),
+		BAHETH_API_TOKEN: z.string(),
+		LOG_TO_CONSOLE: z.coerce.boolean().default(true),
+		LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
 		OPENAI_API_KEY: z.string().optional(),
 		GEMINI_API_KEYS: z.array(z.string()).default([]).optional(),
 		STORAGE_ROOT_URL: z.string(),
@@ -33,6 +37,7 @@ const envSchema = z
 		AWS_ACCESS_KEY_ID: z.string(),
 		AWS_SECRET_ACCESS_KEY: z.string(),
 		AWS_BUCKET_NAME: z.string().optional().default('merqam-lessons'),
+		BAHETH_API_BASE_URL: z.string().optional().default('https://baheth.ieasybooks.com/api'),
 	})
 	.transform((data) => ({
 		...data,

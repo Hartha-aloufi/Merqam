@@ -10,10 +10,23 @@ def main():
     video_id = sys.argv[1]
     output_dir = sys.argv[2]
 
+    print(f"Video ID: {video_id}")
+    print(f"Output directory: {output_dir}")
+
     try:
         # Try to get Arabic subtitles first, fall back to auto-generated if not available
         try:
-            transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['ar'])
+            ytt_api = YouTubeTranscriptApi()
+            print("Trying to get Arabic subtitles...")
+            fetched_transcript = ytt_api.fetch(video_id, languages=['ar'])
+            print(f"Fetched {len(fetched_transcript)} subtitles")
+            # Save as SRT
+            with open(f"{output_dir}/{video_id}.srt", "w", encoding="utf-8") as srt_file:
+                for i, entry in enumerate(fetched_transcript, 1):
+                    start = int(entry['start'])
+                    duration = int(entry['duration'])
+                    end = start + duration
+
         except:
             # If Arabic not available, try auto-generated Arabic
             transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=['ar'], preserve_formatting=True)

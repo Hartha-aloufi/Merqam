@@ -14,6 +14,7 @@ import {
 } from '../../queue/job-error-utils';
 import { AIServiceFactory } from '../../services/ai/ai-service.factory';
 import { env } from '../env';
+import { BahethDirectDownloader } from './scrapers/baheth-direct-download';
 
 /**
  * Result interface for the conversion process
@@ -74,14 +75,19 @@ export class EnhancedTxtToMdxConverter {
 		let srtPath: string | undefined;
 
 		try {
+			// Add breadcrumb for process start
+			logger.info('🎬 BREADCRUMB: processContent started', { url, playlistId });
+			
 			// Report initialization
 			console.log('Initializing conversion...');
 			await this.progress('INITIALIZED');
 
+			logger.debug('🍞 BREADCRUMB: About to validate inputs');
 			await this.validateInputs(url, playlistId);
 			logger.info('Input validation successful', { url, playlistId });
 
 			// Set up directories
+			logger.debug('🍞 BREADCRUMB: About to setup directories');
 			const { topicPath: playlistPath } = await this.setupDirectories(
 				playlistId
 			);
@@ -91,7 +97,14 @@ export class EnhancedTxtToMdxConverter {
 			await this.progress('DOWNLOADING');
 
 			// Download and extract content
+			logger.debug('🍞 BREADCRUMB: About to call downloadContent method');
 			const { videoId, title, files } = await this.downloadContent(url);
+			logger.debug('🍞 BREADCRUMB: downloadContent method completed', { 
+				videoId, 
+				title,
+				hasTxtFile: !!files.txt,
+				hasSrtFile: !!files.srt
+			});
 			txtPath = files.txt;
 			srtPath = files.srt;
 
@@ -197,28 +210,150 @@ export class EnhancedTxtToMdxConverter {
 	}
 
 	/**
-	 * Downloads and extracts content using appropriate scraper
+	 * Downloads and extracts content using Baheth API first, then fallback scrapers
 	 */
 	private async downloadContent(url: string) {
+		const downloadStart = Date.now();
+		
 		try {
-			const scraper = ScraperFactory.getScraper(url);
-
-			logger.info('Starting transcript download...');
-			const result = await scraper.scrape(url, this.tempDir);
-
-			logger.info('Transcript download complete', {
-				videoId: result.videoId,
-				title: result.title,
+			logger.info('🎬 Starting transcript download process', { 
+				url,
+				tempDir: this.tempDir,
+				strategy: 'Baheth API first, then fallback'
 			});
 
+			// Try Baheth API first for any YouTube URL
+			logger.info('🔄 Step 1: Attempting Baheth API download', { url });
+			
+			let bahethDownloader: BahethDirectDownloader;
+			try {
+				logger.debug('🏗️ Creating BahethDirectDownloader instance');
+				bahethDownloader = new BahethDirectDownloader();
+				logger.debug('✅ BahethDirectDownloader instance created successfully');
+			} catch (error) {
+				logger.error('💥 Failed to create BahethDirectDownloader instance', {
+					url,
+					error: error instanceof Error ? {
+						name: error.name,
+						message: error.message,
+						stack: error.stack?.split('\n').slice(0, 3)
+					} : String(error)
+				});
+				// If we can't create the downloader, skip to fallback
+				const bahethDuration = Date.now() - downloadStart;
+				logger.warn('⚠️ Skipping Baheth API due to initialization error', {
+					bahethAttemptDuration: `${bahethDuration}ms`,
+					skipReason: 'BahethDirectDownloader instantiation failed'
+				});
+				bahethDownloader = null as any; // Will cause fallback below
+			}
+			
+			let bahethResult: any = null;
+			if (bahethDownloader) {
+				try {
+					logger.debug('📞 Calling bahethDownloader.downloadTranscripts');
+					bahethResult = await bahethDownloader.downloadTranscripts(url, this.tempDir);
+					logger.debug('📞 bahethDownloader.downloadTranscripts call completed', {
+						hasResult: !!bahethResult
+					});
+				} catch (error) {
+					logger.error('💥 Exception during Baheth download process', {
+						url,
+						error: error instanceof Error ? {
+							name: error.name,
+							message: error.message,
+							stack: error.stack?.split('\n').slice(0, 5)
+						} : String(error)
+					});
+					bahethResult = null;
+				}
+			}
+
+			if (bahethResult) {
+				const bahethDuration = Date.now() - downloadStart;
+				logger.info('🎉 Baheth API download successful - transcript source confirmed', {
+					source: 'Baheth API',
+					videoId: bahethResult.videoId,
+					title: bahethResult.title,
+					duration: `${bahethDuration}ms`,
+					files: {
+						txt: path.basename(bahethResult.files.txt),
+						srt: path.basename(bahethResult.files.srt)
+					}
+				});
+
+				logger.debug('🔍 Verifying downloaded files from Baheth');
+				await this.verifyDownloadedFiles(bahethResult.files);
+				logger.debug('✅ File verification passed');
+
+				return bahethResult;
+			}
+
+			// Fallback to traditional scraper method
+			const bahethDuration = Date.now() - downloadStart;
+			logger.info('🔄 Step 2: Baheth API unsuccessful, using fallback scraper', {
+				bahethAttemptDuration: `${bahethDuration}ms`,
+				fallbackReason: 'Medium not found in Baheth or transcripts unavailable'
+			});
+
+			const fallbackStart = Date.now();
+			const scraper = ScraperFactory.getScraper(url);
+
+			logger.info('🛠️ Initializing fallback scraper', {
+				scraperType: scraper.constructor.name,
+				url
+			});
+
+			logger.info('⬇️ Starting fallback transcript download...');
+			const result = await scraper.scrape(url, this.tempDir);
+
+			const fallbackDuration = Date.now() - fallbackStart;
+			const totalDuration = Date.now() - downloadStart;
+
+			logger.info('🎉 Fallback transcript download complete', {
+				source: 'Fallback scraper',
+				scraperType: scraper.constructor.name,
+				videoId: result.videoId,
+				title: result.title,
+				fallbackDuration: `${fallbackDuration}ms`,
+				totalDuration: `${totalDuration}ms`,
+				files: {
+					txt: path.basename(result.files.txt),
+					srt: path.basename(result.files.srt)
+				}
+			});
+
+			logger.debug('🔍 Verifying downloaded files from fallback scraper');
 			await this.verifyDownloadedFiles(result.files);
+			logger.debug('✅ File verification passed');
 
 			return result;
 		} catch (error) {
+			const totalDuration = Date.now() - downloadStart;
+			
+			logger.error('💥 All transcript download methods failed', {
+				url,
+				totalDuration: `${totalDuration}ms`,
+				tempDir: this.tempDir,
+				error: error instanceof Error ? {
+					name: error.name,
+					message: error.message,
+					stack: error.stack?.split('\n').slice(0, 5)
+				} : String(error),
+				attemptedSources: ['Baheth API', 'Fallback scraper']
+			});
+
 			throw new JobError(
-				'Failed to download transcript',
+				'Failed to download transcript from all available sources',
 				JobErrorType.TRANSCRIPT_DOWNLOAD,
-				{ details: error }
+				{ 
+					details: error,
+					context: {
+						url,
+						totalDuration: `${totalDuration}ms`,
+						attemptedSources: ['Baheth API', 'Fallback scraper']
+					}
+				}
 			);
 		}
 	}

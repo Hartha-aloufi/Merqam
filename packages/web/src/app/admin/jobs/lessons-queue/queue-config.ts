@@ -3,6 +3,15 @@ import { Queue, ConnectionOptions } from 'bullmq';
 import { env } from '@/server/config/env';
 import { AIServiceType } from './temp';
 
+// Baheth medium interface for job data
+export interface BahethMedium {
+	id: number;
+	title: string;
+	link: string;
+	transcription_txt_link?: string;
+	transcription_srt_link?: string;
+}
+
 
 /**
  * Redis connection configuration for BullMQ
@@ -30,6 +39,7 @@ export interface LessonGenerationJobData {
 	newPlaylistTitle?: string;
 	newSpeakerName?: string;
 	priority?: number;
+	bahethMedium?: BahethMedium;
 }
 
 // Singleton instances to ensure we use the same connection throughout the app

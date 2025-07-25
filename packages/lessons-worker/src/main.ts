@@ -33,6 +33,16 @@ workerLogger.info('Worker process starting', {
 	workingDirectory: process.cwd(),
 });
 
+// Log environment configuration for debugging
+workerLogger.info('Environment configuration loaded', {
+	nodeEnv: process.env.NODE_ENV,
+	bahethApiBaseUrl: process.env.BAHETH_API_BASE_URL || 'using default',
+	storageRootUrl: process.env.STORAGE_ROOT_URL ? 'configured' : 'missing',
+	hasOpenAiKey: !!process.env.OPENAI_API_KEY,
+	hasGeminiKeys: !!(process.env.GEMINI_API_KEY_1 || process.env.GEMINI_API_KEY),
+	redisHost: process.env.REDIS_HOST || 'missing',
+});
+
 /**
  * Graceful shutdown handler
  */
