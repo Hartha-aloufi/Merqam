@@ -8,16 +8,10 @@
 		"strict": true,
 		"skipLibCheck": true,
 		"forceConsistentCasingInFileNames": true,
-		"outDir": "dist",
 		"declaration": true,
-		"sourceMap": true,
-		"baseUrl": "."
+		"composite": true,
+		"outDir": "dist"
 	},
-	"include": ["src/**/*"],
-	"exclude": ["node_modules", "dist"],
-	"references": [
-		{
-			"path": "../types"
-		}
-	]
-} 
+	"include": ["**/*.ts", "**/*.d.ts"],
+	"exclude": ["node_modules", "dist"]
+}

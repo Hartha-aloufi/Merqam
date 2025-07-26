@@ -1,13 +1,17 @@
 // src/server/services/baheth.service.ts
 import { env } from '../config/env';
+import type { components } from '@merqam/types';
 
-const BAHETH_API_URL = 'https://baheth.ieasybooks.com/api';
+export type BahethMedium =
+	components['schemas']['medium_with_required_fields'] 
 
 export class BahethService {
 	private token: string;
+	private apiUrl: string;
 
 	constructor() {
 		this.token = env.BAHETH_API_TOKEN;
+		this.apiUrl = env.BAHETH_API_BASE_URL;
 	}
 
 	private async fetchFromBaheth(
@@ -27,7 +31,7 @@ export class BahethService {
 		}
 
 		const response = await fetch(
-			`${BAHETH_API_URL}${endpoint}?${searchParams}`,
+			`${this.apiUrl}${endpoint}?${searchParams}`,
 			{ headers: { Accept: 'application/json' } }
 		);
 
@@ -48,5 +52,20 @@ export class BahethService {
 
 	async getSpeakerById(id: string) {
 		return this.fetchFromBaheth(`/speakers/${id}`, {});
+	}
+
+	async getMediumByYoutubeId(
+		youtubeId: string
+	): Promise<BahethMedium | null> {
+		try {
+			return (await this.fetchFromBaheth('/medium', {
+				reference_id: `https://www.youtube.com/watch?v=${youtubeId}`,
+				reference_type: 'youtube_link',
+				'expand[]': 'cues,playlist,speakers',
+			})) as Promise<BahethMedium>;
+		} catch (error) {
+			console.error('Error fetching medium from Baheth:', error);
+			return null;
+		}
 	}
 }

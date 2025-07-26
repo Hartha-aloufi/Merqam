@@ -1,45 +1,69 @@
 'use server';
 
+import {
+	BahethService,
+	type BahethMedium,
+} from '@/server/services/baheth.service';
 import { ContentService } from '@/server/services/content.service';
 import { extractYoutubeId } from '../admin/jobs/lessons-queue/actions';
 
-export async function findAndRedirectToLesson(formData: FormData) {
-	const url = formData.get('youtubeUrl') as string;
-	const contentService = new ContentService();
+interface FindLessonResult {
+	redirectUrl?: string;
+	error?: string;
+	notFound?: boolean;
+	bahethAvailable?: boolean;
+	videoId?: string;
+	bahethMedium?: BahethMedium;
+}
+
+export async function findAndRedirectToLesson(
+	formData: FormData
+): Promise<FindLessonResult> {
+	const youtubeUrl = formData.get('youtubeUrl') as string;
+
+	// Extract video ID from the URL
+	const videoId = await extractYoutubeId(youtubeUrl);
+	if (!videoId) {
+		return { error: 'رابط غير صحيح' };
+	}
 
 	try {
-		console.info('Searching for lesson by YouTube URL', { url });
+		// First, check if the lesson exists in Merqam
+		const contentService = new ContentService();
+		const lesson = await contentService.getLessonIdByYoutubeId(videoId);
 
-		const videoId = await extractYoutubeId(url);
-		if (!videoId) {
-			console.warn('Invalid YouTube URL format', { url });
+		if (lesson) {
+			// Lesson found in Merqam, return redirect URL
 			return {
-				success: false,
-				error: 'رابط يوتيوب غير صالح, لم يتم العثور على معرف المقطع',
-			};
-		}
-
-		const result = await contentService.getLessonIdByYoutubeId(videoId);
-		if (result) {
-			console.info('Lesson found for YouTube ID', {
-				videoId,
-				lessonId: result.id,
-				playlistId: result.playlist_id,
-			});
-
-			// Return the lesson URL to the client
-			return {
-				success: true,
-				redirectUrl: `/playlists/${result.playlist_id}/lessons/${result.id}`,
+				redirectUrl: `/playlists/${lesson.playlist_id}/lessons/${lesson.id}`,
 			};
 		} else {
-			return {
-				success: false,
-				error: 'لم يتم العثور على درس مرتبط بهذا الفيديو',
-			};
+			// Lesson not found in Merqam, check Baheth
+			const bahethService = new BahethService();
+			const bahethMedium = await bahethService.getMediumByYoutubeId(
+				videoId
+			);
+
+			if (bahethMedium) {
+				// Lesson exists in Baheth
+				return {
+					notFound: true,
+					bahethAvailable: true,
+					videoId,
+					bahethMedium,
+				};
+			} else {
+				// Lesson not found in either system
+				return {
+					notFound: true,
+					bahethAvailable: false,
+					videoId,
+				};
+			}
 		}
 	} catch (error) {
-		console.log('Error in findAndRedirectToLesson', { error, url });
-		return { success: false, error: 'حدث خطأ أثناء البحث' };
+		console.error('Error finding lesson:', error);
+		return { error: 'حدث خطأ أثناء البحث عن الدرس' };
 	}
 }
+

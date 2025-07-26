@@ -1,4 +1,4 @@
-import { logger } from '../../lib/txt-to-mdx/scrapers/logger';
+import { workerLogger as logger } from '../../lib/logging/file-logger';
 
 const validationConfig = {
 	minSimilarity: 0.6,

@@ -8,12 +8,14 @@
 	"scripts": {
 		"dev": "concurrently \"cd packages/web && bun run dev\" \"cd packages/lessons-worker && bun run dev\"",
 		"build": "concurrently \"cd packages/web && bun run build\" \"cd packages/lessons-worker && bun run build\"",
-		"test": "concurrently \"cd packages/web && bun run test\" \"cd packages/lessons-worker && bun run test\""
+		"test": "concurrently \"cd packages/web && bun run test\" \"cd packages/lessons-worker && bun run test\"",
+		"o2t": "npx openapi-typescript https://baheth.ieasybooks.com/api-docs/v1/swagger.yaml -o ./packages/types/api.d.ts"
 	},
 	"devDependencies": {
 		"concurrently": "^9.1.2",
 		"cross-env": "^7.0.3",
-		"eslint": "^8"
+		"eslint": "^8",
+		"openapi-typescript": "^7.8.0"
 	},
 	"dependencies": {
 		"@google/genai": "^0.8.0",

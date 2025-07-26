@@ -38,6 +38,13 @@ main.exe yB1WtN6Kzqw ./output
 python main.py <video_id> <output_dir>
 ```
 
+or
+
+
+```bash
+py main.py <video_id> <output_dir>
+```
+
 ## Output
 
 The tool generates two files:

@@ -3,6 +3,12 @@ import { Queue, ConnectionOptions } from 'bullmq';
 import { env } from '@/server/config/env';
 import { AIServiceType } from './temp';
 
+// Import types from the @types workspace
+import type { components } from '@merqam/types';
+
+
+export type BahethMedium = components['schemas']['medium_with_required_fields'] 
+
 
 /**
  * Redis connection configuration for BullMQ
@@ -30,6 +36,7 @@ export interface LessonGenerationJobData {
 	newPlaylistTitle?: string;
 	newSpeakerName?: string;
 	priority?: number;
+	bahethMedium?: BahethMedium;
 }
 
 // Singleton instances to ensure we use the same connection throughout the app

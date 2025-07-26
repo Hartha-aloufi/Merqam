@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep:*)",
+      "Bash(bun run:*)",
+      "Bash(rm:*)",
+      "Bash(git push:*)",
+      "Bash(gh pr create:*)"
+    ],
+    "deny": []
+  }
+}
