@@ -60,7 +60,7 @@ import { Badge } from '@/client/components/ui/badge';
 import React from 'react';
 
 interface GroupedJobsListProps {
-	userId: string;
+	userId: string | null;
 }
 
 interface PlaylistGroup {
@@ -336,6 +336,7 @@ function JobsTable({ jobs, userId }: { jobs: Job[]; userId: string }) {
 					</div>
 				);
 			case 'cancelled':
+				
 				return (
 					<div className="flex items-center">
 						<StopCircle className="h-4 w-4 text-gray-500 mr-2" />
