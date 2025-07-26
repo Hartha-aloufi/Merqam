@@ -5,8 +5,7 @@ import { JobsList } from '@/client/components/jobs/job-list-component';
 import { Button } from '@/client/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import Link from 'next/link';
-import { db } from '@/server/config/db';
-
+import { requireAdmin } from '@/server/lib/auth/admin-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,14 +15,10 @@ export const metadata: Metadata = {
 };
 
 export default async function JobsPage() {
-	// Get the current user - in production, use your auth system
-	const adminUser = await db
-		.selectFrom('users')
-		.where('email', '=', 'admin@example.com')
-		.select(['id'])
-		.executeTakeFirst();
-
-	if (!adminUser) {
+	try {
+		// Require admin authentication
+		await requireAdmin();
+	} catch (error) {
 		redirect('/auth/signin?returnUrl=/admin/jobs');
 	}
 
@@ -35,7 +30,7 @@ export default async function JobsPage() {
 						إدارة المهام
 					</h1>
 					<p className="text-muted-foreground">
-						مراقبة وإدارة مهام إنشاء الدروس
+						مراقبة وإدارة مهام إنشاء الدروس - جميع المستخدمين
 					</p>
 				</div>
 					<Link href="/admin/jobs/new">
@@ -47,7 +42,7 @@ export default async function JobsPage() {
 			</div>
 
 			<div className="max-w-6xl mx-auto">
-				<JobsList userId={adminUser.id} />
+				<JobsList userId={null} />
 			</div>
 		</div>
 	);
