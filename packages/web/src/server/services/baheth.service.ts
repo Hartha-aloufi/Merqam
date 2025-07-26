@@ -1,20 +1,17 @@
 // src/server/services/baheth.service.ts
 import { env } from '../config/env';
-import type { components } from '@/types/baheth-api';
+import type { components } from '@merqam/types';
 
 export type BahethMedium =
-	components['schemas']['medium_with_required_fields'] & {
-		cues?: components['schemas']['cue'][];
-		playlist: components['schemas']['playlist'];
-		speakers: components['schemas']['speaker'][];
-	};
+	components['schemas']['medium_with_required_fields'] 
 
 export class BahethService {
 	private token: string;
-	private apiUrl = 'https://baheth.ieasybooks.com/api';
+	private apiUrl: string;
 
 	constructor() {
 		this.token = env.BAHETH_API_TOKEN;
+		this.apiUrl = env.BAHETH_API_BASE_URL;
 	}
 
 	private async fetchFromBaheth(

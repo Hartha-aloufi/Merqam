@@ -22,7 +22,7 @@ export async function findAndRedirectToLesson(
 	const youtubeUrl = formData.get('youtubeUrl') as string;
 
 	// Extract video ID from the URL
-	const videoId = extractVideoId(youtubeUrl);
+	const videoId = await extractYoutubeId(youtubeUrl);
 	if (!videoId) {
 		return { error: 'رابط غير صحيح' };
 	}
@@ -67,22 +67,3 @@ export async function findAndRedirectToLesson(
 	}
 }
 
-function extractVideoId(url: string): string | null {
-	// If it's just a video ID, return it directly
-	if (!url.includes('youtube.com') && !url.includes('youtu.be')) {
-		return url;
-	}
-
-	try {
-		// Handle youtu.be URLs
-		if (url.includes('youtu.be')) {
-			return url.split('/').pop()?.split('?')[0] || null;
-		}
-
-		// Handle youtube.com URLs
-		const urlObj = new URL(url);
-		return urlObj.searchParams.get('v');
-	} catch {
-		return null;
-	}
-}

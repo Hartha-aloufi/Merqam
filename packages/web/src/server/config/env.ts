@@ -26,6 +26,7 @@ const envSchema = z
 		REDIS_PORT: z.coerce.number().default(6379),
 		REDIS_PASSWORD: z.string().optional(),
 		BAHETH_API_TOKEN: z.string(),
+		BAHETH_API_BASE_URL: z.string().optional().default('https://baheth.ieasybooks.com/api'),
 		JWT_SECRET: z.string(),
 		GOOGLE_CLIENT_ID: z.string(),
 		GOOGLE_CLIENT_SECRET: z.string(),
