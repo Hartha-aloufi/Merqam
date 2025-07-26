@@ -231,7 +231,7 @@ export class EnhancedTxtToMdxConverter {
 				bahethDownloader = new BahethDirectDownloader();
 				logger.debug('✅ BahethDirectDownloader instance created successfully');
 			} catch (error) {
-				logger.error('💥 Failed to create BahethDirectDownloader instance', {
+				logger.error('💥 Critical: Failed to create BahethDirectDownloader instance', {
 					url,
 					error: error instanceof Error ? {
 						name: error.name,
@@ -239,34 +239,30 @@ export class EnhancedTxtToMdxConverter {
 						stack: error.stack?.split('\n').slice(0, 3)
 					} : String(error)
 				});
-				// If we can't create the downloader, skip to fallback
-				const bahethDuration = Date.now() - downloadStart;
-				logger.warn('⚠️ Skipping Baheth API due to initialization error', {
-					bahethAttemptDuration: `${bahethDuration}ms`,
-					skipReason: 'BahethDirectDownloader instantiation failed'
-				});
-				bahethDownloader = null as any; // Will cause fallback below
+				
+				// This is a critical configuration/environment error that should not be silently ignored
+				const errorMessage = `BahethDirectDownloader instantiation failed: ${error instanceof Error ? error.message : String(error)}`;
+				logger.error('🚨 Process terminating due to critical initialization failure');
+				throw new Error(errorMessage);
 			}
 			
 			let bahethResult: any = null;
-			if (bahethDownloader) {
-				try {
-					logger.debug('📞 Calling bahethDownloader.downloadTranscripts');
-					bahethResult = await bahethDownloader.downloadTranscripts(url, this.tempDir);
-					logger.debug('📞 bahethDownloader.downloadTranscripts call completed', {
-						hasResult: !!bahethResult
-					});
-				} catch (error) {
-					logger.error('💥 Exception during Baheth download process', {
-						url,
-						error: error instanceof Error ? {
-							name: error.name,
-							message: error.message,
-							stack: error.stack?.split('\n').slice(0, 5)
-						} : String(error)
-					});
-					bahethResult = null;
-				}
+			try {
+				logger.debug('📞 Calling bahethDownloader.downloadTranscripts');
+				bahethResult = await bahethDownloader.downloadTranscripts(url, this.tempDir);
+				logger.debug('📞 bahethDownloader.downloadTranscripts call completed', {
+					hasResult: !!bahethResult
+				});
+			} catch (error) {
+				logger.error('💥 Exception during Baheth download process', {
+					url,
+					error: error instanceof Error ? {
+						name: error.name,
+						message: error.message,
+						stack: error.stack?.split('\n').slice(0, 5)
+					} : String(error)
+				});
+				bahethResult = null;
 			}
 
 			if (bahethResult) {

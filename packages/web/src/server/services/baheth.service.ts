@@ -7,10 +7,11 @@ export type BahethMedium =
 
 export class BahethService {
 	private token: string;
-	private apiUrl = 'https://baheth.ieasybooks.com/api';
+	private apiUrl: string;
 
 	constructor() {
 		this.token = env.BAHETH_API_TOKEN;
+		this.apiUrl = env.BAHETH_API_BASE_URL;
 	}
 
 	private async fetchFromBaheth(
