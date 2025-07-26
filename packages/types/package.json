@@ -1,0 +1,28 @@
+{
+	"name": "@merqam/types",
+	"version": "1.0.0",
+	"description": "TypeScript definitions Shared by all Merqam packages",
+	"main": "api.d.ts",
+	"types": "api.d.ts",
+	"exports": {
+		".": {
+			"import": "./api.d.ts",
+			"require": "./api.d.ts",
+			"types": "./api.d.ts"
+		}
+	},
+	"private": true,
+	"files": [
+		"api.d.ts",
+		"tsconfig.json"
+	],
+	"keywords": [
+		"typescript",
+		"types",
+		"baheth",
+		"merqam",
+		"api"
+	],
+	"author": "Merqam Team",
+	"license": "MIT"
+}

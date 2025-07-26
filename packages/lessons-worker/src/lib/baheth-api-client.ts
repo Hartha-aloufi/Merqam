@@ -1,75 +1,16 @@
 import { env } from './env';
 import { workerLogger as logger } from './logging/file-logger';
 
-// Copy the exact type definitions from the web service
-type WithRequired<T, K extends keyof T> = T & {
-    [P in K]-?: T[P];
+// Import types from the @types workspace
+import type { components } from '@merqam/types';
+
+// Re-export common types for convenience
+export type BahethApiComponents = components;
+export type BahethMedium = components['schemas']['medium_with_required_fields'] & {
+    cues?: components['schemas']['cue'][];
+    playlist: components['schemas']['playlist'];
+    speakers: components['schemas']['speaker'][];
 };
-
-export interface BahethApiComponents {
-    schemas: {
-        medium: {
-            id?: number;
-            slug?: string;
-            title?: string;
-            description?: string;
-            duration?: number;
-            link?: string;
-            source_link?: string;
-            transcription_txt_link?: string;
-            transcription_srt_link?: string;
-            transcription_pdf_link?: string;
-            transcription_epub_link?: string;
-            url: string;
-        };
-        medium_with_required_fields: WithRequired<BahethApiComponents['schemas']['medium'], 
-            'id' | 'slug' | 'title' | 'description' | 'duration' | 'link' | 'source_link' | 
-            'transcription_txt_link' | 'transcription_srt_link' | 'transcription_pdf_link' | 
-            'transcription_epub_link' | 'url'>;
-        cue: {
-            content: string;
-            start_time: number;
-            end_time: number;
-        };
-        playlist: {
-            id?: number;
-            slug?: string;
-            title?: string;
-            description?: string;
-            link?: string;
-            source_link?: string;
-            media_count?: number;
-            url: string;
-        };
-        speaker: {
-            id?: number;
-            slug?: string;
-            name?: string;
-            description?: string;
-            link?: string;
-            image?: string;
-            playlists_count?: number;
-            source_link?: string;
-            url: string;
-        };
-    };
-}
-
-// Export the exact same type as the web service
-export type BahethMedium = BahethApiComponents['schemas']['medium_with_required_fields'] & {
-    cues?: BahethApiComponents['schemas']['cue'][];
-    playlist: BahethApiComponents['schemas']['playlist'];
-    speakers: BahethApiComponents['schemas']['speaker'][];
-};
-
-// For backward compatibility with existing code
-export interface BahethMediumInfo {
-    id: number;
-    title: string;
-    transcription_txt_link: string | null;
-    transcription_srt_link: string | null;
-    source_link: string;
-}
 
 /**
  * Baheth API client - exact implementation from web service
@@ -204,7 +145,7 @@ export class BahethAPIClient {
      * @param youtubeUrl - The YouTube video URL
      * @returns Medium information if found, null if not found
      */
-    async findMediumByYouTubeUrl(youtubeUrl: string): Promise<BahethMediumInfo | null> {
+    async findMediumByYouTubeUrl(youtubeUrl: string): Promise<BahethMedium | null> {
         const startTime = Date.now();
         
         try {

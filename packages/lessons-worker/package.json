@@ -29,6 +29,7 @@
 	"dependencies": {
 		"@aws-sdk/client-s3": "^3.802.0",
 		"@google/genai": "^0.8.0",
+		"@merqam/types": "workspace:*",
 		"bullmq": "^5.41.7",
 		"dotenv": "^16.4.5",
 		"kysely": "^0.27.5",

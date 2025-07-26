@@ -9,7 +9,7 @@
 		"dev": "concurrently \"cd packages/web && bun run dev\" \"cd packages/lessons-worker && bun run dev\"",
 		"build": "concurrently \"cd packages/web && bun run build\" \"cd packages/lessons-worker && bun run build\"",
 		"test": "concurrently \"cd packages/web && bun run test\" \"cd packages/lessons-worker && bun run test\"",
-		"o2t": "npx openapi-typescript https://baheth.ieasybooks.com/api-docs/v1/swagger.yaml -o ./types/api.d.ts"
+		"o2t": "npx openapi-typescript https://baheth.ieasybooks.com/api-docs/v1/swagger.yaml -o ./packages/types/api.d.ts"
 	},
 	"devDependencies": {
 		"concurrently": "^9.1.2",

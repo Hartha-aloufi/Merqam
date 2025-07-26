@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import { workerLogger as logger } from '../../lib/logging/file-logger';
-import { BahethAPIClient, BahethMediumInfo } from '../../baheth-api-client';
+import { workerLogger as logger } from '../../../lib/logging/file-logger';
+import { BahethAPIClient } from '../../../lib/baheth-api-client';
 import { TranscriptResult } from '../types';
 
 export class BahethDirectDownloader {
@@ -90,8 +90,8 @@ export class BahethDirectDownloader {
 				bahethId: bahethMedium.id,
 				videoId,
 				title: bahethMedium.title,
-				txtLink: bahethMedium.transcription_txt_link.substring(0, 60) + '...',
-				srtLink: bahethMedium.transcription_srt_link.substring(0, 60) + '...'
+				txtLink: bahethMedium.transcription_txt_link?.substring(0, 60) + '...',
+				srtLink: bahethMedium.transcription_srt_link?.substring(0, 60) + '...'
 			});
 
 			// Step 4: Ensure output directory exists
@@ -108,7 +108,7 @@ export class BahethDirectDownloader {
 			logger.debug('📋 Step 5: Downloading TXT file');
 			const txtPath = path.join(outputDir, `${videoId}.txt`);
 			const txtStartTime = Date.now();
-			await this.downloadFile(bahethMedium.transcription_txt_link, txtPath);
+			await this.downloadFile(bahethMedium.transcription_txt_link!, txtPath);
 			files.txt = txtPath;
 			logger.info('✅ TXT file downloaded successfully', { 
 				txtPath,
@@ -119,7 +119,7 @@ export class BahethDirectDownloader {
 			logger.debug('📋 Step 6: Downloading SRT file');
 			const srtPath = path.join(outputDir, `${videoId}.srt`);
 			const srtStartTime = Date.now();
-			await this.downloadFile(bahethMedium.transcription_srt_link, srtPath);
+			await this.downloadFile(bahethMedium.transcription_srt_link!, srtPath);
 			files.srt = srtPath;
 			logger.info('✅ SRT file downloaded successfully', { 
 				srtPath,

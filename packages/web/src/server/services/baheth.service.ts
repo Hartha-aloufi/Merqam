@@ -1,13 +1,9 @@
 // src/server/services/baheth.service.ts
 import { env } from '../config/env';
-import type { components } from '@/types/baheth-api';
+import type { components } from '@merqam/types';
 
 export type BahethMedium =
-	components['schemas']['medium_with_required_fields'] & {
-		cues?: components['schemas']['cue'][];
-		playlist: components['schemas']['playlist'];
-		speakers: components['schemas']['speaker'][];
-	};
+	components['schemas']['medium_with_required_fields'] 
 
 export class BahethService {
 	private token: string;

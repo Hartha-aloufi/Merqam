@@ -1,9 +1,8 @@
 import { TranscriptScraper } from './base-scraper';
-import { workerLogger as logger } from '../../lib/logging/file-logger';
+import { workerLogger as logger } from '../../../lib/logging/file-logger';
 import { TranscriptResult } from '../types';
 import { Page } from 'puppeteer';
 import { YtDlpWrapper } from '../../../utils/download-subtitle';
-import { threadId } from 'worker_threads';
 
 /**
  * Service for downloading YouTube video transcripts using yt-dlp
