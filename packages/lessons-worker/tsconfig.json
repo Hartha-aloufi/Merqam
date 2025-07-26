@@ -11,10 +11,7 @@
 		"outDir": "dist",
 		"declaration": true,
 		"sourceMap": true,
-		"baseUrl": ".",
-		"paths": {
-			"@types/baheth-api": ["../types"]
-		}
+		"baseUrl": "."
 	},
 	"include": ["src/**/*"],
 	"exclude": ["node_modules", "dist"],

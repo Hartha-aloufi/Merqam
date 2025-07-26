@@ -6,11 +6,7 @@ import type { components } from '@merqam/types';
 
 // Re-export common types for convenience
 export type BahethApiComponents = components;
-export type BahethMedium = components['schemas']['medium_with_required_fields'] & {
-    cues?: components['schemas']['cue'][];
-    playlist: components['schemas']['playlist'];
-    speakers: components['schemas']['speaker'][];
-};
+export type BahethMedium = components['schemas']['medium_with_required_fields'] 
 
 /**
  * Baheth API client - exact implementation from web service

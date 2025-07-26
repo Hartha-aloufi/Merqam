@@ -3,14 +3,11 @@ import { Queue, ConnectionOptions } from 'bullmq';
 import { env } from '@/server/config/env';
 import { AIServiceType } from './temp';
 
-// Baheth medium interface for job data
-export interface BahethMedium {
-	id: number;
-	title: string;
-	link: string;
-	transcription_txt_link?: string;
-	transcription_srt_link?: string;
-}
+// Import types from the @types workspace
+import type { components } from '@merqam/types';
+
+
+export type BahethMedium = components['schemas']['medium_with_required_fields'] 
 
 
 /**
