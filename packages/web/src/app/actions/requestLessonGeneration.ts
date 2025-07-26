@@ -6,6 +6,7 @@ import {
 	getLessonGenerationQueue,
 	LessonGenerationJobData,
 } from '@/app/admin/jobs/lessons-queue/queue-config';
+import { requireAuth } from '@/server/lib/auth/server-action-auth';
 
 interface RequestGenerationResult {
 	success: boolean;
@@ -14,11 +15,77 @@ interface RequestGenerationResult {
 	jobId?: string;
 }
 
+/**
+ * Handle existing job based on its status
+ */
+async function handleExistingJob(job: any, youtubeId: string, userId: string): Promise<RequestGenerationResult | null> {
+	switch (job.status) {
+		case 'completed':
+			return {
+				success: false,
+				error: 'هذا الدرس متوفر بالفعل في مِرْقَم',
+			};
+			
+		case 'pending':
+		case 'processing':
+			return {
+				success: false,
+				error: 'يتم معالجة هذا الدرس حالياً',
+				redirectUrl: `/request/status/${youtubeId}`,
+			};
+			
+		case 'failed':
+		case 'cancelled':
+			// Check retry cooldown (1 hour)
+			const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+			if (job.updated_at > oneHourAgo) {
+				const waitMinutes = Math.ceil((60 * 60 * 1000 - (Date.now() - job.updated_at.getTime())) / (1000 * 60));
+				return {
+					success: false,
+					error: `يجب الانتظار ${waitMinutes} دقيقة قبل إعادة المحاولة`,
+				};
+			}
+			
+			// Delete old failed job to allow retry
+			await db.deleteFrom('generation_jobs')
+				.where('id', '=', job.id)
+				.execute();
+				
+			// Return null to indicate can proceed with new job
+			return null;
+			
+		default:
+			return {
+				success: false,
+				error: 'حالة المهمة غير معروفة',
+			};
+	}
+}
+
+/**
+ * Check rate limiting for user (max 3 jobs per hour)
+ */
+async function checkRateLimit(userId: string): Promise<boolean> {
+	const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+	
+	const recentJobs = await db
+		.selectFrom('generation_jobs')
+		.where('user_id', '=', userId)
+		.where('created_at', '>', oneHourAgo)
+		.select(['id'])
+		.execute();
+		
+	return recentJobs.length < 3; // Max 3 jobs per hour
+}
+
 export async function requestLessonGeneration(
 	youtubeId: string,
 	bahethMedium?: BahethMedium
 ): Promise<RequestGenerationResult> {
 	try {
+		// Require authentication
+		const user = await requireAuth();
+
 		// Check if the video already exists in lessons
 		const existingLesson = await db
 			.selectFrom('lessons')
@@ -33,29 +100,29 @@ export async function requestLessonGeneration(
 			};
 		}
 
-		// Check if there's already a pending job for this video
+		// Check for existing job with user ownership
 		const existingJob = await db
 			.selectFrom('generation_jobs')
 			.where('url', '=', `https://www.youtube.com/watch?v=${youtubeId}`)
+			.where('user_id', '=', user.id) // User ownership check
 			.selectAll()
 			.executeTakeFirst();
 
 		if (existingJob) {
-			return {
-				success: false,
-				error: 'هناك طلب قائم بالفعل لهذا الدرس',
-			};
+			const handleResult = await handleExistingJob(existingJob, youtubeId, user.id);
+			if (handleResult !== null) {
+				return handleResult;
+			}
+			// If handleResult is null, proceed with creating new job (retry allowed)
 		}
 
-		// Find an admin user from the database
-		const adminUser = await db
-			.selectFrom('users')
-			.where('email', '=', 'admin@example.com')
-			.select(['id'])
-			.executeTakeFirst();
-
-		if (!adminUser) {
-			throw new Error('Could not find admin user for job creation');
+		// Check rate limiting
+		const rateLimitPassed = await checkRateLimit(user.id);
+		if (!rateLimitPassed) {
+			return {
+				success: false,
+				error: 'لقد تجاوزت الحد المسموح من الطلبات (3 طلبات في الساعة). حاول مرة أخرى لاحقاً',
+			};
 		}
 
 		// Prepare metadata with Baheth information if available
@@ -89,7 +156,7 @@ export async function requestLessonGeneration(
 					progress: 0,
 					ai_service: 'gemini',
 					priority: 0,
-					user_id: adminUser.id,
+					user_id: user.id, // Use authenticated user
 					result: metadata as any, // Type cast to match Kysely requirements
 				})
 				.returning(['id'])
@@ -98,16 +165,21 @@ export async function requestLessonGeneration(
 			// Prepare job data for the queue
 			const jobData: LessonGenerationJobData = {
 				url: `https://www.youtube.com/watch?v=${youtubeId}`,
-				userId: adminUser.id,
+				userId: user.id, // Use authenticated user
 				aiService: 'gemini',
-				// Add speaker information if available from Baheth
-				...(bahethMedium?.speakers?.[0] && {
-					speakerId: String(bahethMedium.speakers[0].id),
-				}),
-				// Add playlist information if available from Baheth
-				...(bahethMedium?.playlist && {
-					playlistId: String(bahethMedium.playlist.id),
-				}),
+				// Add speaker information if available from Baheth, otherwise use defaults
+				...(bahethMedium?.speakers?.[0] 
+					? { speakerId: String(bahethMedium.speakers[0].id) }
+					: { newSpeakerName: "متحدث غير معروف" }
+				),
+				// Add playlist information if available from Baheth, otherwise use defaults
+				...(bahethMedium?.playlist 
+					? { playlistId: String(bahethMedium.playlist.id) }
+					: { 
+						newPlaylistId: "general", 
+						newPlaylistTitle: "دروس عامة" 
+					}
+				),
 				// Pass Baheth medium data to worker for direct transcript download
 				bahethMedium: bahethMedium ? {
 					id: bahethMedium.id,
@@ -160,6 +232,14 @@ export async function requestLessonGeneration(
 			redirectUrl: `/request/status/${youtubeId}`,
 		};
 	} catch (error) {
+		// Handle authentication errors specifically
+		if (error instanceof Error && error.message === 'Authentication required') {
+			return {
+				success: false,
+				error: 'يجب تسجيل الدخول أولاً لطلب إضافة الدرس',
+			};
+		}
+		
 		console.error('Error requesting lesson generation:', error);
 		return {
 			success: false,

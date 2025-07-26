@@ -68,9 +68,11 @@ export function useSubmitGenerationJob() {
 /**
  * Hook for fetching a list of jobs
  */
-export function useGenerationJobs(userId: string, limit = 10, offset = 0) {
+export function useGenerationJobs(userId: string | null, limit = 10, offset = 0) {
 	return useQuery({
-		queryKey: [...JOB_KEYS.list(userId), { limit, offset }],
+		queryKey: userId 
+			? [...JOB_KEYS.list(userId), { limit, offset }]
+			: ['jobs', 'all-users', { limit, offset }],
 		queryFn: () => getGenerationJobs(userId, limit, offset),
 		staleTime: 15000, // 15 seconds
 		refetchInterval: (query) => {
@@ -186,9 +188,11 @@ export function useRetryFailedJob() {
 /**
  * Hook for fetching jobs grouped by playlist
  */
-export function useGroupedGenerationJobs(userId: string) {
+export function useGroupedGenerationJobs(userId: string | null) {
 	return useQuery({
-		queryKey: [...JOB_KEYS.list(userId), 'grouped'],
+		queryKey: userId 
+			? [...JOB_KEYS.list(userId), 'grouped']
+			: ['jobs', 'all-users', 'grouped'],
 		queryFn: () => getGroupedGenerationJobs(userId),
 		staleTime: 15000, // 15 seconds
 		refetchInterval: (query) => {

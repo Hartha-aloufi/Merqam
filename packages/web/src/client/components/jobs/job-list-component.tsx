@@ -45,7 +45,7 @@ import {
 	List,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Skeleton } from '@/client/components/ui/skeleton';
 import {
 	AlertDialog,
@@ -64,13 +64,14 @@ import { GroupedJobsList } from './grouped-jobs-list';
 import { Switch } from '@/client/components/ui/switch';
 
 interface JobsListProps {
-	userId: string;
+	userId: string | null; // null means show all users
 	pageSize?: number;
 }
 
 export function JobsList({ userId, pageSize = 10 }: JobsListProps) {
 	const [currentPage, setCurrentPage] = useState(0);
 	const [isGroupedView, setIsGroupedView] = useState(false);
+	const [users, setUsers] = useState<Map<string, string>>(new Map());
 	const { data, isLoading, isError, error } = useGenerationJobs(
 		userId,
 		pageSize,
@@ -82,13 +83,47 @@ export function JobsList({ userId, pageSize = 10 }: JobsListProps) {
 	const [jobToCancelId, setJobToCancelId] = useState<string | null>(null);
 	const [jobToRetryId, setJobToRetryId] = useState<string | null>(null);
 
+	// Fetch user emails when jobs data changes (only when showing all users)
+	useEffect(() => {
+		if (!data?.jobs || userId !== null) return; // Only fetch users when showing all users
+		
+		const userIds = [...new Set(data.jobs.map(job => job.user_id))];
+		if (userIds.length === 0) return;
+
+		// Simple user lookup - in a real app you'd want a proper API endpoint
+		fetch('/api/profile') // This endpoint would need to be created to fetch user info by IDs
+			.then(res => res.json())
+			.then(userData => {
+				const userMap = new Map();
+				// For now, we'll just show partial emails for privacy
+				userIds.forEach(id => {
+					userMap.set(id, `مستخدم ${id.slice(0, 8)}...`);
+				});
+				setUsers(userMap);
+			})
+			.catch(() => {
+				// Fallback: show user ID fragments
+				const userMap = new Map();
+				userIds.forEach(id => {
+					userMap.set(id, `مستخدم ${id.slice(0, 8)}...`);
+				});
+				setUsers(userMap);
+			});
+	}, [data?.jobs, userId]);
+
 	const handleCancelJob = (jobId: string) => {
-		cancelJob({ jobId, userId });
+		// Find the job to get the actual user_id
+		const job = data?.jobs.find(j => j.id === jobId);
+		const jobUserId = job?.user_id || userId;
+		cancelJob({ jobId, userId: jobUserId });
 		setJobToCancelId(null);
 	};
 
 	const handleRetryJob = (jobId: string) => {
-		retryJob({ jobId, userId });
+		// Find the job to get the actual user_id
+		const job = data?.jobs.find(j => j.id === jobId);
+		const jobUserId = job?.user_id || userId;
+		retryJob({ jobId, userId: jobUserId });
 		setJobToRetryId(null);
 	};
 
@@ -245,6 +280,7 @@ export function JobsList({ userId, pageSize = 10 }: JobsListProps) {
 										<TableHead>العنوان</TableHead>
 										<TableHead>الحالة</TableHead>
 										<TableHead>التاريخ</TableHead>
+										{userId === null && <TableHead>المستخدم</TableHead>}
 										<TableHead className="text-left">
 											الإجراءات
 										</TableHead>
@@ -307,6 +343,13 @@ export function JobsList({ userId, pageSize = 10 }: JobsListProps) {
 													)}
 												</div>
 											</TableCell>
+											{userId === null && (
+												<TableCell>
+													<span className="text-sm text-muted-foreground">
+														{users.get(job.user_id) || `مستخدم ${job.user_id.slice(0, 8)}...`}
+													</span>
+												</TableCell>
+											)}
 											<TableCell>
 												<div className="flex items-center gap-2">
 													<Link

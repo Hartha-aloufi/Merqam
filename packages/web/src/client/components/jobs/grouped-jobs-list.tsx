@@ -60,7 +60,7 @@ import { Badge } from '@/client/components/ui/badge';
 import React from 'react';
 
 interface GroupedJobsListProps {
-	userId: string;
+	userId: string | null;
 }
 
 interface PlaylistGroup {

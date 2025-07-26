@@ -1,6 +1,7 @@
 import { findAndRedirectToLesson } from '@/app/actions/findAndRedirectToLesson';
 import { redirect } from 'next/navigation';
 import { LessonNotFound } from '@/client/components/lessonNotFound';
+import { LessonNotAvailable } from '@/client/components/lessonNotAvailable';
 
 export default async function RequestPage({
 	params,
@@ -35,7 +36,7 @@ export default async function RequestPage({
 			/>
 		);
 	} else {
-		// Lesson not found in either system
-		redirect(`/?error=${encodeURIComponent('الدرس غير موجود')}`);
+		// Lesson not found in either system - show option to add it
+		return <LessonNotAvailable youtubeId={youtube_video_id} />;
 	}
 }
