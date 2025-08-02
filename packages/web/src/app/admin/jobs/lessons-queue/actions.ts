@@ -268,21 +268,29 @@ export async function createGenerationJob(input: CreateJobInput) {
 }
 
 /**
- * Gets a list of generation jobs for a user
+ * Gets a list of generation jobs for a user (or all users if userId is null)
  */
 export async function getGenerationJobs(
-	userId: string,
+	userId: string | null,
 	limit = 10,
 	offset = 0
 ) {
 	console.log(
-		`Getting generation jobs for user: ${userId}, limit: ${limit}, offset: ${offset}`
+		`Getting generation jobs for ${userId ? `user: ${userId}` : 'all users'}, limit: ${limit}, offset: ${offset}`
 	);
 
 	try {
-		const jobs = await db
-			.selectFrom('generation_jobs')
-			.where('user_id', '=', userId)
+		// Build the base query
+		let jobsQuery = db.selectFrom('generation_jobs');
+		let countQuery = db.selectFrom('generation_jobs');
+
+		// Apply user filter only if userId is provided
+		if (userId) {
+			jobsQuery = jobsQuery.where('user_id', '=', userId);
+			countQuery = countQuery.where('user_id', '=', userId);
+		}
+
+		const jobs = await jobsQuery
 			.select([
 				'id',
 				'url',
@@ -293,6 +301,7 @@ export async function getGenerationJobs(
 				'error',
 				'result',
 				'ai_service',
+				'user_id', // Add user_id to show who created each job
 				'created_at',
 				'started_at',
 				'completed_at',
@@ -303,9 +312,7 @@ export async function getGenerationJobs(
 			.execute();
 
 		// Get total count for pagination
-		const [{ count }] = await db
-			.selectFrom('generation_jobs')
-			.where('user_id', '=', userId)
+		const [{ count }] = await countQuery
 			.select(db.fn.count<number>('id').as('count'))
 			.execute();
 
@@ -722,10 +729,10 @@ export async function retryFailedJob(jobId: string, userId: string) {
 }
 
 /**
- * Gets a list of generation jobs grouped by playlist for a user
+ * Gets a list of generation jobs grouped by playlist for a user (or all users if userId is null)
  */
-export async function getGroupedGenerationJobs(userId: string) {
-	console.log(`Getting grouped generation jobs for user: ${userId}`);
+export async function getGroupedGenerationJobs(userId: string | null) {
+	console.log(`Getting grouped generation jobs for ${userId ? `user: ${userId}` : 'all users'}`);
 
 	try {
 		// Calculate the date 3 days ago
@@ -758,7 +765,7 @@ export async function getGroupedGenerationJobs(userId: string) {
 					])
 				)
 			)
-			.where('gj.user_id', '=', userId)
+			.$if(userId !== null, (qb) => qb.where('gj.user_id', '=', userId!))
 			.where('gj.created_at', '>=', threeDaysAgo) // Only show jobs from the last 3 days
 			.select([
 				// Group key information
@@ -817,7 +824,7 @@ export async function getGroupedGenerationJobs(userId: string) {
 		// Now get all jobs that don't have playlist IDs (individual jobs)
 		const individualJobs = await db
 			.selectFrom('generation_jobs')
-			.where('user_id', '=', userId)
+			.$if(userId !== null, (qb) => qb.where('user_id', '=', userId!))
 			.where('new_playlist_id', 'is', null)
 			.where('playlist_id', 'is', null)
 			.where('created_at', '>=', threeDaysAgo) // Only show jobs from the last 3 days
@@ -828,6 +835,7 @@ export async function getGroupedGenerationJobs(userId: string) {
 				'status',
 				'progress',
 				'error',
+				'user_id', // Add user_id for admin view
 				'created_at',
 				'started_at',
 				'completed_at',

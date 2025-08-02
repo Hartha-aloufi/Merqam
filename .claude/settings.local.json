@@ -5,7 +5,16 @@
       "Bash(bun run:*)",
       "Bash(rm:*)",
       "Bash(git push:*)",
-      "Bash(gh pr create:*)"
+      "Bash(gh pr create:*)",
+      "Bash(git remote:*)",
+      "Bash(git branch:*)",
+      "Bash(npx tsc:*)",
+      "Bash(timeout:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(bun add:*)",
+      "Bash(redis-cli:*)",
+      "Bash(docker run:*)"
     ],
     "deny": []
   }

@@ -268,7 +268,10 @@ async function processJob(job: Job<LessonGenerationJobData>) {
 export function initializeEnhancedWorker() {
 	workerLogger.info('Initializing enhanced lesson generation worker');
 
-	const worker = new Worker<LessonGenerationJobData>(
+	let worker: Worker<LessonGenerationJobData>;
+	
+	try {
+		worker = new Worker<LessonGenerationJobData>(
 		QUEUE_NAMES.LESSON_GENERATION,
 		processJob,
 		{
@@ -292,6 +295,10 @@ export function initializeEnhancedWorker() {
 			},
 		}
 	);
+	} catch (error) {
+		workerLogger.error('Failed to create worker instance:', formatErrorForLogging(error));
+		throw error;
+	}
 
 	// Add more detailed event handlers with logging
 	worker.on('completed', (job, result) => {
@@ -330,6 +337,7 @@ export function initializeEnhancedWorker() {
 	worker.on('stalled', (jobId) => {
 		workerLogger.warn(`Job ${jobId} has stalled`, { jobId });
 	});
+
 
 	workerLogger.info('Enhanced lesson generation worker initialized');
 	return worker;
